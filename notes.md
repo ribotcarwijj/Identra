@@ -1,5 +1,5 @@
-## Identra 0.7.33
+## Identra 0.7.34
 
-- **Auto-update**: every time you open Identra it checks for a new version and shows it with this changelog. One tap downloads, installs (root) and reopens Identra. "Check for updates" and an "Auto-check updates" switch are in the side menu.
-- **Launcher icon** fixed: the Identra logo now shows instead of the default Android icon.
-- **Instances with Play Services**: now include Play Store (for apps with Play licensing) and Bluetooth, and keep the phone package, so Google Play services no longer crashes in an instance.
+- **New app picker for instances**: search, app icons, selected apps on top, and a "Show system apps" switch.
+- **Keyboard**: your keyboard (e.g. Gboard) is listed and ticked by default when you create an instance, and you can untick it. It is enabled inside the instance automatically.
+- Keyboards don't get a fake identity and don't clutter the instance folder.
