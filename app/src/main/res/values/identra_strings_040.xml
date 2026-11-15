@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 0.4.0 Location: real "my location" -->
+    <string name="identra_loc_my_location" translatable="false">My location</string>
+    <string name="identra_loc_my_finding" translatable="false">Finding where your phone is…</string>
+    <string name="identra_loc_my_found" translatable="false">Your real location (±%1$d m)</string>
+    <string name="identra_loc_my_old" translatable="false">last fix %1$d min ago</string>
+    <string name="identra_loc_my_mock" translatable="false">from a mock location app</string>
+    <string name="identra_loc_my_self_hooked" translatable="false">Identra itself has location protection on, so this may be spoofed</string>
+    <string name="identra_loc_my_denied" translatable="false">Identra needs location permission to show where you are</string>
+    <string name="identra_loc_my_open_settings" translatable="false">Settings</string>
+    <string name="identra_loc_my_off" translatable="false">Location is turned off on this phone</string>
+    <string name="identra_loc_my_no_fix" translatable="false">Couldn\'t get a location fix. Try near a window or with Wi-Fi on.</string>
+    <string name="identra_loc_my_place" translatable="false">Your real location</string>
+    <string name="identra_loc_showing_spoofed" translatable="false">Showing the spoofed location: %1$s</string>
+    <string name="identra_loc_nothing_selected" translatable="false">No place selected yet. Search or tap the map.</string>
+    <!-- 0.4.0 Profiles -->
+    <string name="identra_dash_profile_default" translatable="false">Default: %1$s</string>
+    <string name="identra_dash_profiles" translatable="false">Profiles</string>
+    <string name="identra_dash_profiles_none" translatable="false">Create a device identity for your apps</string>
+    <string name="identra_dash_profiles_sub" translatable="false">%1$d profiles · %2$d apps use one</string>
+    <string name="identra_detail_profile_named" translatable="false">Profile: %1$s</string>
+    <string name="identra_status_profile" translatable="false">Profile: %1$s</string>
+    <string name="identra_prof_intro" translatable="false">A profile is a complete fake device: model, IDs, SIM, network, region and location. Give one to an app and it sees that phone.</string>
+    <string name="identra_prof_sec_device" translatable="false">Device</string>
+    <string name="identra_prof_sec_ids" translatable="false">Identifiers</string>
+    <string name="identra_prof_sec_phone" translatable="false">Phone &amp; SIM</string>
+    <string name="identra_prof_sec_network" translatable="false">Network</string>
+    <string name="identra_prof_sec_region" translatable="false">Location &amp; region</string>
+    <string name="identra_prof_sec_hardware" translatable="false">Display &amp; hardware</string>
+    <string name="identra_prof_sec_apps" translatable="false">Apps &amp; accounts</string>
+    <string name="identra_prof_new" translatable="false">New profile</string>
+    <string name="identra_prof_new_sub" translatable="false">Every value can be changed afterwards.</string>
+    <string name="identra_prof_new_random" translatable="false">Random device</string>
+    <string name="identra_prof_new_random_sub" translatable="false">A real phone model with matching IDs, SIM, region and location</string>
+    <string name="identra_prof_new_country" translatable="false">Random device for a country…</string>
+    <string name="identra_prof_new_country_sub" translatable="false">SIM operator, phone number, language, time zone and location from that country</string>
+    <string name="identra_prof_new_device" translatable="false">From this phone</string>
+    <string name="identra_prof_new_device_sub" translatable="false">Copies what Android shows Identra about this phone (no IMEI or SIM numbers)</string>
+    <string name="identra_prof_new_duplicate" translatable="false">Duplicate a profile…</string>
+    <string name="identra_prof_new_duplicate_sub" translatable="false">Start from a copy and change what you like</string>
+    <string name="identra_prof_new_empty" translatable="false">Empty profile</string>
+    <string name="identra_prof_new_empty_sub" translatable="false">Only the values you fill in are spoofed</string>
+    <string name="identra_prof_new_random_for_app" translatable="false">New random profile for this app</string>
+    <string name="identra_prof_pick_country" translatable="false">Choose a country</string>
+    <string name="identra_prof_empty_title" translatable="false">No profiles yet</string>
+    <string name="identra_prof_empty_body" translatable="false">Create one, then give it to an app from here or from the app\'s page.</string>
+    <string name="identra_prof_global_header" translatable="false">Global default</string>
+    <string name="identra_prof_global_none" translatable="false">No global profile</string>
+    <string name="identra_prof_global_none_sub" translatable="false">Apps without their own profile see their real values (or the classic global values).</string>
+    <string name="identra_prof_global_sub" translatable="false">Written as global values; every app with matching protections and no own profile uses it.</string>
+    <string name="identra_prof_global_clear" translatable="false">No global profile</string>
+    <string name="identra_prof_global_set" translatable="false">Make global default</string>
+    <string name="identra_prof_global_remove" translatable="false">Remove global default</string>
+    <string name="identra_prof_global_set_desc" translatable="false">Write “%1$s” as the global values? Apps that have the matching protections on but no profile of their own will use them.</string>
+    <string name="identra_prof_global_remove_desc" translatable="false">Remove the global values written by “%1$s”? Apps without their own profile go back to their real values.</string>
+    <string name="identra_prof_global_working" translatable="false">Updating global values…</string>
+    <string name="identra_prof_global_location" translatable="false">Global spoofed location</string>
+    <string name="identra_prof_yours" translatable="false">Your profiles</string>
+    <string name="identra_prof_default_badge" translatable="false">Default</string>
+    <string name="identra_prof_apply_to_apps" translatable="false">Apply to apps…</string>
+    <string name="identra_prof_apply_title" translatable="false">Apply “%1$s”</string>
+    <string name="identra_prof_apply_to_n" translatable="false">%1$d apps</string>
+    <string name="identra_prof_apply_n" translatable="false">Continue with %1$d apps</string>
+    <string name="identra_prof_apply" translatable="false">Apply</string>
+    <string name="identra_prof_applying" translatable="false">Applying “%1$s”</string>
+    <string name="identra_prof_applied" translatable="false">Profile applied</string>
+    <string name="identra_prof_applied_partly" translatable="false">Applied with problems</string>
+    <string name="identra_prof_data_title" translatable="false">APP DATA</string>
+    <string name="identra_prof_data_shared" translatable="false">Keep the app\'s data</string>
+    <string name="identra_prof_data_fresh" translatable="false">Fresh app data</string>
+    <string name="identra_prof_data_separate" translatable="false">Keep separate data per profile</string>
+    <string name="identra_prof_data_shared_desc" translatable="false">Only the spoofed values change. The app keeps its accounts and files, so it may still remember who you were.</string>
+    <string name="identra_prof_data_fresh_desc" translatable="false">The app\'s data is cleared once, like a new install. Logins and files in the app are lost.</string>
+    <string name="identra_prof_data_separate_desc" translatable="false">Advanced, needs root. The app\'s current data is saved, then this profile\'s own copy is restored (or it starts fresh). Switching back brings the old data back.</string>
+    <string name="identra_prof_data_shared_short" translatable="false">shared data</string>
+    <string name="identra_prof_data_fresh_short" translatable="false">fresh data</string>
+    <string name="identra_prof_data_separate_short" translatable="false">separate data</string>
+    <string name="identra_prof_checking_root" translatable="false">Checking for root access… (allow Identra in KernelSU / Magisk if asked)</string>
+    <string name="identra_prof_no_root" translatable="false">Root (su) is not available or was not granted to Identra, so data can\'t be kept per profile. Grant root to Identra in KernelSU or Magisk and try again.</string>
+    <string name="identra_prof_no_root_short" translatable="false">needs root</string>
+    <string name="identra_prof_enable_hooks" translatable="false">Turn on matching protections</string>
+    <string name="identra_prof_enable_hooks_sub" translatable="false">Switches on the hook groups that read these values for the app</string>
+    <string name="identra_prof_confirm_shared" translatable="false">Write the values of “%1$s” to %2$s? The app is stopped so it restarts with them.</string>
+    <string name="identra_prof_confirm_fresh" translatable="false">All data of %1$s will be deleted (logins, files, settings). This can\'t be undone.</string>
+    <string name="identra_prof_confirm_separate" translatable="false">%1$s will be stopped, its current data saved by Identra, and replaced with the data kept for “%2$s” (or a fresh start). Nothing is deleted before the save has succeeded.</string>
+    <string name="identra_prof_for_app" translatable="false">Profile for %1$s</string>
+    <string name="identra_prof_for_app_none" translatable="false">No profile yet. Pick one to make this app see that device.</string>
+    <string name="identra_prof_for_app_current" translatable="false">Currently: %1$s</string>
+    <string name="identra_prof_remove_from_app" translatable="false">Remove profile</string>
+    <string name="identra_prof_remove_from_app_sub" translatable="false">The app sees its real values again (data is left as it is)</string>
+    <string name="identra_prof_remove_confirm" translatable="false">Remove “%1$s” from %2$s? Its values are deleted for this app.</string>
+    <string name="identra_prof_remove" translatable="false">Remove</string>
+    <string name="identra_prof_removing" translatable="false">Removing profile…</string>
+    <string name="identra_prof_failed" translatable="false">Something went wrong</string>
+    <string name="identra_prof_rename" translatable="false">Rename</string>
+    <string name="identra_prof_name" translatable="false">Name</string>
+    <string name="identra_prof_save" translatable="false">Save</string>
+    <string name="identra_prof_duplicate" translatable="false">Duplicate</string>
+    <string name="identra_prof_export" translatable="false">Export</string>
+    <string name="identra_prof_export_all" translatable="false">Export all profiles</string>
+    <string name="identra_prof_import" translatable="false">Import profiles</string>
+    <string name="identra_prof_exported" translatable="false">Exported %1$d profile(s)</string>
+    <string name="identra_prof_export_failed" translatable="false">Export failed: %1$s</string>
+    <string name="identra_prof_imported" translatable="false">Imported %1$d profile(s)</string>
+    <string name="identra_prof_import_failed" translatable="false">Import failed</string>
+    <string name="identra_prof_nothing_to_export" translatable="false">There are no profiles to export</string>
+    <string name="identra_prof_delete" translatable="false">Delete profile</string>
+    <string name="identra_prof_delete_desc" translatable="false">Delete “%1$s”?</string>
+    <string name="identra_prof_delete_users" translatable="false">It is used by %1$d app(s) and/or as the global default; its values are removed from them first. Saved app data copies are kept.</string>
+    <string name="identra_prof_deleting" translatable="false">Deleting profile…</string>
+    <string name="identra_prof_no_device" translatable="false">No device set</string>
+    <string name="identra_prof_values_set" translatable="false">%1$d of %2$d values set</string>
+    <string name="identra_prof_randomize_all" translatable="false">Randomize all</string>
+    <string name="identra_prof_randomize_section" translatable="false">Randomize this section</string>
+    <string name="identra_prof_randomized_all" translatable="false">Randomized (locked values kept)</string>
+    <string name="identra_prof_randomized_section" translatable="false">%1$s randomized</string>
+    <string name="identra_prof_randomize" translatable="false">Randomize</string>
+    <string name="identra_prof_undo" translatable="false">Undo</string>
+    <string name="identra_prof_lock" translatable="false">Lock value</string>
+    <string name="identra_prof_unlock" translatable="false">Unlock value</string>
+    <string name="identra_prof_not_set" translatable="false">Not set: the app sees the real value</string>
+    <string name="identra_prof_value" translatable="false">Value</string>
+    <string name="identra_prof_empty_hint" translatable="false">Leave empty to not spoof this value. Long-press a value in the list to copy it.</string>
+    <string name="identra_prof_clear" translatable="false">Clear</string>
+    <string name="identra_prof_no_generator" translatable="false">No generator for this value; type one in</string>
+    <string name="identra_prof_change_country" translatable="false">Change country…</string>
+    <string name="identra_prof_change_country_sub" translatable="false">New SIM, phone number, language, time zone and location for another country</string>
+    <string name="identra_prof_country_changed" translatable="false">Now in %1$s</string>
+    <string name="identra_prof_use_place" translatable="false">Use a saved place</string>
+    <string name="identra_prof_use_place_sub" translatable="false">Favourites, recent places and the global location from the Location tab</string>
+    <string name="identra_prof_no_places" translatable="false">No saved places yet. Search a place on the Location tab and star it.</string>
+    <string name="identra_prof_place_set" translatable="false">Location set to %1$s</string>
+    <string name="identra_prof_used_by" translatable="false">USED BY</string>
+    <string name="identra_prof_update_title" translatable="false">Update apps with these changes</string>
+    <string name="identra_prof_update_desc" translatable="false">%1$d app(s) or the global default use this profile. Write the changed values to them now?</string>
+    <string name="identra_prof_update_now" translatable="false">Update now</string>
+    <string name="identra_prof_update_later" translatable="false">Later</string>
+    <string name="identra_prof_updating" translatable="false">Updating apps…</string>
+    <string name="identra_prof_updated" translatable="false">Apps updated</string>
+    <string name="identra_prof_updated_failed" translatable="false">Updated, %1$d values failed</string>
+</resources>

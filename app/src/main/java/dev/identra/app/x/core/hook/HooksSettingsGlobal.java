@@ -1,0 +1,323 @@
+package dev.identra.app.x.core.hook;
+
+import android.content.Context;
+import android.os.Process;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
+import dev.identra.app.DebugUtil;
+import dev.identra.app.XUtil;
+import dev.identra.app.x.Str;
+import dev.identra.app.x.data.JsonHelperEx;
+import dev.identra.app.x.data.utils.ArrayUtils;
+import dev.identra.app.x.data.utils.ListUtil;
+import dev.identra.app.x.runtime.RuntimeUtils;
+import dev.identra.app.x.ui.adapters.hooks.elements.XHook;
+import dev.identra.app.x.core.LibUtil;
+import dev.identra.app.x.core.commands.call.GetHookCommand;
+import dev.identra.app.x.core.commands.call.GetSettingExCommand;
+import dev.identra.app.x.core.commands.query.GetHooksCommand;
+import dev.identra.app.x.core.database.updaters.UpdateMapEntry;
+import dev.identra.app.x.core.settings.SettingHolder;
+import dev.identra.app.x.core.settings.SettingReMappedItem;
+import dev.identra.app.x.core.settings.SettingsContainer;
+import dev.identra.app.x.core.settings.data.SettingPacket;
+import dev.identra.app.x.core.settings.interfaces.NameInformationTypeBase;
+
+public class HooksSettingsGlobal {
+    private static final String TAG = LibUtil.generateTag(HooksSettingsGlobal.class);
+
+    public static final Map<String, Integer> GET_SET_PATTERNS = Map.ofEntries(
+            Map.entry("getSettingInt(", 1),
+            Map.entry("getSetting(", 1),
+            Map.entry("getSettingBool(", 1),
+            Map.entry("getSettingReMap(", 2));
+
+    private static final Object lock = new Object();
+
+    private static final Map<String, String> groups = new HashMap<>();
+    private static final Map<String, String> collections = new HashMap<>();
+    private static final Map<String, List<String>> settingsMap = new HashMap<>();
+    private static final Map<String, String> remappedSettings = new HashMap<>();
+
+
+    public static List<XHook> getHooksEx(Context context) { return GetHooksCommand.getHooks(context, true, false); }
+
+    //public static IdentraHook getHook(Context context, String hookId) { return GetHookCommand.get(context, hookId); }
+    //public static List<IdentraHook> getHooks(Context context) { return GetHooksCommand.getHooks(context, true, false); }
+    //public static List<IdentraHook> getAllHooks(Context context) { return GetHooksCommand.getHooks(context, true, true); }
+    public static List<String> getCollections(Context context) { return GetSettingExCommand.getCollections(context, Process.myUid()); }
+
+    public static List<String> settingHoldersToNames(SettingsContainer container) { return settingHoldersToNames(container, false); }
+
+
+    public static List<String> settingHoldersToNames(SettingsContainer container, boolean includeIndexZero) {
+        return container != null ? settingHoldersToNames(container.getSettings(includeIndexZero)) : ListUtil.emptyList();
+    }
+
+
+    public static List<String> settingPacketsToNames(List<SettingPacket> settings) { return ListUtil.forEachTo(settings, (o) -> o.name); }
+    public static List<String> settingHoldersToNames(List<SettingHolder> settings) { return ListUtil.forEachTo(settings, NameInformationTypeBase::getName); }
+
+    public static List<String> keepCollectionHooks(Context context, List<String> hookIds) {
+        init(context);
+        return keepCollectionHooks(getCollections(context), hookIds);
+    }
+
+    public static List<String> keepCollectionHooks(List<String> collections, List<String> hookIds) {
+        if(!ListUtil.isValid(hookIds) || !ListUtil.isValid(collections))
+            return hookIds;
+
+        List<String> out = new ArrayList<>();
+        for(String hookId : hookIds) {
+            if(!Str.isEmpty(hookId)) {
+                String collection = HooksSettingsGlobal.collections.get(hookId);
+                if(Str.isEmpty(collection))
+                    continue;
+
+                if(collections.contains(collection)) {
+                    out.add(collection);
+                }
+            }
+        }
+
+        return out;
+    }
+
+    public static String resolveSettingName(Context context, String settingName) {
+        init(context);
+        if(Str.isEmpty(settingName))
+            return settingName;
+
+        String newName = remappedSettings.get(settingName);
+        return Str.isEmpty(newName) ? settingName : newName;
+    }
+
+    public static List<String> getHookIdsForSetting(Context context, String settingName) {
+        init(context);
+        return ListUtil.nonNull(!Str.isEmpty(settingName) ? settingsMap.get(settingName) : null);
+    }
+
+    public static List<String> getHookIdsFromCollections(Context context) {
+        init(context);
+        return getHookIdsFromCollections(getCollections(context));
+    }
+
+    public static List<String> getHookIdsFromCollections(List<String> collections) {
+        List<String> all = new ArrayList<>();
+        if(DebugUtil.isDebug())
+            Log.d(TAG, Str.fm("Getting Hook Ids from Collections, Collections=[%s] Count=%s", Str.joinList(collections), ListUtil.size(collections)));
+
+        if(ListUtil.isValid(collections) && !HooksSettingsGlobal.collections.isEmpty()) {
+            for(Map.Entry<String, String> entry : HooksSettingsGlobal.collections.entrySet()) {
+                String hookId = entry.getKey();
+                String collection = entry.getValue();
+                if(Str.isEmpty(hookId) || Str.isEmpty(collection))
+                    continue;
+
+                if(!all.contains(hookId) && collections.contains(collection))
+                    all.add(hookId);
+            }
+        }
+
+        return all;
+    }
+
+    public static List<String> getHookIdsForSettings(Context context, String... settingNames) { return ArrayUtils.isValid(settingNames, 1) ? getHookIdsForSettings(context, Arrays.asList(settingNames)) : ListUtil.emptyList(); }
+    public static List<String> getHookIdsForSettings(Context context, List<String> settingNames) {
+        init(context);
+        List<String> all = new ArrayList<>();
+        if(DebugUtil.isDebug())
+            Log.d(TAG, Str.fm("Getting Hook Ids for Settings=[%s] Count=%s Has Setting First [%s]",
+                    Str.joinList(settingNames),
+                    ListUtil.size(settingNames),
+                    ListUtil.size(settingNames) > 0 && settingsMap.containsKey(settingNames.get(0))));
+
+        if(DebugUtil.isDebug())
+            Log.d(TAG, Str.fm("Getting Hook Ids for [%s] Stack=%s",
+                    Str.joinList(settingNames),
+                    Str.ensureNoDoubleNewLines(RuntimeUtils.getStackTraceSafeString(new Exception()))));
+
+        if(ListUtil.isValid(settingNames)) {
+            for(String setting : settingNames) {
+                if(!Str.isEmpty(setting)) {
+                    ListUtil.addAllIfValidEx(all, settingsMap.get(setting));
+
+                    /*if(setting.length() > 5) {
+                        char last = setting.charAt(setting.length() - 1);
+                        if(Character.isDigit(last)) {
+                            String sub = setting.substring(0, setting.length() - 1);
+                            ListUtil.addAllIfValidEx(all, settingsMap.get(sub));
+                        }
+                    }*/
+                }
+            }
+        }
+
+        if(DebugUtil.isDebug())
+            Log.d(TAG, Str.fm("Finished Getting Hook Ids for Settings=[%s] Count=%s All=[%s] All Count=%s",
+                    Str.joinList(settingNames),
+                    ListUtil.size(settingNames),
+                    Str.joinList(all),
+                    ListUtil.size(all)));
+
+        return all;
+    }
+
+    public static void clear() {
+        synchronized (lock) {
+            groups.clear();
+            collections.clear();
+            settingsMap.clear();
+            remappedSettings.clear();
+        }
+    }
+
+    public static void init(Context context) {
+        if(context == null)
+            return;
+
+        //We should make this instance base all of this ?
+        synchronized (lock) {
+            if(settingsMap.isEmpty()) {
+                internalInitReMappedSettings(context);
+                List<XHook> hooks = GetHooksCommand.getHooks(context, true, true);
+                if(DebugUtil.isDebug()) {
+                    Log.d(TAG, "Got Hooks Count=" + ListUtil.size(hooks));
+                }
+
+                List<String> collections = GetSettingExCommand.getCollections(context, Process.myUid());
+                if(DebugUtil.isDebug())
+                    Log.d(TAG, "Collections Size=" + ListUtil.size(collections) + " Collections(" + Str.joinList(collections) + ")");
+
+                if(ListUtil.isValid(hooks)) {
+                    for(XHook hook : hooks) {
+
+                        if(!ListUtil.isValid(collections) || hook == null || Str.isEmpty(hook.collection) || !collections.contains(hook.collection))
+                            continue;
+
+
+                        try {
+                            String hookId = hook.getObjectId();
+                            List<String> settings = hook.settings;
+                            if(DebugUtil.isDebug())
+                                Log.d(TAG, Str.fm("HookId (%s) Settings (%s)(%s)",
+                                        hook,
+                                        ListUtil.size(settings),
+                                        Str.joinList(settings)));
+
+                            if(ListUtil.isValid(settings)) {
+                               for(String setting : settings) {
+                                   if(Str.isEmpty(setting))
+                                       continue;
+
+                                   String lowered = setting.toLowerCase();
+                                   internalAdd(lowered, hookId);
+                                   internalAddHook(hook);
+                                   /*if(isXi) {
+                                       if(DebugUtil.isDebug())
+                                           Log.d(TAG, Str.fm("Adding Setting [%s] Hook Id [%s] Lowered [%s] Contains Setting=%s Hook Id Count for Setting=%s",
+                                                   setting,
+                                                   hookId,
+                                                   lowered,
+                                                   settingsMap.containsKey(lowered),
+                                                   ListUtil.size(settingsMap.get(lowered))));
+                                   }*/
+                               }
+                            }
+
+                            try {
+                                //This will cause issues, as some are not direct link any more
+                                String luaScript = hook.luaScript;
+                                if(!Str.isEmpty(luaScript) && luaScript.length() > 5 && luaScript.contains("function") && (luaScript.contains("before") || luaScript.contains("after"))) {
+                                    for(Map.Entry<String, Integer> entry : GET_SET_PATTERNS.entrySet()) {
+                                        String search = entry.getKey();
+                                        int count = entry.getValue();
+                                        List<String> parsed = SettingsParseUtil.findStringOccurrences(luaScript, search, count);
+                                        if (ListUtil.isValid(parsed)) {
+                                            for(String found : parsed) {
+                                                if(!Str.isEmpty(found)) {
+                                                    //Consider mapping ?
+                                                    String lowered = found.toLowerCase();
+                                                    internalAdd(lowered, hookId);
+                                                    internalAddHook(hook);
+                                                    if(DebugUtil.isDebug())
+                                                        Log.d(TAG, Str.fm("Adding Setting [%s] Hook Id [%s] Lowered [%s] from Lua Script!",
+                                                                found,
+                                                                hookId,
+                                                                lowered));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }catch (Exception e) {
+                                Log.e(TAG, Str.fm("Failed to Parse Lua Script Hook Id [%s] Error=%s", hookId, e));
+                            }
+                        }catch (Exception e) {
+                            Log.e(TAG, "Failed to Push / Parse Hook, ID=" + hook.getObjectId());
+                        }
+                    }
+                }
+
+                if(DebugUtil.isDebug())
+                    Log.d(TAG, Str.fm("Finished Initializing Hooks and their Settings etc... Groups Count=%s Collections Count=%s Settings Map Count=%s ReMapped Settings Count=%s",
+                            HooksSettingsGlobal.groups.size(),
+                            HooksSettingsGlobal.collections.size(),
+                            HooksSettingsGlobal.settingsMap.size(),
+                            HooksSettingsGlobal.remappedSettings.size()));
+            }
+        }
+    }
+
+    private static void internalInitReMappedSettings(Context context) {
+        try {
+            for(UpdateMapEntry entry: JsonHelperEx.findJsonElementsFromAssets(XUtil.getApk(context), SettingReMappedItem.Setting_legacy.JSON, true, UpdateMapEntry.class)) {
+                if(!Str.isEmpty(entry.id)) {
+                    for(String oldId : entry.oldIds) {
+                        if(!Str.isEmpty(oldId))
+                            remappedSettings.put(oldId, entry.id);
+                    }
+                }
+            }
+        }catch (Exception e) {
+            Log.e(TAG, "Failed to Init Settings Re Map, Error=" + e);
+        }
+    }
+
+    private static void internalAdd(String settingName, String hookId) {
+        if(!Str.isEmpty(settingName) && !Str.isEmpty(hookId)) {
+            List<String> hooks = settingsMap.get(settingName);
+            if(hooks == null) {
+                hooks = new ArrayList<>();
+                hooks.add(hookId);
+                settingsMap.put(settingName, hooks);
+            } else {
+                if(!hooks.contains(hookId)) {
+                    hooks.add(hookId);
+                }
+            }
+        }
+    }
+
+    private static void internalAddHook(Context context, String hookId) { internalAddHook(GetHookCommand.getEx(context, hookId)); }
+    private static void internalAddHook(XHook hook) {
+        if(hook != null) {
+            String id = hook.getObjectId();
+            String group = hook.group;
+            String collection = hook.collection;
+            if(!Str.isEmpty(id)) {
+                if(!Str.isEmpty(group))
+                    groups.put(id, group);
+                if(!Str.isEmpty(collection))
+                    collections.put(id, collection);
+            }
+        }
+    }
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Identra palette (light). values-night overrides the same names. -->
+    <color name="identra_background">#F5F4F0</color>
+    <color name="identra_surface">#FFFFFF</color>
+    <color name="identra_on_surface">#16213A</color>
+    <color name="identra_on_surface_variant">#5B6475</color>
+    <color name="identra_outline">#E3E1DC</color>
+    <color name="identra_primary">#16213A</color>
+    <color name="identra_on_primary">#F5F4F0</color>
+    <color name="identra_container">#ECEAE5</color>
+    <color name="identra_container_high">#E3E1DC</color>
+    <color name="identra_banner">#FBF3E4</color>
+    <color name="identra_banner_text">#5B4A26</color>
+    <color name="identra_error">#B3261E</color>
+    <bool name="identra_light_bars">true</bool>
+    <!-- 0.3.0 status dots and map accents (calm, flat) -->
+    <color name="identra_ok">#4F7A5A</color>
+    <color name="identra_warn">#B07A1E</color>
+    <color name="identra_off">#A04A43</color>
+    <color name="identra_scrim">#6616213A</color>
+    <!-- 0.4.0 switch states -->
+    <color name="identra_switch_thumb_on">#FFFFFF</color>
+    <color name="identra_switch_outline">#9097A5</color>
+</resources>

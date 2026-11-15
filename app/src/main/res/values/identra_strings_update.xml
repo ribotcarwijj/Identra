@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="menu_check_update">Check for updates</string>
+    <string name="menu_auto_update">Auto-check updates</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_latest">Identra %1$s is the latest version</string>
+    <string name="update_available">Update available: %1$s</string>
+    <string name="update_current">Installed: %1$s</string>
+    <string name="update_install">Update now</string>
+    <string name="update_skip">Skip this version</string>
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_failed">Update failed: %1$s</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Location: folded paper map with an ink pin. Flat. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp" android:height="120dp"
+    android:viewportWidth="160" android:viewportHeight="120">
+    <path android:fillColor="@color/identra_container" android:pathData="M80,62m-56,0a56,56 0,1 1,112 0a56,56 0,1 1,-112 0"/>
+    <path android:fillColor="@color/identra_surface" android:strokeColor="@color/identra_outline" android:strokeWidth="1.5"
+        android:pathData="M36,44l28,-10l32,10l28,-10v52l-28,10l-32,-10l-28,10z"/>
+    <path android:fillColor="@color/identra_container_high" android:pathData="M64,34l0,52l32,10l0,-52z"/>
+    <path android:fillColor="@color/identra_primary"
+        android:pathData="M80,26c-8.3,0 -15,6.7 -15,15c0,11 15,26 15,26s15,-15 15,-26c0,-8.3 -6.7,-15 -15,-15z"/>
+    <path android:fillColor="@color/identra_on_primary" android:pathData="M80,41m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0"/>
+</vector>

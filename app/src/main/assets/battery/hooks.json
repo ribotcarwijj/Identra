@@ -1,0 +1,100 @@
+[
+  //https://android.googlesource.com/platform/frameworks/base/+/2164cf4f4043b4892db5688ed53624af758fcdaa/core/java/android/os/BatteryManager.java
+  //https://developer.android.com/reference/android/os/BatteryManager
+  //Remove [battery.charge.time.remaining]
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Spoof.Battery",
+    "name": "Intent.createFromParcel/battery",
+    "author": "Identra",
+    "className": "android.content.Intent",
+    "methodName": "CREATOR:createFromParcel",
+    "parameterTypes": [ "android.os.Parcel" ],
+    "returnType": "android.content.Intent",
+    "minSdk": 4,
+    "version": 3,
+    "description": "",
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "notify":false,
+    "luaScript": "@spoof_battery_intent_parcel_one",
+    "settings": [
+      "battery.is.plugged.in.bool",
+      "battery.is.charging.bool",
+      "battery.status",
+      "battery.charge.percent",
+      "battery.charging.cycles"
+    ]
+  },
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Spoof.Battery",
+    "name": "BatteryManager.isCharging",
+    "author": "Identra",
+    "className": "android.os.BatteryManager",
+    "methodName": "isCharging",
+    "parameterTypes": [  ],
+    "returnType": "boolean",
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "Return true if the battery is currently considered to be charging.   ",
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "notify":false,
+    "luaScript": "@spoof_batterymanager_ischarging",
+    "settings":["battery.is.charging.bool"]
+  },
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Spoof.Battery",
+    "name": "BatteryManager.get",
+    "author": "Identra",
+    "className": "android.os.BatteryManager",
+    "methodName": "getIntProperty|getLongProperty|queryProperty",
+    "parameterTypes": [ "int" ],
+    "returnType": "*",
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "Intercept Battery Properties",
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "notify":false,
+    "luaScript": "@spoof_batterymanager_get",
+    "settings":[
+      "battery.charge.percent",
+      "battery.status",
+      "battery.is.charging.bool",
+      "battery.charging.cycles"
+    ]
+  },
+
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Spoof.Battery",
+    "name": "PowerManager.isPowerSaveMode",
+    "author": "Identra",
+    "className": "android.os.PowerManager",
+    "methodName": "isPowerSaveMode",
+    "parameterTypes": [ ],
+    "returnType": "boolean",
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 2,
+    "description": "Is Device battery in Power Save Mode ?",
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "notify":false,
+    "luaScript": "@spoof_powermanager_ispowersavemode",
+    "settings":[ "battery.is.power.save.mode.bool" ]
+  }
+]

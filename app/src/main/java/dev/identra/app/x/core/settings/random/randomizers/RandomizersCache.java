@@ -1,0 +1,818 @@
+package dev.identra.app.x.core.settings.random.randomizers;
+
+import android.util.Log;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
+
+import dev.identra.app.DebugUtil;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomCellDisplayName;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomCellDisplayNameSource;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomDataRoaming;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomOperatorCarrierId;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomOperatorName;
+import dev.identra.app.x.ui.core.util.CoreUiUtils;
+import dev.identra.app.x.core.LibUtil;
+import dev.identra.app.x.core.settings.SettingsContainer;
+import dev.identra.app.x.core.settings.random.RandomGenericBool;
+import dev.identra.app.x.core.settings.random.RandomGenericBoolInt;
+import dev.identra.app.x.core.settings.random.interfaces.IRandomizer;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildCodename;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildDescription;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildDisplayId;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildFingerprint;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildFlavor;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildHost;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildId;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildIncremental;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildPatch;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildTags;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildVersion;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildVersionMinSdk;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidBuildVersionSdk;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidEtcBuildRomBaseOs;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidEtcBuildRomUser;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidEtcBuildRomVariant;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomAndroidEtcBuildRomVersionCodename;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomDeviceBootloader;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomDeviceBrand;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomDeviceCodeName;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomDeviceManufacturer;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomDeviceModel;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.RandomDeviceNickName;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.kernel.RandomAndroidKernelNodeName;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.kernel.RandomAndroidKernelRelease;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.kernel.RandomAndroidKernelSysName;
+import dev.identra.app.x.core.settings.random.randomizers.android_device.kernel.RandomAndroidKernelVersion;
+import dev.identra.app.x.core.settings.random.randomizers.apps.RandomAppCurrentFlag;
+import dev.identra.app.x.core.settings.random.randomizers.apps.RandomAppTime;
+import dev.identra.app.x.core.settings.random.randomizers.battery.RandomBatteryPercent;
+import dev.identra.app.x.core.settings.random.randomizers.battery.RandomBatteryStatus;
+import dev.identra.app.x.core.settings.random.randomizers.battery.RandomChargingCycles;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomMCC;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomMNC;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomMSIN;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomOperatorTint;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomPhoneType;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomSIMCountyCode;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomSimCount;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomSimType;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomSubscriptionId;
+import dev.identra.app.x.core.settings.random.randomizers.generic.RandomDateEpocSeconds;
+import dev.identra.app.x.core.settings.random.randomizers.generic.RandomDateISOThree;
+import dev.identra.app.x.core.settings.random.randomizers.generic.RandomDateOne;
+import dev.identra.app.x.core.settings.random.randomizers.generic.RandomDateTwo;
+import dev.identra.app.x.core.settings.random.randomizers.generic.RandomDateZero;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocBoardConfigCodeName;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocBoardManufacturer;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocBoardManufacturerId;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocBoardModel;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocCpuAbi;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocCpuAbiList;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocCpuAbiList32;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocCpuAbiList64;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocCpuArchitecture;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocCpuInstructionSet32;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocCpuInstructionSet64;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.SoC.RandomSocCpuProcessorCount;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.etc.RandomHardwareCameraApp;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.etc.RandomHardwareCameraCount;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.etc.RandomHardwareEfuse;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.etc.RandomHardwareFpSensor;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.etc.RandomHardwareFpSensorName;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.etc.RandomHardwareGpsModelName;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.etc.RandomHardwareGpsModelYear;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.etc.RandomHardwareNfcControllerInterface;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.etc.RandomHardwareNfcKind;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.gpu.RandomSocBasebandBoardConfigName;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.gpu.RandomSocBasebandBoardImplementor;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.gpu.RandomSocBasebandBoardRadioVersion;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.gpu.RandomSocBluetoothBoardConfigName;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.gpu.RandomSocGpuEglImplementor;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.gpu.RandomSocGpuOpenGlesRenderer;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.gpu.RandomSocGpuOpenGlesVendor;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.gpu.RandomSocGpuOpenGlesVersion;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.gpu.RandomSocGpuOpenGlesVersionEncoded;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.gpu.RandomSocGpuVulkanImplementor;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.memory.RandomHardwareMemoryAvailable;
+import dev.identra.app.x.core.settings.random.randomizers.hardware.memory.RandomHardwareMemoryTotal;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomDhcpServer;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomNetAllowedList;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomNetDNS;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomNetDNSList;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomNetDomains;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomNetGateway;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomNetHostAddress;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomNetHostName;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomNetNetmask;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomNetParentControl;
+import dev.identra.app.x.core.settings.random.randomizers.network.RandomNetRoutes;
+import dev.identra.app.x.core.settings.random.randomizers.region.RandomLocCountryIso;
+import dev.identra.app.x.core.settings.random.randomizers.settings.RandomBootCount;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomAndroidId;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomBSSID;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomBaiduId;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomBluetoothAddress;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomBluetoothOrDeviceName;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomDRMID;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomEmail;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomGSFID;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomICCID;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomIMEI;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomMEID;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomMac;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomNetSSID;
+import dev.identra.app.x.core.settings.random.randomizers.unique.props_serials.RandomOnePlusSerial;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomPhone;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomSIMSerial;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomSerialNo;
+import dev.identra.app.x.core.settings.random.randomizers.cell.RandomSubscriberId;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomUUID;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomVbmetaDigest;
+import dev.identra.app.x.core.settings.random.randomizers.unique.RandomVoicemailId;
+
+import dev.identra.app.x.core.settings.random.randomizers.region.RandomRegionParent;
+import dev.identra.app.x.core.settings.random.randomizers.region.RandomRegionParent.RandomRegionCountryName;
+//import dev.identra.app.x.core.settings.random.randomizers.region.RandomRegionParent.RandomRegionCountryIso2;
+import dev.identra.app.x.core.settings.random.randomizers.region.RandomRegionParent.RandomRegionCountryCode;
+import dev.identra.app.x.core.settings.random.randomizers.region.RandomRegionParent.RandomRegionLanguageName;
+import dev.identra.app.x.core.settings.random.randomizers.region.RandomRegionParent.RandomRegionLanguageIso;
+import dev.identra.app.x.core.settings.random.randomizers.region.RandomRegionParent.RandomRegionLanguageTag;
+import dev.identra.app.x.core.settings.random.randomizers.region.RandomRegionParent.RandomRegionTimezoneOffset;
+import dev.identra.app.x.core.settings.random.randomizers.region.RandomRegionParent.RandomRegionTimezoneId;
+import dev.identra.app.x.core.settings.random.randomizers.region.RandomRegionParent.RandomRegionTimezoneDisplayName;
+import dev.identra.app.x.core.settings.random.randomizers.unique.props_serials.RandomSerialGeneric;
+
+
+public class RandomizersCache {
+    private static final String TAG = LibUtil.generateTag(RandomizersCache.class);
+
+
+    public static boolean isSpecialSetting(SettingsContainer container) { return container != null && isSpecialSetting(container.getContainerName()); }
+    public static boolean isSpecialSetting(String settingName) { return CoreUiUtils.isSpecialSetting(settingName); }
+
+    public static final Class<?> SETTING_GENERIC_DATE_EPOC_TYPE = RandomDateEpocSeconds.class;
+    public static final Class<?> SETTING_GENERIC_DATE_ZERO_TYPE = RandomDateZero.class;
+    public static final Class<?> SETTING_GENERIC_DATE_ONE_TYPE = RandomDateOne.class;
+    public static final Class<?> SETTING_GENERIC_DATE_TWO_TYPE = RandomDateTwo.class;
+    public static final Class<?> SETTING_GENERIC_DATE_ISO_TYPE = RandomDateISOThree.class;
+
+    public static final String SETTING_XP_FORCE_IS_WHITE_LIST = "identra.force.settings.list.is.whitelist";
+    public static final String SETTING_XP_DEFAULTS = "identra.force.settings.list";
+    public static final String SETTING_NETWORK_ALLOW_LIST = "network.allowed.list";
+
+    //public static final Class<?> SETTING_XP_DEFAULTS_TYPE = RandomXPDefaultValue.class;
+
+
+    public static final String SETTING_SETTING_BOOT_COUNT = "settings.boot.count";
+    public static final Class<?> SETTING_SETTING_BOOT_COUNT_TYPE = RandomBootCount.class;
+
+    public static final String SETTING_SETTING_MOCK_LOCATION = "settings.mock.location";
+    public static final String SETTING_SETTING_MASS_STORAGE = "settings.usb.mass.storage";
+    public static final String SETTING_SETTING_DEVICE_PROVISIONED = "settings.device.provisioned";
+    public static final String SETTING_SETTING_STAY_ON_WHILE_PLUGGED = "settings.stay.on.while.plugged";
+    public static final String SETTING_SETTING_ADB_ENABLED = "settings.adb.enabled";
+    public static final String SETTING_SETTING_DEV_SETTINGS_ENABLED = "settings.dev.settings.enabled";
+
+    public static final Class<?> SETTING_GENERIC_BOOL_INT_TYPE = RandomGenericBoolInt.class;
+
+
+    // Parent control
+    public static final String SETTING_ZONE_PARENT = "zone.parent.control.tz";
+    public static final Class<?> SETTING_ZONE_PARENT_TYPE = RandomRegionParent.class;
+
+    // Country settings
+    public static final String SETTING_ZONE_COUNTRY_NAME = "zone.country.name";
+    public static final Class<?> SETTING_ZONE_COUNTRY_NAME_TYPE = RandomRegionCountryName.class;
+
+    //public static final String SETTING_ZONE_COUNTRY_ISO2 = "zone.country.iso2";
+    //public static final Class<?> SETTING_ZONE_COUNTRY_ISO2_TYPE = RandomRegionCountryIso2.class;
+
+    public static final String SETTING_ZONE_COUNTRY_CODE = "zone.country.code";
+    public static final Class<?> SETTING_ZONE_COUNTRY_CODE_TYPE = RandomRegionCountryCode.class;
+
+    // Language settings
+    public static final String SETTING_ZONE_LANGUAGE_NAME = "zone.language.name";
+    public static final Class<?> SETTING_ZONE_LANGUAGE_NAME_TYPE = RandomRegionLanguageName.class;
+
+    public static final String SETTING_ZONE_LANGUAGE_ISO = "zone.language.iso";
+    public static final Class<?> SETTING_ZONE_LANGUAGE_ISO_TYPE = RandomRegionLanguageIso.class;
+
+    public static final String SETTING_ZONE_LANGUAGE_TAG = "zone.language.tag";
+    public static final Class<?> SETTING_ZONE_LANGUAGE_TAG_TYPE = RandomRegionLanguageTag.class;
+
+    // Timezone settings
+    public static final String SETTING_ZONE_TIMEZONE_OFFSET = "zone.timezone.offset";
+    public static final Class<?> SETTING_ZONE_TIMEZONE_OFFSET_TYPE = RandomRegionTimezoneOffset.class;
+
+    public static final String SETTING_ZONE_TIMEZONE_ID = "zone.timezone.id";
+    public static final Class<?> SETTING_ZONE_TIMEZONE_ID_TYPE = RandomRegionTimezoneId.class;
+
+    public static final String SETTING_ZONE_TIMEZONE_DISPLAY_NAME = "zone.timezone.display.name";
+    public static final Class<?> SETTING_ZONE_TIMEZONE_DISPLAY_NAME_TYPE = RandomRegionTimezoneDisplayName.class;
+
+
+    //network.allowed.list
+    public static final String SETTING_DEVICE_NAME = "device.unique.name";
+    public static final String SETTING_BLUETOOTH_NAME = "device.unique.bluetooth.name";
+    public static final Class<?> SETTING_BLUETOOTH_OR_DEVICE_NAME_TYPE = RandomBluetoothOrDeviceName.class;
+
+    public static final String SETTING_BAIDU_DEVICE_ID = "settings.unique.baidu.device.id";
+    public static final Class<?> SETTING_BAIDU_DEVICE_ID_TYPE = RandomBaiduId.class;
+
+
+    public static final String SETTING_XI_MI_HEALTH_ID = "settings.xiaomi.mi.health.id";
+    public static final String SETTING_XI_MI_GC_BOOSTER_UUID = "settings.xiaomi.gcbooster.uuid";
+    public static final String SETTING_XI_MI_KEY_MQS_UUID = "settings.xiaomi.key.mqs.uuid";
+    public static final String SETTING_XI_MI_MDM_UUID = "settings.xiaomi.mdm.uuid";
+    public static final String SETTING_OP_SEC_UUID = "settings.one.plus.security.uuid";
+    public static final String SETTING_XI_MI_EXTM_UUID = "settings.xiaomi.extm.uuid";
+
+    /*
+        Device
+     */
+    public static final String SETTING_PARENT_DEVICE = "device.parent.parent.control";
+
+    public static final String SETTING_DEVICE_BOOTLOADER = "device.bootloader";
+    public static final Class<?> SETTING_DEVICE_BOOTLOADER_TYPE = RandomDeviceBootloader.class;
+
+    public static final String SETTING_DEVICE_BRAND = "device.brand";
+    public static final Class<?> SETTING_DEVICE_BRAND_TYPE = RandomDeviceBrand.class;
+
+    // Device Manufacturer
+    public static final String SETTING_DEVICE_MANUFACTURER = "device.manufacturer";
+    public static final Class<?> SETTING_DEVICE_MANUFACTURER_TYPE = RandomDeviceManufacturer.class;
+
+    // Device Nickname
+    public static final String SETTING_DEVICE_NICKNAME = "device.nick.name";
+    public static final Class<?> SETTING_DEVICE_NICKNAME_TYPE = RandomDeviceNickName.class;
+
+    // Device Model
+    public static final String SETTING_DEVICE_MODEL = "device.model";
+    public static final Class<?> SETTING_DEVICE_MODEL_TYPE = RandomDeviceModel.class;
+
+    // Device Codename
+    public static final String SETTING_DEVICE_CODENAME = "device.codename";
+    public static final Class<?> SETTING_DEVICE_CODENAME_TYPE = RandomDeviceCodeName.class;
+
+
+    /*
+        ANDROID
+     */
+
+    /*
+            Random Date (W MT DY HR:MIN:SC TZ YR)
+            Random Date One (YYYY.MM.DD)
+            Random Date Two (YYYYMMDD)
+            Random Date Three (YYYY-MM-DD)
+     */
+
+    // Android Build Date UTC
+    public static final String SETTING_ANDROID_BUILD_DATE_EPOC = "android.build.date.utc";
+    public static final String SETTING_ANDROID_BUILD_DATE = "android.build.date";
+    public static final String SETTING_ANDROID_BUILD_DATE_ONE = "android.build.date.one";
+    public static final String SETTING_ANDROID_BUILD_DATE_TWO = "android.build.date.two";
+
+    // Android Build Version
+    public static final String SETTING_ANDROID_BUILD_VERSION = "android.build.version";
+    public static final Class<?> SETTING_ANDROID_BUILD_VERSION_TYPE = RandomAndroidBuildVersion.class;
+
+    // Android Build Version SDK
+    public static final String SETTING_ANDROID_BUILD_VERSION_SDK = "android.build.version.sdk";
+    public static final Class<?> SETTING_ANDROID_BUILD_VERSION_SDK_TYPE = RandomAndroidBuildVersionSdk.class;
+
+    // Android Build Version Min SDK
+    public static final String SETTING_ANDROID_BUILD_VERSION_MIN_SDK = "android.build.version.min.sdk";
+    public static final Class<?> SETTING_ANDROID_BUILD_VERSION_MIN_SDK_TYPE = RandomAndroidBuildVersionMinSdk.class;
+
+    // Android Build Tags
+    public static final String SETTING_ANDROID_BUILD_TAGS = "android.build.tags";
+    public static final Class<?> SETTING_ANDROID_BUILD_TAGS_TYPE = RandomAndroidBuildTags.class;
+
+    // Android Build Incremental
+    public static final String SETTING_ANDROID_BUILD_INCREMENTAL = "android.build.incremental";
+    public static final Class<?> SETTING_ANDROID_BUILD_INCREMENTAL_TYPE = RandomAndroidBuildIncremental.class;
+
+    // Android Build Description
+    public static final String SETTING_ANDROID_BUILD_DESCRIPTION = "android.build.description";
+    public static final Class<?> SETTING_ANDROID_BUILD_DESCRIPTION_TYPE = RandomAndroidBuildDescription.class;
+
+    // Android Build ID
+    public static final String SETTING_ANDROID_BUILD_ID = "android.build.id";
+    public static final Class<?> SETTING_ANDROID_BUILD_ID_TYPE = RandomAndroidBuildId.class;
+
+    // Android Build Display ID
+    public static final String SETTING_ANDROID_BUILD_DISPLAY_ID = "android.build.display.id";
+    public static final Class<?> SETTING_ANDROID_BUILD_DISPLAY_ID_TYPE = RandomAndroidBuildDisplayId.class;
+
+    // Android Build Flavor
+    public static final String SETTING_ANDROID_BUILD_FLAVOR = "android.build.flavor";
+    public static final Class<?> SETTING_ANDROID_BUILD_FLAVOR_TYPE = RandomAndroidBuildFlavor.class;
+
+    // Android Build Host
+    public static final String SETTING_ANDROID_BUILD_HOST = "android.build.host";
+    public static final Class<?> SETTING_ANDROID_BUILD_HOST_TYPE = RandomAndroidBuildHost.class;
+
+    // Android Build Patch
+    public static final String SETTING_ANDROID_BUILD_PATCH = "android.build.patch";
+    public static final Class<?> SETTING_ANDROID_BUILD_PATCH_TYPE = RandomAndroidBuildPatch.class;
+
+    // Android Build Codename
+    public static final String SETTING_ANDROID_BUILD_CODENAME = "android.build.codename";
+    public static final Class<?> SETTING_ANDROID_BUILD_CODENAME_TYPE = RandomAndroidBuildCodename.class;
+
+    // Android Build Fingerprint
+    public static final String SETTING_ANDROID_BUILD_FINGERPRINT = "android.build.fingerprint";
+    public static final Class<?> SETTING_ANDROID_BUILD_FINGERPRINT_TYPE = RandomAndroidBuildFingerprint.class;
+
+    // Android Build ETC - Base OS
+    public static final String SETTING_ANDROID_ETC_BUILD_ROM_BASE_OS = "android.etc.build.rom.base.os";
+    public static final Class<?> SETTING_ANDROID_ETC_BUILD_ROM_BASE_OS_TYPE = RandomAndroidEtcBuildRomBaseOs.class;
+
+    // Android Build ETC - ROM User
+    public static final String SETTING_ANDROID_ETC_BUILD_ROM_USER = "android.etc.build.rom.user";
+    public static final Class<?> SETTING_ANDROID_ETC_BUILD_ROM_USER_TYPE = RandomAndroidEtcBuildRomUser.class;
+
+    // Android Build ETC - ROM Version Codename
+    public static final String SETTING_ANDROID_ETC_BUILD_ROM_VERSION_CODENAME = "android.etc.build.rom.version.codename";
+    public static final Class<?> SETTING_ANDROID_ETC_BUILD_ROM_VERSION_CODENAME_TYPE = RandomAndroidEtcBuildRomVersionCodename.class;
+
+    // Android Build ETC - ROM Variant
+    public static final String SETTING_ANDROID_ETC_BUILD_ROM_VARIANT = "android.etc.build.rom.variant";
+    public static final Class<?> SETTING_ANDROID_ETC_BUILD_ROM_VARIANT_TYPE = RandomAndroidEtcBuildRomVariant.class;
+
+    // Android Kernel - System Name
+    public static final String SETTING_ANDROID_KERNEL_SYS_NAME = "android.kernel.sys.name";
+    public static final Class<?> SETTING_ANDROID_KERNEL_SYS_NAME_TYPE = RandomAndroidKernelSysName.class;
+
+    // Android Kernel - Version
+    public static final String SETTING_ANDROID_KERNEL_VERSION = "android.kernel.version";
+    public static final Class<?> SETTING_ANDROID_KERNEL_VERSION_TYPE = RandomAndroidKernelVersion.class;
+
+    // Android Kernel - Release
+    public static final String SETTING_ANDROID_KERNEL_RELEASE = "android.kernel.release";
+    public static final Class<?> SETTING_ANDROID_KERNEL_RELEASE_TYPE = RandomAndroidKernelRelease.class;
+
+    // Android Kernel - Node Name
+    public static final String SETTING_ANDROID_KERNEL_NODE_NAME = "android.kernel.node.name";
+    public static final Class<?> SETTING_ANDROID_KERNEL_NODE_NAME_TYPE = RandomAndroidKernelNodeName.class;
+
+
+    // Hardware E-Fuse
+    public static final String SETTING_HARDWARE_EFUSE = "hardware.efuse";
+    public static final Class<?> SETTING_HARDWARE_EFUSE_TYPE = RandomHardwareEfuse.class;
+
+    // Hardware NFC Kind
+    public static final String SETTING_HARDWARE_NFC_KIND = "hardware.nfc.kind";
+    public static final Class<?> SETTING_HARDWARE_NFC_KIND_TYPE = RandomHardwareNfcKind.class;
+
+    // Hardware NFC Controller Interface
+    public static final String SETTING_HARDWARE_NFC_CONTROLLER_INTERFACE = "hardware.nfc.controller.interface";
+    public static final Class<?> SETTING_HARDWARE_NFC_CONTROLLER_INTERFACE_TYPE = RandomHardwareNfcControllerInterface.class;
+
+    // Hardware Fingerprint Sensor
+    public static final String SETTING_HARDWARE_FP_SENSOR = "hardware.fp.sensor";
+    public static final Class<?> SETTING_HARDWARE_FP_SENSOR_TYPE = RandomHardwareFpSensor.class;
+
+    // Hardware Fingerprint Sensor Name
+    public static final String SETTING_HARDWARE_FP_SENSOR_NAME = "hardware.fp.sensor.name";
+    public static final Class<?> SETTING_HARDWARE_FP_SENSOR_NAME_TYPE = RandomHardwareFpSensorName.class;
+
+    // Hardware GPS Model Name
+    public static final String SETTING_HARDWARE_GPS_MODEL_NAME = "hardware.gps.model.name";
+    public static final Class<?> SETTING_HARDWARE_GPS_MODEL_NAME_TYPE = RandomHardwareGpsModelName.class;
+
+    // Hardware GPS Model Year
+    public static final String SETTING_HARDWARE_GPS_MODEL_YEAR = "hardware.gps.model.year";
+    public static final Class<?> SETTING_HARDWARE_GPS_MODEL_YEAR_TYPE = RandomHardwareGpsModelYear.class;
+
+    // Hardware Camera Count
+    public static final String SETTING_HARDWARE_CAMERA_COUNT = "hardware.camera.count";
+    public static final Class<?> SETTING_HARDWARE_CAMERA_COUNT_TYPE = RandomHardwareCameraCount.class;
+
+    // Hardware Camera App
+    public static final String SETTING_HARDWARE_CAMERA_APP = "hardware.camera.app";
+    public static final Class<?> SETTING_HARDWARE_CAMERA_APP_TYPE = RandomHardwareCameraApp.class;
+
+    // Hardware Memory Total
+    public static final String SETTING_HARDWARE_MEMORY_TOTAL = "hardware.memory.total";
+    public static final Class<?> SETTING_HARDWARE_MEMORY_TOTAL_TYPE = RandomHardwareMemoryTotal.class;
+
+    // Hardware Memory Available
+    public static final String SETTING_HARDWARE_MEMORY_AVAILABLE = "hardware.memory.available";
+    public static final Class<?> SETTING_HARDWARE_MEMORY_AVAILABLE_TYPE = RandomHardwareMemoryAvailable.class;
+
+
+
+    //SOC Info
+    // SOC Board Model
+    public static final String SETTING_SOC_BOARD_MODEL = "soc.board.model";
+    public static final Class<?> SETTING_SOC_BOARD_MODEL_TYPE = RandomSocBoardModel.class;
+
+    // SOC Board Config Code Name
+    public static final String SETTING_SOC_BOARD_CONFIG_CODE_NAME = "soc.board.config.code.name";
+    public static final Class<?> SETTING_SOC_BOARD_CONFIG_CODE_NAME_TYPE = RandomSocBoardConfigCodeName.class;
+
+    // SOC Board Manufacturer
+    public static final String SETTING_SOC_BOARD_MANUFACTURER = "soc.board.manufacturer";
+    public static final Class<?> SETTING_SOC_BOARD_MANUFACTURER_TYPE = RandomSocBoardManufacturer.class;
+
+    // SOC Board Manufacturer ID
+    public static final String SETTING_SOC_BOARD_MANUFACTURER_ID = "soc.board.manufacturer.id";
+    public static final Class<?> SETTING_SOC_BOARD_MANUFACTURER_ID_TYPE = RandomSocBoardManufacturerId.class;
+
+    // SOC CPU Processor Count
+    public static final String SETTING_SOC_CPU_PROCESSOR_COUNT = "soc.cpu.processor.count";
+    public static final Class<?> SETTING_SOC_CPU_PROCESSOR_COUNT_TYPE = RandomSocCpuProcessorCount.class;
+
+    // SOC CPU Architecture
+    public static final String SETTING_SOC_CPU_ARCHITECTURE = "soc.cpu.architecture";
+    public static final Class<?> SETTING_SOC_CPU_ARCHITECTURE_TYPE = RandomSocCpuArchitecture.class;
+
+    // SOC CPU Instruction Set 32-bit
+    public static final String SETTING_SOC_CPU_INSTRUCTION_SET_32 = "soc.cpu.instruction.set.32";
+    public static final Class<?> SETTING_SOC_CPU_INSTRUCTION_SET_32_TYPE = RandomSocCpuInstructionSet32.class;
+
+    // SOC CPU Instruction Set 64-bit
+    public static final String SETTING_SOC_CPU_INSTRUCTION_SET_64 = "soc.cpu.instruction.set.64";
+    public static final Class<?> SETTING_SOC_CPU_INSTRUCTION_SET_64_TYPE = RandomSocCpuInstructionSet64.class;
+
+    // SOC CPU ABI
+    public static final String SETTING_SOC_CPU_ABI = "soc.cpu.abi";
+    public static final Class<?> SETTING_SOC_CPU_ABI_TYPE = RandomSocCpuAbi.class;
+
+    // SOC CPU ABI List
+    public static final String SETTING_SOC_CPU_ABI_LIST = "soc.cpu.abi.list";
+    public static final Class<?> SETTING_SOC_CPU_ABI_LIST_TYPE = RandomSocCpuAbiList.class;
+
+    // SOC CPU ABI List 32-bit
+    public static final String SETTING_SOC_CPU_ABI_LIST_32 = "soc.cpu.abi.list.32";
+    public static final Class<?> SETTING_SOC_CPU_ABI_LIST_32_TYPE = RandomSocCpuAbiList32.class;
+
+    // SOC CPU ABI List 64-bit
+    public static final String SETTING_SOC_CPU_ABI_LIST_64 = "soc.cpu.abi.list.64";
+    public static final Class<?> SETTING_SOC_CPU_ABI_LIST_64_TYPE = RandomSocCpuAbiList64.class;
+
+    // SOC CPU Info Dump
+    public static final String SETTING_SOC_CPU_INFO_DUMP = "soc.cpu.info.dump";
+    //ERROR user input required
+    //public static final Class<?> SETTING_SOC_CPU_INFO_DUMP_TYPE = RandomSocCpuInfoDump.class;
+
+
+
+
+    //CELL
+
+
+
+
+    //
+    //GPU
+    //
+
+    // SOC GPU EGL Implementor
+    public static final String SETTING_SOC_GPU_EGL_IMPLEMENTOR = "soc.gpu.egl.implementor";
+    public static final Class<?> SETTING_SOC_GPU_EGL_IMPLEMENTOR_TYPE = RandomSocGpuEglImplementor.class;
+
+    // SOC GPU Vulkan Implementor
+    public static final String SETTING_SOC_GPU_VULKAN_IMPLEMENTOR = "soc.gpu.vulkan.implementor";
+    public static final Class<?> SETTING_SOC_GPU_VULKAN_IMPLEMENTOR_TYPE = RandomSocGpuVulkanImplementor.class;
+
+    // SOC GPU OpenGLES Version Encoded
+    public static final String SETTING_SOC_GPU_OPEN_GLES_VERSION_ENCODED = "soc.gpu.open.gles.version.encoded";
+    public static final Class<?> SETTING_SOC_GPU_OPEN_GLES_VERSION_ENCODED_TYPE = RandomSocGpuOpenGlesVersionEncoded.class;
+
+    // SOC GPU OpenGLES Vendor
+    public static final String SETTING_SOC_GPU_OPEN_GLES_VENDOR = "soc.gpu.open.gles.vendor";
+    public static final Class<?> SETTING_SOC_GPU_OPEN_GLES_VENDOR_TYPE = RandomSocGpuOpenGlesVendor.class;
+
+    // SOC GPU OpenGLES Renderer
+    public static final String SETTING_SOC_GPU_OPEN_GLES_RENDERER = "soc.gpu.open.gles.renderer";
+    public static final Class<?> SETTING_SOC_GPU_OPEN_GLES_RENDERER_TYPE = RandomSocGpuOpenGlesRenderer.class;
+
+    // SOC GPU OpenGLES Version
+    public static final String SETTING_SOC_GPU_OPEN_GLES_VERSION = "soc.gpu.open.gles.version";
+    public static final Class<?> SETTING_SOC_GPU_OPEN_GLES_VERSION_TYPE = RandomSocGpuOpenGlesVersion.class;
+
+
+
+    // SOC GPU GFX Driver Name 1
+    public static final String SETTING_SOC_GPU_GFX_DRIVER_NAME_1 = "soc.gpu.gfx.driver.name.1";
+    //public static final Class<?> SETTING_SOC_GPU_GFX_DRIVER_NAME_1_TYPE = RandomSocGpuGfxDriverName1.class;
+    // SOC GPU GFX Driver Name 2
+    public static final String SETTING_SOC_GPU_GFX_DRIVER_NAME_2 = "soc.gpu.gfx.driver.name.2";
+    //public static final Class<?> SETTING_SOC_GPU_GFX_DRIVER_NAME_2_TYPE = RandomSocGpuGfxDriverName2.class;
+
+
+
+    // SOC Baseband Board Config Name
+    public static final String SETTING_SOC_BASEBAND_BOARD_CONFIG_NAME = "soc.baseband.board.config.name";
+    public static final Class<?> SETTING_SOC_BASEBAND_BOARD_CONFIG_NAME_TYPE = RandomSocBasebandBoardConfigName.class;
+
+    // SOC Baseband Board Radio Version
+    public static final String SETTING_SOC_BASEBAND_BOARD_RADIO_VERSION = "soc.baseband.board.radio.version";
+    public static final Class<?> SETTING_SOC_BASEBAND_BOARD_RADIO_VERSION_TYPE = RandomSocBasebandBoardRadioVersion.class;
+
+    // SOC Baseband Board Implementor
+    public static final String SETTING_SOC_BASEBAND_BOARD_IMPLEMENTOR = "soc.baseband.board.implementor";
+    public static final Class<?> SETTING_SOC_BASEBAND_BOARD_IMPLEMENTOR_TYPE = RandomSocBasebandBoardImplementor.class;
+
+    // SOC Bluetooth Board Config Name
+    public static final String SETTING_SOC_BLUETOOTH_BOARD_CONFIG_NAME = "soc.bluetooth.board.config.name";
+    public static final Class<?> SETTING_SOC_BLUETOOTH_BOARD_CONFIG_NAME_TYPE = RandomSocBluetoothBoardConfigName.class;
+
+
+    public static final String SETTING_UNIQUE_BLUETOOTH = "unique.bluetooth.address";
+    public static final Class<?> SETTING_UNIQUE_BLUETOOTH_TYPE = RandomBluetoothAddress.class;
+
+    public static final String SETTING_UNIQUE_MAC = "unique.network.mac.address";
+    public static final Class<?> SETTING_UNIQUE_MAC_TYPE = RandomMac.class;
+
+
+    //public static final String SETTING_UNIQUE_SUB_ID = "unique.gsm.subscription.id";
+
+
+    public static final String INSTALL_CURRENT_OFFSET_SETTING = "apps.current.install.time.offset";
+    public static final String UPDATE_CURRENT_OFFSET_SETTING = "apps.current.update.time.offset";
+    public static final String INSTALL_OFFSET_SETTING = "apps.install.time.offset";
+    public static final String UPDATE_OFFSET_SETTING = "apps.update.time.offset";
+
+    public static final String SETTING_FILE_MODIFY_OFFSET = "files.time.modify.offset";
+    public static final String SETTING_FILE_ACCESS_OFFSET = "files.time.access.offset";
+    public static final String SETTING_FILE_CREATION_OFFSET = "files.time.created.offset";
+
+    public static final String SETTING_FILES_OFFSET_SUBTRACT = "files.offset.subtract.bool";
+    public static final String SETTING_FILE_SYNC_TIME = "files.time.sync.bool";
+
+
+
+    public static final String SETTING_APP_SYNC_TIME = "apps.time.sync.bool";
+    public static final String SETTING_APP_OFFSET_SUBTRACT = "apps.offset.subtract.bool";
+
+
+    public static final Class<?> SETTING_GENERIC_BOOL_TYPE = RandomGenericBool.class;
+    //Delete this
+    public static final String SETTING_BATTERY_IS_CHARGING = "battery.is.charging.bool";
+    public static final String SETTING_BATTERY_IS_POWER_SAVE_MODE = "battery.is.power.save.mode.bool";
+
+    public static final String SETTING_BATTERY_CHARGING_CYCLES = "battery.charging.cycles";
+    public static final Class<?> SETTING_BATTERY_CHARGING_CYCLES_TYPE = RandomChargingCycles.class;
+
+    public static final String SETTING_BATTERY_PERCENT = "battery.charge.percent";
+    public static final Class<?> SETTING_BATTERY_PERCENT_TYPE = RandomBatteryPercent.class;
+
+    public static final String SETTING_BATTERY_STATUS = "battery.status";
+    public static final Class<?> SETTING_BATTERY_STATUS_TYPE = RandomBatteryStatus.class;
+
+    public static final String SETTING_BATTERY_IS_PLUGGED = "battery.is.plugged.in.bool";
+
+    public static final String SETTING_UNIQUE_VB_META_DIGEST = "props.unique.vbmeta.digest";
+    public static final Class<?> SETTING_UNIQUE_VB_META_DIGEST_TYPE = RandomVbmetaDigest.class;
+
+    public static final String SETTING_PROP_ONE_PLUS_UNIQUE_SERIAL = "props.unique.one.plus.serialno";
+    public static final Class<?> SETTING_PROP_ONE_PLUS_UNIQUE_SERIAL_TYPE = RandomOnePlusSerial.class;
+
+    //"props.unique.ril.serialnumber" "props.unique.ap_serial" "props.unique.em.did" "props.unique.lite.uid", "props.unique.persist.radio.serialno"
+
+    //public static final String SETTING_PROP_ONE_PLUS_UNIQUE_SERIAL = "props.unique.ril.serialnumber";
+    //public static final String SETTING_PROP_ONE_PLUS_UNIQUE_SERIAL = "props.unique.ap_serial";
+    //public static final String SETTING_PROP_ONE_PLUS_UNIQUE_SERIAL = "props.unique.em.did";
+    public static final Class<?> SETTING_PROP_UNIQUE_NO_GENERIC_TYPE = RandomSerialGeneric.class;
+
+    public static final String SETTING_UNIQUE_GSF_ID = "unique.gsf.id";
+    public static final Class<?> SETTING_UNIQUE_GSF_ID_TYPE = RandomGSFID.class;
+
+    public static final String SETTING_EMAIL = "unique.account.email";
+    public static final Class<?> SETTING_EMAIL_TYPE = RandomEmail.class;
+
+
+    public static final String SETTING_UNIQUE_SERIAL_NO = "unique.serial.no";
+    public static final Class<?> SETTING_UNIQUE_SERIAL_NO_TYPE = RandomSerialNo.class;
+
+    public static final String SETTING_NET_ALLOWED_LIST = "network.allowed.list";
+    public static final Class<?> SETTING_NET_ALLOWED_TYPE = RandomNetAllowedList.class;
+
+    public static final String SETTING_UNIQUE_NET_SSID = "unique.network.ssid";
+    public static final Class<?> SETTING_UNIQUE_NET_SSID_TYPE = RandomNetSSID.class;
+
+    public static final String SETTING_UNIQUE_NET_BSSID = "unique.network.bssid";
+    public static final Class<?> SETTING_UNIQUE_NET_BSSID_TYPE = RandomBSSID.class;
+
+    public static final String SETTING_UNIQUE_UUID = "unique.guid.uuid";
+    public static final String SETTING_UNIQUE_VA_ID = "unique.app.va.id";
+    public static final String SETTING_UNIQUE_ANON_ID = "unique.app.anon.id";
+    public static final String SETTING_UNIQUE_OPEN_ANON_ID = "unique.open.anon.advertising.id";
+    public static final String SETTING_UNIQUE_BOOT_ID = "unique.boot.id";
+    public static final String SETTING_UNIQUE_FACEBOOK_ID = "unique.facebook.advertising.id";
+    public static final String SETTING_UNIQUE_GOOGLE_ID = "unique.google.advertising.id";
+    public static final String SETTING_UNIQUE_PAY_SESSION_ID = "settings.unique.pay.session.id";
+
+    public static final String SETTING_UNIQUE_GOOGLE_APP_SET_ID = "unique.google.app.set.id";
+
+    //unique.facebook.advertising.id
+
+    public static final Class<?> SETTING_UNIQUE_UUID_TYPE = RandomUUID.class;
+
+    public static final String SETTING_UNIQUE_ICC_ID = "cell.unique.sim.icc.id";
+    public static final String SETTING_UNIQUE_MEID = "cell.unique.meid";
+    public static final String SETTING_UNIQUE_IMEI = "cell.unique.imei";
+
+    public static final Class<?> SETTING_UNIQUE_ICC_ID_TYPE = RandomICCID.class;
+    public static final Class<?> SETTING_UNIQUE_MEID_TYPE = RandomMEID.class;
+    public static final Class<?> SETTING_UNIQUE_IMEI_TYPE = RandomIMEI.class;
+
+    public static final String SETTING_UNIQUE_ANDROID_ID = "unique.android.id";
+    public static final Class<?> SETTING_UNIQUE_ANDROID_ID_TYPE = RandomAndroidId.class;
+
+    public static final String SETTING_UNIQUE_SIM_SERIAL = "unique.gsm.sim.serial";
+    public static final Class<?> SETTING_UNIQUE_SIM_SERIAL_TYPE = RandomSIMSerial.class;
+
+
+
+
+    public static final String SETTING_CELL_SUBSCRIBER_ID = "cell.unique.subscriber.id";
+    public static final Class<?> SETTING_UNIQUE_SUB_ID_TYPE = RandomSubscriberId.class;
+
+    //cell.phone.sim.card.count
+    public static final String SETTING_CELL_SIM_COUNT = "cell.phone.sim.card.count";
+    public static final Class<?> SETTING_CELL_SIM_COUNT_TYPE = RandomSimCount.class;
+
+    public static final String SETTING_CELL_PHONE_NUMBER = "cell.unique.phone.number";
+    public static final Class<?> SETTING_CELL_UNIQUE_PHONE_TYPE = RandomPhone.class;
+    public static final String SETTING_CELL_OPERATOR_NAME = "cell.operator.name";
+    public static final Class<?> SETTING_CELL_CARRIER_NAME_TYPE = RandomOperatorName.class;
+    public static final String SETTING_CELL_DISPLAY_NAME = "cell.display.name";
+    public static final Class<?> SETTING_CELL_DISPLAY_NAME_TYPE = RandomCellDisplayName.class;
+    public static final String SETTING_CELL_DISPLAY_NAME_SOURCE = "cell.display.name.source";
+    public static final Class<?> SETTING_CELL_DISPLAY_NAME_SOURCE_TYPE = RandomCellDisplayNameSource.class;
+
+    public static final String SETTING_OPERATOR_ICON_TINT = "cell.operator.icon.tint";                      //"telephony.db" => 'siminfo' [color] example (-6728704 / FF99CC00) or
+    public static final Class<?> SETTING_OPERATOR_ICON_TINT_TYPE = RandomOperatorTint.class;
+
+    public static final String SETTING_SIM_KIND = "cell.sim.type";
+
+    public static final String SETTING_SIM_SUBSCRIPTION_ID = "cell.sim.subscription.id";
+    public static final Class<?> SETTING_SIM_SUB_TYPE = RandomSubscriptionId.class;
+
+    public static final String SETTING_PHONE_KIND = "cell.phone.type";
+
+    public static final String SETTING_SIM_COUNTRY_ISO = "cell.sim.country.iso";                      //or zone.country.iso2 / cell.zone.provioder ? //cell.sim.country.iso
+    public static final String SETTING_CELL_OPERATOR_E_SIM = "cell.sim.is.embedded";//cell.sim.is.embedded
+
+
+    public static final Class<?> SETTING_PHONE_TYPE = RandomPhoneType.class;
+
+    public static final Class<?> SETTING_SIM_KIND_TYPE = RandomSimType.class;
+
+    public static final Class<?> SETTING_PROVIDER_COUNTRY_ISO_TYPE = RandomLocCountryIso.class;
+
+    //mIsOpportunistic
+
+    //cell.data.is.opportunistic
+    public static final String SETTING_CELL_DATA_IS_OPPORTUNISTIC = "cell.data.is.opportunistic";
+
+
+    public static final String SETTING_CELL_DATA_ROAMING = "cell.data.roaming.enabled.flag";
+
+    public static final Class<?> SETTING_CELL_DATA_ROAMING_TYPE = RandomDataRoaming.class;
+
+
+
+    public static final String SETTING_CELL_SIM_COUNTRY_CODE = "cell.sim.country.numeric.code";
+    public static final Class<?> SETTING_CELL_SIM_COUNTRY_CODE_TYPE = RandomSIMCountyCode.class;
+
+
+    public static final String SETTING_CELL_OPERATOR_ID = "cell.operator.id";                               //"carrierIdentification.db" => carrier_id [carrier id] Example (1839)
+    public static final Class<?> SETTING_CELL_OPERATOR_ID_TYPE = RandomOperatorCarrierId.class;
+
+
+
+    public static final String SETTING_CELL_OPERATOR_MCC = "cell.operator.mcc";
+    public static final Class<?> SETTING_CELL_OPERATOR_MCC_TYPE = RandomMCC.class;
+
+    public static final String SETTING_CELL_OPERATOR_MNC = "cell.operator.mnc";
+    public static final Class<?> SETTING_CELL_OPERATOR_MNC_TYPE = RandomMNC.class;
+
+    public static final String SETTING_CELL_MSIN = "cell.unique.msin";
+    public static final Class<?> SETTING_CELL_MSIN_TYPE = RandomMSIN.class;
+
+
+
+
+
+
+
+
+    public static final String SETTING_UNIQUE_DRM_ID = "unique.drm.id";
+    public static final Class<?> SETTING_UNIQUE_DRM_ID_TYPE = RandomDRMID.class;
+
+    public static final String SETTING_UNIQUE_VOICEMAIL_ID = "cell.voice.mail.alpha.tag";
+    public static final Class<?> SETTING_UNIQUE_VOICEMAIL_ID_TYPE = RandomVoicemailId.class;
+
+
+    public static final String SETTING_NET_HOST_NAME = "network.host.name";
+    public static final Class<?> SETTING_NET_HOST_NAME_TYPE = RandomNetHostName.class;
+
+    public static final String SETTING_NET_GATEWAY = "network.gateway";
+    public static final Class<?> SETTING_NET_GATEWAY_TYPE = RandomNetGateway.class;
+
+    public static final String SETTING_NET_DNS = "network.dns";
+    public static final Class<?> SETTING_NET_DNS_TYPE = RandomNetDNS.class;
+
+    public static final String SETTING_NET_DNS_LIST = "network.dns.list";
+    public static final Class<?> SETTING_NET_DNS_LIST_TYPE = RandomNetDNSList.class;
+
+    public static final String SETTING_NET_ROUTES = "network.routes";
+    public static final Class<?> SETTING_NET_ROUTES_TYPE = RandomNetRoutes.class;
+
+    public static final String SETTING_NET_HOST = "network.host.address";
+    public static final Class<?> SETTING_NET_HOST_TYPE = RandomNetHostAddress.class;
+
+    public static final String SETTING_NET_DHCP = "network.dhcp.server";
+    public static final Class<?> SETTING_NET_DHCP_TYPE = RandomDhcpServer.class;
+
+
+    public static final String SETTING_NET_NETMASK = "network.netmask";
+    public static final Class<?> SETTING_NET_NETMASK_TYPE = RandomNetNetmask.class;
+
+    public static final String SETTING_NET_DOMAINS = "network.domains";
+    public static final Class<?> SETTING_NET_DOMAINS_TYPE = RandomNetDomains.class;
+
+    public static final String SETTING_NET_PARENT_CONTROL = "network.parent.control.isp";
+    public static final Class<?> SETTING_NET_PARENT_CONTROL_TYPE = RandomNetParentControl.class;
+
+    public static final String SETTING_APP_INSTALL_TIME_OFFSET = "apps.install.time.offset";
+    public static final String SETTING_APP_UPDATE_TIME_OFFSET = "apps.update.time.offset";
+
+    public static final String SETTING_APP_CURRENT_INSTALL_TIME_OFFSET = "apps.current.install.time.offset";
+    public static final String SETTING_APP_CURRENT_UPDATE_TIME_OFFSET = "apps.current.update.time.offset";
+
+
+    //public static final String SETTING_APP_TIME_CURRENT_ONLY = "apps.time.spoof.current";
+
+    public static final Class<?> SETTING_APP_INSTALL_TIME_OFFSET_TYPE = RandomAppTime.class;
+    public static final Class<?> SETTING_APP_TIME_CURRENT_ONLY_TYPE = RandomAppCurrentFlag.class;
+
+
+    private static final Map<String, IRandomizer> randomizers = new HashMap<>();
+
+    //Use View Registry or something Store Copy of Randomizers
+    //WHENEVER the Container Binds, it find it in the copy
+    //and bind it there
+
+    //Hmm but if they dont "extend" then it will be an issue ?
+    //Well lets focus on ..
+    //No just set the randomizer object
+
+    //From the UI top we
+
+    public static Map<String, IRandomizer> getCopy() {
+        init();
+        Map<String, IRandomizer> copy = new HashMap<>(randomizers.size());
+        copy.putAll(randomizers);
+        //add the more unique ones ?
+        return copy;
+    }
+
+    public static void init() {
+        try {
+            synchronized (randomizers) {
+                if(randomizers.isEmpty()) {
+                    Field[] fields = RandomizersCache.class.getDeclaredFields();
+                    for(Field field : fields) {
+                        if(!Modifier.isStatic(field.getModifiers()))
+                            continue;
+
+                        String name = field.getName().toLowerCase();
+                        Class<?> ret = field.getType();
+                        if(name.startsWith("setting_") && name.endsWith("_type") && ret == Class.class) {
+                            try {
+                                Object value = field.get(null);
+                                if(!(value instanceof Class<?>))
+                                    throw new Exception("Object Value is not Instance of Class<?>");
+
+                                Class<?> classType = (Class<?>) value;
+                                IRandomizer randomizer = (IRandomizer) classType.newInstance();
+
+                                for(String setting : randomizer.getSettings())
+                                    randomizers.put(setting, randomizer);
+
+                                //Perhaps do some logic here to determine if Special ?
+
+                            }catch (Exception eI) {
+                                Log.e(TAG, "Failed to Reflect Field: " + name + " Error=" + eI);
+                            }
+                        }
+                    }
+                }
+            }
+        }catch (Exception e) {
+            Log.e(TAG, "Failed to Init Randomizers, error=" + e);
+        }
+
+        if(DebugUtil.isDebug())
+            Log.d(TAG, "Exiting Init Randomizers, Count=" + randomizers.size());
+    }
+}

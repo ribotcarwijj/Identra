@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- New Identra UI (0.3.0). English only. -->
+    <string name="identra_tab_home" translatable="false">Home</string>
+    <string name="identra_tab_location" translatable="false">Location</string>
+
+    <!-- common -->
+    <string name="identra_save" translatable="false">Save</string>
+    <string name="identra_delete" translatable="false">Delete</string>
+    <string name="identra_copy" translatable="false">Copy</string>
+    <string name="identra_copied" translatable="false">Copied</string>
+    <string name="identra_refresh" translatable="false">Refresh</string>
+    <string name="identra_unknown" translatable="false">Unknown</string>
+    <string name="identra_yes" translatable="false">Yes</string>
+    <string name="identra_no" translatable="false">No</string>
+    <string name="identra_nothing_found" translatable="false">Nothing matches your search</string>
+
+    <!-- Home dashboard -->
+    <string name="identra_dash_tagline" translatable="false">Your identity, on your terms</string>
+    <string name="identra_dash_checking" translatable="false">Checking the module…</string>
+    <string name="identra_dash_active" translatable="false">Protection is active</string>
+    <string name="identra_dash_active_body" translatable="false">The Identra service is answering. Changes reach apps the next time they start.</string>
+    <string name="identra_dash_attention" translatable="false">Needs attention</string>
+    <string name="identra_dash_inactive" translatable="false">Module inactive</string>
+    <string name="identra_dash_api" translatable="false">Xposed API 102 · Vector / LSPosed</string>
+    <string name="identra_dash_bridge" translatable="false">Service bridge %1$s</string>
+    <string name="identra_dash_bridge_none" translatable="false">Service bridge not answering</string>
+    <string name="identra_dash_version" translatable="false">Identra %1$s (%2$d)</string>
+    <string name="identra_dash_dash" translatable="false">–</string>
+    <string name="identra_dash_protected_apps" translatable="false">Protected apps</string>
+    <string name="identra_dash_protected_app" translatable="false">Protected app</string>
+    <string name="identra_dash_collections" translatable="false">Hooks available</string>
+    <string name="identra_dash_location" translatable="false">Spoofed location (all apps)</string>
+    <string name="identra_dash_quick" translatable="false">Quick actions</string>
+    <string name="identra_dash_quick_protect" translatable="false">Protect a new app</string>
+    <string name="identra_dash_quick_location" translatable="false">Set location</string>
+    <string name="identra_dash_quick_backup" translatable="false">Back up</string>
+    <string name="identra_dash_recent" translatable="false">Recently changed</string>
+    <string name="identra_dash_recent_empty" translatable="false">No changes yet</string>
+    <string name="identra_dash_recent_empty_body" translatable="false">Apps you protect or adjust will show up here.</string>
+
+    <!-- Location -->
+    <string name="identra_loc_search_hint" translatable="false">Search a place or type lat, lon</string>
+    <string name="identra_loc_map_hint" translatable="false">Tap to drop a pin · long-press the pin to drag</string>
+    <string name="identra_loc_recenter" translatable="false">Show selected place</string>
+    <string name="identra_loc_attribution" translatable="false">Search by Photon · Nominatim · © OpenStreetMap</string>
+    <string name="identra_loc_search_failed" translatable="false">Search is unavailable right now. Check your connection, or type coordinates as lat, lon.</string>
+    <string name="identra_loc_search_none" translatable="false">No places found for “%1$s”.</string>
+    <string name="identra_loc_coordinates" translatable="false">Coordinates</string>
+    <string name="identra_loc_dropped_pin" translatable="false">Dropped pin</string>
+    <string name="identra_loc_custom_point" translatable="false">Custom point</string>
+    <string name="identra_loc_latitude" translatable="false">Latitude</string>
+    <string name="identra_loc_longitude" translatable="false">Longitude</string>
+    <string name="identra_loc_set_all" translatable="false">Set for all apps</string>
+    <string name="identra_loc_set_app" translatable="false">Set for an app…</string>
+    <string name="identra_loc_set_for" translatable="false">Set for %1$s</string>
+    <string name="identra_loc_set_all_done" translatable="false">%1$s is now the location for all apps</string>
+    <string name="identra_loc_set_app_done" translatable="false">%1$s is now the location for %2$s</string>
+    <string name="identra_loc_pick_app" translatable="false">Choose an app</string>
+    <string name="identra_loc_favourite" translatable="false">Add to favourites</string>
+    <string name="identra_loc_unfavourite" translatable="false">Remove from favourites</string>
+    <string name="identra_loc_starred" translatable="false">%1$s added to favourites</string>
+    <string name="identra_loc_unstarred" translatable="false">%1$s removed from favourites</string>
+    <string name="identra_loc_favourites" translatable="false">Favourites</string>
+    <string name="identra_loc_favourites_empty" translatable="false">Star a place to keep it here. Long-press a favourite to rename or delete it.</string>
+    <string name="identra_loc_edit_favourite" translatable="false">Edit favourite</string>
+    <string name="identra_loc_name" translatable="false">Name</string>
+    <string name="identra_loc_recent" translatable="false">Recent</string>
+    <string name="identra_loc_recent_empty" translatable="false">Places you set will appear here.</string>
+    <string name="identra_loc_clear" translatable="false">Clear</string>
+    <string name="identra_loc_active" translatable="false">Active location</string>
+    <string name="identra_loc_all_apps" translatable="false">All apps</string>
+    <string name="identra_loc_not_set" translatable="false">Not set</string>
+    <string name="identra_loc_not_set_desc" translatable="false">Not set · apps with location protection see 0, 0</string>
+    <string name="identra_loc_note" translatable="false">Applies to apps with Location &amp; region protection on. Per-app locations override the global one. Apps pick up changes when they restart.</string>
+    <string name="identra_loc_active_marker" translatable="false">Active for all apps: %1$s</string>
+    <string name="identra_loc_override_desc" translatable="false">This app uses its own location instead of the global one.</string>
+    <string name="identra_loc_show_on_map" translatable="false">Show on map</string>
+    <string name="identra_loc_remove_override" translatable="false">Use the global location instead</string>
+    <string name="identra_loc_override_removed" translatable="false">%1$s now uses the global location</string>
+    <string name="identra_loc_hooks_off" translatable="false">Location set. Location protection is off for %1$s, so it can\'t see it yet.</string>
+    <string name="identra_loc_turn_on" translatable="false">Turn on</string>
+    <string name="identra_loc_hooks_on" translatable="false">Location protection is on for %1$s</string>
+    <string name="identra_loc_target" translatable="false">Choosing a location for %1$s</string>
+    <string name="identra_loc_target_done" translatable="false">Done</string>
+    <string name="identra_loc_advanced_desc" translatable="false">Mode, accuracy and random offset</string>
+    <string name="identra_loc_mode" translatable="false">Mode</string>
+    <string name="identra_loc_mode_desc" translatable="false">Exact uses the chosen point. Coarse keeps the real location but blurs it by the accuracy radius.</string>
+    <string name="identra_loc_mode_exact" translatable="false">Exact point</string>
+    <string name="identra_loc_mode_coarse" translatable="false">Coarse</string>
+    <string name="identra_loc_accuracy" translatable="false">Accuracy</string>
+    <string name="identra_loc_accuracy_hint" translatable="false">Accuracy radius in metres (coarse mode)</string>
+    <string name="identra_loc_jitter" translatable="false">Random offset</string>
+    <string name="identra_loc_jitter_desc" translatable="false">Move the point by a small random distance each time you set it</string>
+    <string name="identra_loc_jitter_hint" translatable="false">Maximum offset in metres</string>
+    <string name="identra_loc_jitter_note" translatable="false">A random offset of up to %1$d m will be added.</string>
+
+    <!-- App detail -->
+    <string name="identra_detail_protection" translatable="false">Protection</string>
+    <string name="identra_detail_profile_none" translatable="false">No profile</string>
+    <string name="identra_detail_loc_title" translatable="false">Location for this app</string>
+    <string name="identra_detail_loc_own" translatable="false">Own location: %1$s</string>
+    <string name="identra_detail_loc_global" translatable="false">Uses the global location: %1$s</string>
+    <string name="identra_adv_app_values_desc" translatable="false">Search and edit the values this app sees</string>
+    <string name="identra_adv_app_full_editor" translatable="false">Full value editor</string>
+
+    <!-- Settings / tools -->
+    <string name="identra_about_version_code" translatable="false">Version %1$s (%2$d)</string>
+    <string name="identra_tool_app_values" translatable="false">Per-app values</string>
+    <string name="identra_tool_app_values_desc" translatable="false">Values for one app, overriding the global ones</string>
+    <string name="identra_tool_backup" translatable="false">Backup &amp; restore</string>
+    <string name="identra_tool_backup_desc" translatable="false">Save or restore settings, hooks and assignments</string>
+    <string name="identra_tool_logs_desc2" translatable="false">What the hooks did, per app</string>
+    <string name="identra_tool_hook_editor" translatable="false">Hook editor</string>
+    <string name="identra_tool_hook_editor_desc" translatable="false">Create, edit, duplicate and delete your own hooks</string>
+
+    <!-- Collections -->
+
+    <!-- Hooks browser -->
+    <string name="identra_hooks_search" translatable="false">Search hooks, classes, methods</string>
+    <string name="identra_hooks_inactive" translatable="false">inactive</string>
+    <string name="identra_hooks_no_group" translatable="false">(no group)</string>
+    <string name="identra_hooks_disabled" translatable="false">Disabled</string>
+    <string name="identra_hooks_custom" translatable="false">Custom</string>
+    <string name="identra_hooks_empty" translatable="false">No hooks loaded</string>
+    <string name="identra_hook_collection" translatable="false">Collection</string>
+    <string name="identra_hook_group" translatable="false">Group</string>
+    <string name="identra_hook_description" translatable="false">Description</string>
+    <string name="identra_hook_class" translatable="false">Class</string>
+    <string name="identra_hook_method" translatable="false">Method</string>
+    <string name="identra_hook_params" translatable="false">Parameters</string>
+    <string name="identra_hook_return" translatable="false">Returns</string>
+    <string name="identra_hook_sdk" translatable="false">Android SDK</string>
+    <string name="identra_hook_settings" translatable="false">Values it reads</string>
+    <string name="identra_hook_targets" translatable="false">Only for</string>
+    <string name="identra_hook_excludes" translatable="false">Never for</string>
+    <string name="identra_hook_author" translatable="false">Author</string>
+    <string name="identra_hook_flags" translatable="false">Flags</string>
+    <string name="identra_hook_builtin" translatable="false">Built-in</string>
+    <string name="identra_hook_optional" translatable="false">Optional</string>
+    <string name="identra_hook_notify" translatable="false">Notifies</string>
+    <string name="identra_hook_script" translatable="false">Script</string>
+
+    <!-- Values editor -->
+    <string name="identra_values_search" translatable="false">Search values</string>
+    <string name="identra_values_set" translatable="false">Set</string>
+    <string name="identra_values_unset" translatable="false">Not set</string>
+    <string name="identra_values_set_badge" translatable="false">Set</string>
+    <string name="identra_values_not_set" translatable="false">Not set</string>
+    <string name="identra_values_inherits" translatable="false">Global: %1$s</string>
+    <string name="identra_values_empty" translatable="false">No values</string>
+    <string name="identra_values_value" translatable="false">Value</string>
+    <string name="identra_values_global_value" translatable="false">Global value</string>
+    <string name="identra_values_clear" translatable="false">Clear value</string>
+    <string name="identra_values_reset_app" translatable="false">Remove override (use global)</string>
+    <string name="identra_values_saved" translatable="false">%1$s saved</string>
+    <string name="identra_values_cleared" translatable="false">%1$s cleared</string>
+
+    <!-- CPU maps -->
+    <string name="identra_cpu_search" translatable="false">Search processors</string>
+    <string name="identra_cpu_selected" translatable="false">Selected</string>
+    <string name="identra_cpu_available" translatable="false">Available</string>
+    <string name="identra_cpu_empty" translatable="false">No CPU maps</string>
+    <string name="identra_cpu_contents" translatable="false">cpuinfo</string>
+    <string name="identra_cpu_select" translatable="false">Use this processor</string>
+    <string name="identra_cpu_unselect" translatable="false">Stop using it</string>
+
+    <!-- Database -->
+    <string name="identra_db_status" translatable="false">Status</string>
+    <string name="identra_db_ready" translatable="false">Database ready</string>
+    <string name="identra_db_error" translatable="false">Database reported a problem</string>
+    <string name="identra_db_path" translatable="false">Location on device</string>
+    <string name="identra_db_contents" translatable="false">Contents</string>
+    <string name="identra_db_hooks" translatable="false">Hook definitions</string>
+    <string name="identra_db_settings" translatable="false">Saved values</string>
+    <string name="identra_db_assignments" translatable="false">Assignments</string>
+    <string name="identra_db_versions" translatable="false">Versions</string>
+    <string name="identra_db_app_version" translatable="false">App</string>
+    <string name="identra_db_bridge" translatable="false">Service bridge</string>
+    <string name="identra_db_protocol" translatable="false">Command protocol</string>
+
+    <!-- Backup -->
+    <string name="identra_backup_title" translatable="false">Back up</string>
+    <string name="identra_backup_body" translatable="false">Save hook definitions, values and app assignments to a JSON file. You choose what to include.</string>
+    <string name="identra_backup_action" translatable="false">Create backup</string>
+    <string name="identra_restore_title" translatable="false">Restore</string>
+    <string name="identra_restore_body" translatable="false">Open a backup file and choose which parts to apply. You can replace existing data or merge with it.</string>
+    <string name="identra_restore_action" translatable="false">Choose a file</string>
+    <string name="identra_backup_note" translatable="false">Backups use the same format as earlier Identra versions.</string>
+
+    <!-- Logs -->
+    <string name="identra_logs_title" translatable="false">Log · %1$s</string>
+    <string name="identra_logs_search" translatable="false">Search the log</string>
+    <string name="identra_logs_used" translatable="false">Used</string>
+    <string name="identra_logs_errors" translatable="false">Errors</string>
+    <string name="identra_logs_installed" translatable="false">Installed, not used yet</string>
+    <string name="identra_logs_change" translatable="false">%1$s → %2$s</string>
+    <string name="identra_logs_error_short" translatable="false">Error: %1$s</string>
+    <string name="identra_logs_empty" translatable="false">Nothing logged yet</string>
+    <string name="identra_logs_empty_filtered" translatable="false">No matching entries</string>
+    <string name="identra_logs_empty_body" translatable="false">Open the app and come back. Try “All” to see every assigned hook.</string>
+    <string name="identra_logs_installed_at" translatable="false">Installed</string>
+    <string name="identra_logs_used_at" translatable="false">Last used</string>
+    <string name="identra_logs_restricted" translatable="false">Restricted</string>
+    <string name="identra_logs_new" translatable="false">New value</string>
+    <string name="identra_logs_old" translatable="false">Original value</string>
+    <string name="identra_logs_exception" translatable="false">Exception</string>
+</resources>

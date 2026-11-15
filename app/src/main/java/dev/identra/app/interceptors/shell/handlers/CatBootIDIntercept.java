@@ -1,0 +1,49 @@
+package dev.identra.app.interceptors.shell.handlers;
+
+import java.util.UUID;
+
+import dev.identra.app.api.xstandard.interfaces.ICommandIntercept;
+import dev.identra.app.interceptors.UserContextMaps;
+import dev.identra.app.interceptors.shell.CommandInterceptor;
+import dev.identra.app.interceptors.shell.ShellInterception;
+
+public class CatBootIDIntercept extends CommandInterceptor implements ICommandIntercept {
+    private static final String CAT_BOOT_ID_INTERCEPT_SETTING = "intercept.shell.boot_id.bool";
+
+    @SuppressWarnings("unused")
+    public CatBootIDIntercept() { this.command = "boot_id"; this.setting = CAT_BOOT_ID_INTERCEPT_SETTING; }
+    ///proc/sys/kernel/random/boot_id
+
+    @Override
+    public boolean isCommand(ShellInterception results) {
+        for(String command : results.commandLine)
+            if(command.toLowerCase().contains("boot_id"))
+                return true;
+
+        return false;
+    }
+
+    @Override
+    public boolean interceptCommand(ShellInterception result) {
+        if (result != null && result.isValid) {
+            UserContextMaps maps = result.getUserMaps();
+            if (maps != null) {
+                //Improve this ? make some storage emulation shit ?
+                //ashmem device etc stat
+                if (!keepGoing(maps, CAT_BOOT_ID_INTERCEPT_SETTING))
+                    return true;
+                String setting = maps.getSetting("unique.boot.id");
+                String newValue = setting == null ? UUID.randomUUID().toString() : setting;
+
+                result.setNewValue(newValue);
+                result.setIsMalicious(true);
+
+                result.param.setLogOld("N/A");
+                result.param.setLogNew(newValue);
+                result.param.setLogExtra("cat boot_id");
+                return true;
+            }
+        }
+        return false;
+    }
+}

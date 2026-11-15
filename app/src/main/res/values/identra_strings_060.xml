@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 0.6.0: "Found in this app" on App detail -->
+    <string name="identra_found_title" translatable="false">Found in this app</string>
+    <string name="identra_found_use_all" translatable="false">Use identity for everything found</string>
+    <string name="identra_found_use_all_off" translatable="false">One tap gives this app a new identity for everything below. Values come from its profile, or your default profile.</string>
+    <string name="identra_found_use_all_on" translatable="false">On · %1$d protections from profile \"%2$s\". New finds are added by themselves.</string>
+    <string name="identra_found_summary" translatable="false">%1$d seen while the app ran · %2$d likely from its code</string>
+    <string name="identra_found_scanning" translatable="false">Checking the app\'s code…</string>
+    <string name="identra_found_empty" translatable="false">Nothing found yet. Open the app once, then come back: Identra notes what it reads while it runs.</string>
+    <string name="identra_found_seen" translatable="false">Seen</string>
+    <string name="identra_found_likely" translatable="false">Likely</string>
+    <string name="identra_found_seen_desc" translatable="false">Seen: the app really read this while it ran.</string>
+    <string name="identra_found_likely_desc" translatable="false">Likely: the app\'s code can read this; not seen yet.</string>
+    <string name="identra_found_rescan" translatable="false">Scan again</string>
+    <string name="identra_found_rescan_desc" translatable="false">Reads the app\'s code again (takes a few seconds)</string>
+    <string name="identra_found_cat_sub" translatable="false">%1$d seen · %2$d likely</string>
+    <string name="identra_found_no_profile" translatable="false">Pick a profile first. Identra takes the new identity from it.</string>
+    <string name="identra_found_done_on" translatable="false">Done: %1$d protections on for this app. It was restarted.</string>
+    <string name="identra_found_done_off" translatable="false">Done: %1$d protections removed. It was restarted.</string>
+    <string name="identra_found_skipped" translatable="false">%1$d found items need values the profile does not have, so they stay off.</string>
+    <string name="identra_found_not_identity" translatable="false">Privacy blocks (contacts, messages, camera, mic, trackers) are not switched on here. Set them below if you want.</string>
+</resources>

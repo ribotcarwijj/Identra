@@ -1,0 +1,30 @@
+name: Publish release
+
+# The maintainer pushes a signed APK named Identra-v<version>-<code>*.apk to the `dist` branch;
+# this publishes it as a GitHub Release, which the in-app updater reads.
+on:
+  push:
+    branches: [ "dist" ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dist
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APK=$(ls Identra-v*.apk | sort -V | tail -1)
+          VER=$(echo "$APK" | sed -E 's/^Identra-v([^-]+)-.*/\1/')
+          NOTES=notes.md; [ -f "$NOTES" ] || echo "Identra $VER" > "$NOTES"
+          if gh release view "v$VER" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "v$VER" "$APK" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "v$VER" "$APK" -t "Identra $VER" -F "$NOTES" --target main -R "$GITHUB_REPOSITORY"
+          fi

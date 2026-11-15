@@ -1,0 +1,18 @@
+[
+  {
+    "collection": "Identra",
+    "group": "Spoof.Accounts",
+    "name": "Spoof/Account.createFromParcel",
+    "author": "Identra",
+    "className": "android.accounts.Account",
+    "methodName": "CREATOR:createFromParcel",
+    "parameterTypes": ["android.os.Parcel"],
+    "returnType": "android.accounts.Account",
+    "version": 1,
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "luaScript": "@id_account_createfromparcel",
+    "settings": ["unique.account.email"]
+  }
+]

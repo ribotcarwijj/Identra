@@ -1,0 +1,173 @@
+package dev.identra.app.x.core.database.updaters;
+
+import android.content.Context;
+import android.text.TextUtils;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+
+import dev.identra.app.DebugUtil;
+import dev.identra.app.XUtil;
+import dev.identra.app.x.LogX;
+import dev.identra.app.x.Str;
+import dev.identra.app.x.data.JsonHelperEx;
+import dev.identra.app.x.data.string.StrBuilder;
+import dev.identra.app.x.data.utils.ListUtil;
+import dev.identra.app.x.data.utils.ObjectUtils;
+import dev.identra.app.x.ui.core.view_registry.IIdentifiableObject;
+import dev.identra.app.x.core.XposedUtility;
+import dev.identra.app.x.core.database.DatabaseHelpEx;
+import dev.identra.app.x.core.database.sql.SQLDatabase;
+import dev.identra.app.x.core.interfaces.ICursorType;
+
+/*
+
+ */
+public class UpdateUtils {
+    public static final String TAG = "Identra.UpdateUtils";
+    public static final String TAG_COMPRESS = "Identra.UpdateUtils(getUidDatabaseEntries)";
+    public static final String TAG_R_ITEMS = "Identra.UpdateUtils(remapItems)";
+
+
+    //JsonHelperEx.findJsonElementsFromAssets(XUtil.getApk(context), JSON_SETTINGS_DEFAULT, true, SettingInfoPacket.class))
+    //id [new ids....]
+
+    public static <T extends IIdentifiableObject & ICursorType> WeakHashMap<T, String> remapItems(Context context, Collection<T> items, String jsonFile) {
+        if(ObjectUtils.anyNull(context, items, jsonFile)) {
+            XposedUtility.logE_xposed(TAG_R_ITEMS, LogX.errorInput(context, items, jsonFile));
+            return new WeakHashMap<>();
+        }
+
+        WeakHashMap<T, String> result = new WeakHashMap<>();
+
+        List<UpdateMapEntry> jsonEntries = JsonHelperEx.findJsonElementsFromAssets(
+                XUtil.getApk(context),
+                jsonFile,
+                true,
+                UpdateMapEntry.class);
+
+        StrBuilder sb = StrBuilder.create().ensureOneNewLinePer(true);
+        HashMap<String, String> map = new HashMap<>();
+        String prefix = Str.fm("Items Count=%s JsonFile=%s Json Items Count=%s", items.size(), jsonFile, jsonEntries.size());
+
+        try {
+            if(!ListUtil.isValid(jsonEntries))
+                throw new Exception("Invalid JSON Entries Count! Count=" + jsonEntries.size());
+
+            //
+            //Lets pretend we got these two settings
+            //
+            //cell.old.mnc   => cell.mnc.2
+            //cell.older.mnc => cell.mnc.1
+            //
+            //
+
+            //To Support Multi User
+            //Just have it so its a LIST under that SPECIFIC ID
+
+            for(UpdateMapEntry updateEntry : jsonEntries)
+                for(String oldId : updateEntry.oldIds)
+                    map.put(oldId, updateEntry.id);
+
+            for(T item : items) {
+                String newId = map.get(item.getObjectId());
+                result.put(item, newId);
+                if(newId != null) {
+                    sb.appendLine(Str.combineEx("Map Old=", item.getObjectId(), " New Id=", newId));
+                }
+            }
+
+        }catch (Exception e) {
+            XposedUtility.logE_xposed(TAG_R_ITEMS, Str.fm("Error Re Mapping Items to new Mappings! Error=%s %s", e, prefix));
+        } finally {
+
+            if(DebugUtil.isDebug())
+                XposedUtility.logD_xposed(TAG_R_ITEMS, Str.fm("JSON Entries Count=%s Over all Map Count=%s JSON=%s Input Count=%s Output=%s",
+                        jsonEntries.size(),
+                        map.size(),
+                        jsonFile,
+                        items.size(),
+                        sb.toString(true)));
+
+            if(DebugUtil.isDebug())
+                XposedUtility.logD_xposed(TAG_R_ITEMS, Str.fm("Returning from mapping items, Map Size=%s %s", result.size(), prefix));
+        }
+
+        return result;
+    }
+
+
+    public static <T extends IIdentifiableObject & ICursorType> List<T> getUidDatabaseEntries(SQLDatabase database, String tableName, Class<T> clazz, boolean dropTableIfExists) {
+        if(ObjectUtils.anyNull(database, clazz, tableName)) {
+            LogX.errorInput(database, clazz, tableName);
+            return ListUtil.emptyList();
+        }
+
+        List<T> list = new ArrayList<>();
+        boolean hasTable = database.hasTable(tableName);
+        int tableEntryCount = database.tableEntries(tableName);
+
+        String prefix = Str.fm("Database=%s TableName=%s Clazz=%s Table Exist=%s Table Entry Count=%s", Str.noNL(database), tableName, Str.toStringOrNull(clazz), hasTable, tableEntryCount);
+        try {
+            if(hasTable) {
+                List<T> databaseEntries = DatabaseHelpEx.getFromDatabase(database, tableName, clazz, true);
+                if(!ListUtil.isValid(databaseEntries))
+                    throw new Exception("Failed to get Database Entries");
+
+                if(DebugUtil.isDebug())
+                    Log.d(TAG_COMPRESS, Str.fm("Got Database Entries now Organizing to use newest values, Count=%s %s", ListUtil.size(databaseEntries), prefix));
+
+                LinkedHashMap<String, LinkedHashMap<String, T>> organized = new LinkedHashMap<>();
+                for(T item : databaseEntries) {
+                    String category = item.getCategory();
+                    String id = item.getObjectId();
+
+                    if(TextUtils.isEmpty(category) || TextUtils.isEmpty(id))
+                        continue;
+
+                    LinkedHashMap<String, T> categoryValues = organized.get(category);
+                    if(categoryValues == null) {
+                        categoryValues = new LinkedHashMap<>();
+                        organized.put(category, categoryValues);
+                        if(DebugUtil.isDebug())
+                            Log.d(TAG_COMPRESS, Str.fm("Created Category Value Map, TableName=%s, Category=%s Id=%s", tableName, category, id));
+                    }
+
+                    categoryValues.put(item.getObjectId(), item);
+                }
+
+                if(DebugUtil.isDebug())
+                    Log.d(TAG_COMPRESS, Str.fm("Created organized map that compresses ghost UIDs now pushing to list, Size=%s %s", organized.size(), prefix));
+
+                for(Map.Entry<String, LinkedHashMap<String, T>> entry : organized.entrySet()) {
+                    String category = entry.getKey();
+                    Map<String, T> block = entry.getValue();
+                    if(ObjectUtils.anyNull(category, block))
+                        continue;
+
+                    list.addAll(block.values());
+                    if(DebugUtil.isDebug())
+                        Log.d(TAG_COMPRESS, Str.fm("Pushed Category block, Category=%s Size=%s TableName=%s", category, block.size(), tableName));
+                }
+
+                if(dropTableIfExists) {
+                    database.beginTransaction(false);
+                    database.endTransaction(false, database.dropTable(tableName));
+                }
+            }
+        }catch (Exception e) {
+            XposedUtility.logE_xposed(TAG_COMPRESS, Str.fm("Error Compressing UID Entries, error=%s %s", e, prefix));
+        } finally {
+            if(DebugUtil.isDebug())
+                XposedUtility.logD_xposed(TAG_COMPRESS, Str.fm("Returning from Compressing UID Entries, Size=%s %s", ListUtil.size(list), prefix));
+        }
+
+        return list;
+    }
+}

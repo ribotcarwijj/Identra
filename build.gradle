@@ -1,0 +1,35 @@
+buildscript {
+    repositories {
+        google()
+
+        mavenCentral()
+        maven { url 'https://jitpack.io' } // Add JitPack repository
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.2'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        mavenLocal()
+
+        maven { url 'https://jitpack.io' } // Add JitPack repository
+
+        maven { url 'https://api.xposed.info' }
+        maven { url 'https://maven.google.com' }
+        maven {
+            url("https://s01.oss.sonatype.org/content/repositories/releases/")
+            content {
+                includeGroupByRegex("dev.rikka.*")
+                includeGroup("org.lsposed.hiddenapibypass")
+            }
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

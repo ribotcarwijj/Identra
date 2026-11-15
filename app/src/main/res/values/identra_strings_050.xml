@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 0.5.0: Advanced section, hook editor, values editor, help -->
+    <string name="identra_help_row_desc" translatable="false">How Identra works, setup and troubleshooting</string>
+
+    <string name="identra_hookedit_new" translatable="false">New hook</string>
+    <string name="identra_hookedit_new_desc" translatable="false">Write your own hook definition</string>
+    <string name="identra_hookedit_browse_desc" translatable="false">Every built-in hook, by group. Duplicate one to start from it.</string>
+    <string name="identra_hookedit_custom_header" translatable="false">Your hooks</string>
+    <string name="identra_hookedit_none" translatable="false">No custom hooks yet</string>
+    <string name="identra_hookedit_title_new" translatable="false">New hook</string>
+    <string name="identra_hookedit_title_edit" translatable="false">Edit hook</string>
+    <string name="identra_hookedit_title_duplicate" translatable="false">Duplicate hook</string>
+    <string name="identra_hookedit_intro_new" translatable="false">A hook runs its Lua script when an app calls the method below. Turn it on for apps from the hook\'s sheet or the app\'s page.</string>
+    <string name="identra_hookedit_intro_edit" translatable="false">Changes apply the next time a protected app starts.</string>
+    <string name="identra_hookedit_sec_basics" translatable="false">Basics</string>
+    <string name="identra_hookedit_sec_target" translatable="false">What it hooks</string>
+    <string name="identra_hookedit_sec_values" translatable="false">Values and apps</string>
+    <string name="identra_hookedit_name" translatable="false">Name</string>
+    <string name="identra_hookedit_name_help" translatable="false">Unique, for example MyApp/Build.MODEL</string>
+    <string name="identra_hookedit_group_help" translatable="false">Hooks are turned on per group, for example ID.Build</string>
+    <string name="identra_hookedit_class_help" translatable="false">Full class name, for example android.os.Build</string>
+    <string name="identra_hookedit_method_help" translatable="false">Method name; #FIELD for a static field</string>
+    <string name="identra_hookedit_lines_help" translatable="false">One per line</string>
+    <string name="identra_hookedit_pkgs_help" translatable="false">Package names, one per line (empty = every app)</string>
+    <string name="identra_hookedit_min_sdk" translatable="false">Minimum Android SDK</string>
+    <string name="identra_hookedit_max_sdk" translatable="false">Maximum Android SDK</string>
+    <string name="identra_hookedit_script_hint" translatable="false">Lua script</string>
+    <string name="identra_hookedit_script_help" translatable="false">function before(hook, param) or function after(hook, param); return true when the value was changed</string>
+    <string name="identra_hookedit_enabled" translatable="false">Enabled</string>
+    <string name="identra_hookedit_enabled_desc" translatable="false">Off keeps the hook but never runs it</string>
+    <string name="identra_hookedit_optional_desc" translatable="false">Skip quietly when the class or method does not exist</string>
+    <string name="identra_hookedit_notify_desc" translatable="false">Show a notification when it is used</string>
+    <string name="identra_hookedit_required" translatable="false">Required</string>
+    <string name="identra_hookedit_name_taken" translatable="false">A hook with this name already exists</string>
+    <string name="identra_hookedit_on_for_app" translatable="false">Turn on for an app…</string>
+    <string name="identra_hookedit_off_for_app" translatable="false">Turn off for an app…</string>
+    <string name="identra_hookedit_on_done" translatable="false">Turned on for %1$s</string>
+    <string name="identra_hookedit_off_done" translatable="false">Turned off for %1$s</string>
+    <string name="identra_hookedit_already_on" translatable="false">Already on for %1$s</string>
+    <string name="identra_hookedit_already_off" translatable="false">Not on for %1$s</string>
+    <string name="identra_hookedit_enable_all" translatable="false">Enable everywhere</string>
+    <string name="identra_hookedit_disable_all" translatable="false">Disable everywhere</string>
+    <string name="identra_hookedit_duplicate" translatable="false">Duplicate as a custom hook</string>
+    <string name="identra_hookedit_edit" translatable="false">Edit</string>
+    <string name="identra_hookedit_delete" translatable="false">Delete</string>
+    <string name="identra_hookedit_delete_title" translatable="false">Delete this hook?</string>
+    <string name="identra_hookedit_delete_msg" translatable="false">%1$s is removed and stops running in every app.</string>
+    <string name="identra_hookedit_deleted" translatable="false">Deleted %1$s</string>
+    <string name="identra_hookedit_saved" translatable="false">Saved %1$s</string>
+
+    <string name="group_profile_hide_vendor" translatable="false">Hide real vendor properties</string>
+
+    <string name="identra_values_add" translatable="false">Add a value</string>
+    <string name="identra_values_add_desc" translatable="false">Set a value by its key, for keys that are not listed</string>
+    <string name="identra_values_key" translatable="false">Key</string>
+    <string name="identra_values_randomize" translatable="false">Randomize</string>
+    <string name="identra_values_randomize_failed" translatable="false">No random value for this key</string>
+
+    <!-- Help -->
+    <string name="identra_help_intro" translatable="false">Identra %1$s. Tap a topic to open it.</string>
+    <string name="identra_help_what_title" translatable="false">What Identra does</string>
+    <string name="identra_help_what_body" translatable="false">Identra changes what apps can learn about your phone: its model and Android build, IDs (Android ID, advertising IDs, serial), IMEI and SIM, Wi-Fi and Bluetooth, language, time zone and location.\n\nIt runs inside each app you protect, through Vector (LSPosed), and needs root. Apps that are not protected see your real phone.</string>
+    <string name="identra_help_start_title" translatable="false">Getting started</string>
+    <string name="identra_help_start_body" translatable="false">1. Enable Identra in the Vector manager.\n2. Scope: System Framework, Settings Storage (com.android.providers.settings) and Identra itself. You do not need to add the apps you protect.\n3. Updates load by themselves (hot reload): the system part and running apps switch to the new version without any restart.\n4. Open Identra. Home says \"Protection is active\" when everything runs; otherwise follow the button on the card.</string>
+    <string name="identra_help_protect_title" translatable="false">Protect an app</string>
+    <string name="identra_help_protect_body" translatable="false">1. Apps tab: find the app (search, or the Protected / User / System chips).\n2. Flip its switch. That turns on the recommended protections.\n3. Tap the app for one switch per area: Device, Network, Location, Phone &amp; SIM, Apps &amp; accounts, Sensors &amp; clipboard, Trackers, Stealth. Advanced on that page lists every hook group, the app\'s own values and its log.\n4. Restart the app (Identra usually stops it for you).</string>
+    <string name="identra_help_profiles_title" translatable="false">Profiles</string>
+    <string name="identra_help_profiles_body" translatable="false">A profile is a whole fake phone: model and build, IDs, IMEI, SIM and number, network addresses, language, time zone, location, screen and memory. Values in a profile fit together.\n\n• New profile: random device, random device for a country, from this phone, duplicate or empty.\n• Edit: tap a value, Randomize it, re-roll a section with the dice, lock values you want to keep.\n• Give it to apps: Apply to apps… from the profile, or the profile chip on an app\'s page. Choose keep data, fresh data, or separate data per profile (root).\n• Leave \"Turn on matching protections\" on so the app reads the new values.\n• Global default: used by every protected app without a profile of its own.\n• Export / import profiles as JSON from the Profiles tab.</string>
+    <string name="identra_help_location_title" translatable="false">Location</string>
+    <string name="identra_help_location_body" translatable="false">1. Location tab: search a place, type coordinates (59.33, 18.07), or tap / long-press the map. Street names and house numbers show when you zoom in.\n2. Press Set for all apps or Set for an app….\n3. The app needs location protection; Identra offers to turn it on.\n\nMy location shows where your phone really is. Star places to keep them in Favourites. Advanced has exact or coarse (blur by a radius) and a small random offset.</string>
+    <string name="identra_help_advanced_title" translatable="false">Advanced tools</string>
+    <string name="identra_help_advanced_body" translatable="false">Settings → Advanced:\n• Hooks: every hook by group, with what it reads and its script; turn one on or off for an app.\n• Global values / Per-app values: every value key; edit, randomize, clear.\n• Hook editor: create, edit, duplicate and delete your own hooks.\n• Backup &amp; restore: values, hooks and assignments in one file.\n• Logs: what the hooks did, per app.</string>
+    <string name="identra_help_trouble_title" translatable="false">Troubleshooting</string>
+    <string name="identra_help_trouble_body" translatable="false">• Nothing changes: fully close and reopen the app, check its switch, and check Home for a warning.\n• An app breaks: turn categories off one at a time on its page, or remove its profile.\n• Home says the system part keeps an earlier version: it was loaded before Identra could reload itself. Apps already use the new version; the system part switches by itself the next time it starts.\n• Native code and getprop can still show real values. Identra changes what apps read through Java and through getprop started from Java (Runtime.exec / ProcessBuilder). Apps that read system properties with native code (__system_property_get) or run getprop from native code still see the real phone. A detector app that compares several ways of reading will notice the difference.\n• Values that do not exist on your real phone are never invented, so a spoofed model does not add properties your phone does not have.</string>
+    <string name="identra_help_faq_title" translatable="false">FAQ</string>
+    <string name="identra_help_faq_body" translatable="false">Does Identra need root? Yes, through Vector (LSPosed).\n\nWhich apps do I add to the Vector scope? Only System Framework, Settings Storage and Identra.\n\nDo updates need a reboot? No. Identra reloads itself (hot reload) after every update.\n\nIs anything sent anywhere? No. Everything stays on the phone; the Location map loads tiles from OpenStreetMap and place search asks Photon / OpenStreetMap Nominatim with what you type.\n\nWhere is my data? Values and assignments are in Identra\'s database on the phone; profiles in the app; per-profile app data copies in /data/adb/identra/appdata.</string>
+</resources>

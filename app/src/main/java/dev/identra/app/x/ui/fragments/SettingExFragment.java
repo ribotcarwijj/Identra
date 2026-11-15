@@ -1,0 +1,574 @@
+package dev.identra.app.x.ui.fragments;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.CompoundButton;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import com.google.android.material.snackbar.Snackbar;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+
+import dev.identra.app.ActivityMain;
+import dev.identra.app.AdapterApp;
+import dev.identra.app.DebugUtil;
+import  dev.identra.app.R;
+
+import dev.identra.app.databinding.SettingsExFragmentBinding;
+import dev.identra.app.databinding.SettingsExGroupBinding;
+import dev.identra.app.x.Str;
+import dev.identra.app.x.data.PrefManager;
+import dev.identra.app.x.data.utils.ListUtil;
+import dev.identra.app.x.ui.activities.SettingsExActivity;
+import dev.identra.app.x.ui.adapters.settings.OptimizedSettingGroupAdapter;
+import dev.identra.app.x.ui.core.RecyclerDynamicSizeAdjuster;
+import dev.identra.app.x.ui.core.CoreUiColors;
+import dev.identra.app.x.ui.core.CoreUiLog;
+import dev.identra.app.x.ui.core.DataEventKind;
+import dev.identra.app.x.ui.core.interfaces.IListChange;
+import dev.identra.app.x.ui.core.util.CoreUiUtils;
+import dev.identra.app.x.ui.core.UserClientAppContext;
+import dev.identra.app.x.ui.core.fragment.ListFragment;
+import dev.identra.app.x.ui.core.util.ListFragmentUtils;
+import dev.identra.app.x.ui.core.view_registry.SettingSharedRegistry;
+import dev.identra.app.x.ui.core.view_registry.SharedRegistry;
+import dev.identra.app.x.ui.dialogs.ConfigCreateDialog;
+import dev.identra.app.x.ui.dialogs.ConfigDialog;
+import dev.identra.app.x.ui.dialogs.ConfirmDialog;
+import dev.identra.app.x.ui.dialogs.LogDialog;
+import dev.identra.app.x.ui.dialogs.OptionsListDialog;
+import dev.identra.app.x.ui.dialogs.ProfileDialog;
+import dev.identra.app.x.ui.dialogs.SettingsProgressDialog;
+import dev.identra.app.x.ui.models.SettingsExGroupViewModel;
+import dev.identra.app.x.core.LibUtil;
+import dev.identra.app.x.core.commands.call.ClearAppDataCommand;
+import dev.identra.app.x.core.commands.call.ForceStopAppCommand;
+import dev.identra.app.x.core.commands.call.GetSettingExCommand;
+import dev.identra.app.x.core.commands.call.PutSettingExCommand;
+import dev.identra.app.x.core.commands.query.GetSettingsExCommand;
+import dev.identra.app.x.core.database.A_CODE;
+import dev.identra.app.x.core.database.ActionFlag;
+import dev.identra.app.x.core.database.ActionPacket;
+import dev.identra.app.x.core.hook.PackageHookContext;
+import dev.identra.app.x.core.identity.UserIdentity;
+import dev.identra.app.x.core.settings.SettingHolder;
+import dev.identra.app.x.core.settings.SettingsGroup;
+import dev.identra.app.x.core.settings.data.SettingPacket;
+import dev.identra.app.x.core.settings.random.RandomizerSessionContext;
+import dev.identra.app.x.core.settings.random.interfaces.IRandomizer;
+import dev.identra.app.x.core.settings.random.randomizers.RandomizersCache;
+import dev.identra.app.x.core.settings.test.SharedViewControl;
+
+/**
+ * Ensure system takes but some data ?
+ * So if Element is expandable, is expanded but user refresh it wont over write flag for refresh but update things like value etc...
+ *
+ *
+ * ToDo:
+ *          Parent Control Applies the UnChecked to already Randomized Session in its Control
+ *              Then Randomizes checked controls
+ *
+ * ToDo: I want to look into using more of "this" for "setUserContext" on the "viewModel", this class will be the handler for that Context Data
+ *          Also I want to POSSIBLY add Pager for Three Main Views ?
+ *          We Can do a linking List Control Interface passing, pass to parent the Search Control if Fragment or Activity
+ *          Option to bind it to parents ?
+ *
+ * ToDo:    [1] Clean up Base to helper static classes ? or builder ?
+ *          [2] Do Function override for "binding::inflate"
+ *          [3] Have some flag system either to always ensure Context, and or in the "onCreate" "onCreateView" "onViewCreated" to always ensure User Context
+ */
+public class SettingExFragment
+                extends
+        ListFragment<SettingsGroup, SettingsExFragmentBinding, SettingsExGroupBinding>
+        implements
+        IListChange<SettingPacket>,
+        CompoundButton.OnCheckedChangeListener {
+
+    private static final String TAG = LibUtil.generateTag(SettingExFragment.class);
+    public static SettingExFragment newInstance(UserClientAppContext context) { return ListFragmentUtils.newInstance(SettingExFragment.class, context); }
+
+    private boolean isViewOpen = true;
+    private final SettingSharedRegistry sharedRegistry = new SettingSharedRegistry();
+    private SettingsExActivity.enumShow show = SettingsExActivity.enumShow.none;
+
+
+    //        show = PrefManager.settingToShow(ActivityMain.manager.getString(PrefManager.SETTING_APPS_SHOW, "show_user", true));
+    //data.show = PrefManager.settingToShow(ActivityMain.manager.getString(PrefManager.SETTING_APPS_SHOW, "show_user", true));
+
+
+    //Make this into base
+    public SettingsExActivity.enumShow getShow() { return this.show; }
+
+    //@Override
+    //public String getShowValue() { return this.show.name(); }
+
+    public void setShow(SettingsExActivity.enumShow value) {
+        this.show = value;
+        //this.refresh();
+        this.updatedSortedList(null);
+
+        //refresh();
+        //if (rvAdapter != null)
+        //    rvAdapter.setShow(value);
+    }
+
+    @Override
+    public SharedRegistry getSharedRegistry() { return sharedRegistry; }
+
+    @Override
+    public Fragment getAsFragment() {
+        return this;
+    }
+
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.createViewModel(SettingsExGroupViewModel.class, true);
+        super.onCreate(savedInstanceState);
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        this.show = PrefManager.settingToShowSettings(
+                SettingsExActivity.manager.getString(PrefManager.PREFERENCE_SHOW, PrefManager.DEFAULT_SHOW, true));
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        super.ensureHasUserContext();
+        SettingFragmentUtils.initializeFragment(sharedRegistry, tryGetContext(), getUserContext());
+        super.setAdapter(new OptimizedSettingGroupAdapter(requireContext(), null, this,
+                getUserContext()
+                        .bindShared(sharedRegistry)));
+
+        super.initApplicationView(
+                binding.ivAppIslandAppIcon,
+                binding.tvAppIslandAppName,
+                binding.tvAppIslandPackageName,
+                binding.tvAppIslandPackageUid);
+
+        super.addViewsToEventController(
+                binding.ivAppIslandExpander,
+                binding.cvAppIsland,
+
+                binding.tvAppIslandPackageName,
+                binding.tvAppIslandPackageUid,
+                binding.tvAppIslandAppName,
+                binding.ivAppIslandAppIcon,
+                binding.ivAppIslandExpander,
+
+                binding.btAppIslandToLogsDialog,
+                binding.btAppIslandProfileDialog,
+                binding.btAppIslandForceStop,
+                binding.btAppIslandSettingsResetAll,
+                binding.btAppIslandClearData,
+                binding.btAppIslandSaveChecked,
+                binding.btAppIslandConfigDialog,
+                binding.btAppIslandCreateConfigDialog);
+
+        CoreUiUtils.setViewStates(
+                !super.isGlobal(),
+                //binding.cbAppIslandUseDefaultSettings,
+                binding.btAppIslandForceStop,
+                binding.btAppIslandClearData);
+
+        super.initFloatingActions(
+                binding.flSettingsButtonOne,
+                binding.flSettingsButtonTwo,
+                binding.flSettingsButtonThree,
+                binding.flSettingsButtonFour,
+                binding.flSettingsButtonFive,
+                binding.flSettingsButtonSix);
+
+        super.setProgressBar(binding.pbSettings);
+        super.initSwipeRefreshLayout(binding.swipeRefreshSettings, CoreUiColors.getSwipeRefreshColor(requireContext()));
+        super.initRecyclerView(binding.rvSettings);
+
+        RecyclerDynamicSizeAdjuster.create().startTopViewAdjuster(binding.cvAppIsland, binding.rvSettings, binding.swipeRefreshSettings);
+        updateExpanded();
+
+        initAppIslandKillCheckbox();
+
+        super.startObserver();
+        wire();
+    }
+
+    @Override
+    public void wire() {
+        super.wire();
+        binding.cbForceStop.setOnCheckedChangeListener(this);
+        binding.cbUseDefaultValues.setOnCheckedChangeListener(this);
+        binding.btAppIslandProfileDialog.setOnClickListener(this);
+    }
+
+    public void initAppIslandKillCheckbox() {
+        UserClientAppContext ctx = getUserContext();
+        if(ctx != null) {
+            binding.cbForceStop.setEnabled(!ctx.isGlobal());
+            binding.cbForceStop.setChecked(!ctx.isGlobal() && ctx.isKill());
+        }
+    }
+
+    void updateExpanded() {
+        isViewOpen = !isViewOpen;
+        CoreUiUtils.setViewsVisibility(
+                binding.ivAppIslandExpander,
+                isViewOpen,
+
+                binding.btAppIslandToLogsDialog,
+                binding.btAppIslandProfileDialog,
+                binding.btAppIslandForceStop,
+                binding.buttonGridLayout,
+
+                binding.cbForceStop,
+                binding.cbUseDefaultValues,
+                //binding.scrollViewGrid,
+                //binding.cbAppIslandUseDefaultSettings,
+                binding.btAppIslandConfigDialog,
+                binding.btAppIslandSettingsResetAll,
+                binding.btAppIslandSaveChecked,
+                binding.btAppIslandClearData,
+                binding.btAppIslandCreateConfigDialog);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        this.show = PrefManager.settingToShowSettings(
+                SettingsExActivity.manager.getString(PrefManager.PREFERENCE_SHOW, PrefManager.DEFAULT_SHOW, true));
+    }
+
+    @Override
+    protected void dataEvent(DataEventKind kind, List<SettingsGroup> settingsGroups) {
+        if(kind == DataEventKind.ON_RESUME) Log.d(TAG, "onResume=Size=" + ListUtil.size(settingsGroups));
+    }
+
+
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+        int id = compoundButton.getId();
+        Log.w(TAG, "On Checked id=" + id);
+        switch (id) {
+            case R.id.cbForceStop:
+                boolean wasChecked = sharedRegistry.setChecked(SharedRegistry.STATE_TAG_KILL, getUserContext().appPackageName, checked);
+                if(DebugUtil.isDebug())
+                    Log.d(TAG, "Check Event, Checked=" + checked + " Was Checked=" + wasChecked + " Pkg=" + getUserContext().appPackageName);
+                break;
+            case R.id.cbUseDefaultValues:
+                //
+                break;
+        }
+    }
+
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public void onClick(View v) {
+        int id = CoreUiLog.getViewIdOnClick(v, TAG);
+        final Context context = v.getContext();
+        if(context == null)
+            return;
+
+        switch (id) {
+            case R.id.tvAppIslandPackageName:
+            case R.id.tvAppIslandPackageUid:
+            case R.id.tvAppIslandAppName:
+            case R.id.ivAppIslandAppIcon:
+            case R.id.ivAppIslandExpander:
+                updateExpanded();
+                break;
+            case R.id.flSettingsButtonOne:
+                recyclerViewWrapper.getFloatingActionButtonContext().invokeFloatingActions();
+                break;
+            case R.id.flSettingsButtonSix:
+                Map<String, IRandomizer> randomizers = RandomizersCache.getCopy();
+                for(SettingHolder holder : SettingFragmentUtils.filterChecked(SettingFragmentUtils.getSettings(getLiveData()), sharedRegistry)) {
+                    if(randomizers.containsKey(holder.getName())) {
+                        String rnd = PackageHookContext.RANDOM_VALUE;
+                        holder.setNewValue(rnd);
+                        holder.ensureUiUpdated(rnd);
+                        holder.setNameLabelColor(context);
+                        holder.notifyUpdate(sharedRegistry.notifier);
+                    }
+                }
+                break;
+            case R.id.flSettingsButtonFive:
+                List<SettingHolder> holders = SettingFragmentUtils.filterChecked(SettingFragmentUtils.getSettings(getLiveData()), sharedRegistry);
+                ConfirmDialog.create()
+                        .setContext(context)
+                        .setMessage(Str.combine(getString(R.string.msg_confirm_delete_settings), String.valueOf(holders.size())))
+                        .setDelay(0) // 5 second delay before OK is enabled
+                        .setImage(R.drawable.ic_warining_one) // Optional warning icon
+                        .onConfirm(() -> {
+                            for(SettingHolder holder : holders) {
+                                if(A_CODE.isSuccessful(PutSettingExCommand.call(context, holder, getUserContext(), getUserContext().isKill(), true))) {
+                                    holder.setValue(null, true);
+                                    holder.ensureUiUpdated(Str.EMPTY);
+                                    holder.setNameLabelColor(context);
+                                    holder.notifyUpdate(sharedRegistry.notifier);
+                                }
+                            }
+                        })
+                        .show(getFragmentMan(), getString(R.string.title_confirm));
+
+                break;
+            case R.id.flSettingsButtonFour:
+                new Thread(() -> {
+                    List<String> succeeded = new ArrayList<>();
+                    List<String> failed = new ArrayList<>();
+                    Map<SettingHolder, SettingPacket> data = SettingFragmentUtils.getSettingPackets(
+                            getLiveData(),
+                            getSharedRegistry(),
+                            getUserContext(),
+                            ActionFlag.PUSH);
+
+                    for (Map.Entry<SettingHolder, SettingPacket> entry : data.entrySet()) {
+                        SettingHolder holder = entry.getKey();
+                        if (A_CODE.isSuccessful(PutSettingExCommand.call(context, entry.getValue()))) {
+                            new Handler(Looper.getMainLooper()).post(() -> {
+                                holder.setValue(holder.getNewValue(), true);
+                                holder.setNameLabelColor(context);
+                                holder.notifyUpdate(sharedRegistry.notifier);
+                            });
+
+                            succeeded.add(holder.getName());
+                        } else {
+                            failed.add(holder.getName());
+                        }
+                    }
+
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        if(ListUtil.isValid(succeeded) || ListUtil.isValid(failed))
+                            Snackbar.make(v,
+                                    Str.fm(context.getString(R.string.result_settings_update),
+                                            ListUtil.size(succeeded),
+                                            ListUtil.size(failed)), Snackbar.LENGTH_LONG).show();
+                        else {
+                            Snackbar.make(v, context.getString(R.string.result_settings_update_empty), Snackbar.LENGTH_LONG).show();
+                        }
+                    });
+                }).start();
+                break;
+            case R.id.flSettingsButtonTwo:
+                RandomizerSessionContext ctx = new RandomizerSessionContext()
+                        .randomize(
+                                this,
+                                null,
+                                context,
+                                sharedRegistry);
+
+                Snackbar.make(v, Str.combineEx(
+                        getString(R.string.msg_succeeded_count),
+                                Str.WHITE_SPACE,
+                                String.valueOf(ctx.getRandomizedCount())), Snackbar.LENGTH_LONG)
+                        .show();
+                break;
+            case R.id.btAppIslandProfileDialog:
+                /*ProfileDialog.create()
+                        .setApp(context, getUserContext())
+                        .setSettings(context, SettingFragmentUtils.filterChecked(SettingFragmentUtils.getSettings(getLiveData()), sharedRegistry))
+                        .initKnownProfiles(context)
+                        .show(getFragmentMan(),  getString(R.string.title_profile_manager));*/
+                Snackbar.make(v, "Coming Soon (Not Ready)...", Snackbar.LENGTH_LONG).show();
+                break;
+            case R.id.btAppIslandToLogsDialog:
+                LogDialog.create()
+                        .setShowInstalled(false)
+                        .setApp(getUserContext())
+                        .refresh(context)
+                        .show(getFragmentMan(), getString(R.string.title_logs));
+                break;
+            case R.id.btAppIslandForceStop:
+                ConfirmDialog.create()
+                        .setContext(context)
+                        .setMessage(getString(R.string.msg_confirm_force_stop))
+                        .setDelay(0) // 5 second delay before OK is enabled
+                        .setImage(R.drawable.ic_serv_cold) // Optional warning icon
+                        .onConfirm(() -> handleCodeToSnack(ForceStopAppCommand.stop(context, getAppUid(), getAppPackageName()), getString(R.string.result_prefix_force_stop), v))
+                        .show(getFragmentMan(), getString(R.string.title_confirm));
+                break;
+            case R.id.btAppIslandClearData:
+                ConfirmDialog.create()
+                        .setContext(context)
+                        .setMessage(getString(R.string.msg_confirm_clear_data))
+                        .setDelay(0) // 5 second delay before OK is enabled
+                        .setImage(R.drawable.ic_warining_one) // Optional warning icon
+                        .onConfirm(() -> handleCodeToSnack(ClearAppDataCommand.clear(context, getAppPackageName()), getString(R.string.result_prefix_cleared_app_data), v))
+                        .show(getFragmentMan(), getString(R.string.title_confirm));
+                break;
+            case R.id.btAppIslandSaveChecked:
+                final List<String> checked = SettingFragmentUtils.settingsToNameList(
+                        SettingFragmentUtils.filterChecked(
+                                SettingFragmentUtils.getSettings(getLiveData()), sharedRegistry));
+
+                if(DebugUtil.isDebug())
+                    Log.d(TAG, "AppIsland Save Checked button Invoked, Checked Count=" + ListUtil.size(checked) + " Package=" + getAppPackageName());
+
+                final List<String> options = Arrays.asList(getString(R.string.title_global), getString(R.string.title_app));
+                OptionsListDialog.create()
+                        .setTitle(getString(R.string.title_save_options))
+                        .setMessage(Str.combineEx(getString(R.string.msg_confirm_save_options_config), Str.WHITE_SPACE, checked.isEmpty() ? getString(R.string.option_delete) : String.valueOf(checked.size())))
+                        .setIcon(R.drawable.ic_checklist_38)
+                        .setOptions(options)
+                        .setDefaultCheck(options.get(1))
+                        .setAllowMultiple(false)
+                        .onConfirm((c, d) -> {
+                            if(ListUtil.isValid(c))
+                                sharedRegistry
+                                        .ensurePrefsOpen(context, PrefManager.SETTINGS_NAMESPACE)
+                                        .putStringList(
+                                                PrefManager.nameForChecked(options.get(0).equalsIgnoreCase(c.get(0)), getAppPackageName()), checked);
+
+                            Snackbar.make(v, !ListUtil.isValid(c) ?
+                                    getString(R.string.msg_error_bad_options) :
+                                    getString(R.string.msg_shared_prefs_saved), Snackbar.LENGTH_LONG).show();
+                        }).show(getFragmentMan(), getString(R.string.title_save_options));
+                break;
+            case R.id.btAppIslandConfigDialog:
+                ConfigDialog.create()
+                        .setOnChange(this)
+                        .setApp(getAppUid(), getAppPackageName(), getUserContext().isKill())
+                        .setConfigs(context)
+                        .setRootView(v)
+                        .show(getFragmentMan(), getString(R.string.title_config_manager));
+                        //We need to some how force full update the main fragment
+                break;
+            case R.id.btAppIslandCreateConfigDialog:
+                ConfigCreateDialog.create()
+                        .setApp(getAppUid(), getAppPackageName())
+                        .setConfigs(context, false)
+                        .setSettings(SettingFragmentUtils.filterCheckedAsPackets(SettingFragmentUtils.getSettings(getLiveData()), sharedRegistry))
+                        .setHookIds(SettingFragmentUtils.getHookIds(context, getAppUid(), getAppPackageName(), getLiveData(), sharedRegistry))
+                        .show(getFragmentMan(), getString(R.string.title_config_modify));
+                break;
+            case R.id.btAppIslandSettingsResetAll:
+                ConfirmDialog.create()
+                        .setContext(context)
+                        .setMessage(getString(R.string.msg_confirm_delete_all_settings))
+                        .setDelay(3) // 5 second delay before OK is enabled
+                        .setImage(R.drawable.ic_warining_one) // Optional warning icon
+                        .onConfirm(() -> {
+                            List<SettingPacket> changed = new ArrayList<>();
+                            int uid = getAppUid();
+                            String pkg = getAppPackageName();
+                            for(SettingPacket packet : GetSettingsExCommand.get(context, true, uid, pkg, GetSettingsExCommand.FLAG_ONE)) {
+                                if(!GetSettingExCommand.SETTING_SELECTED_CONFIG.equalsIgnoreCase(packet.name) && packet.value != null) {
+                                    packet.value = null;
+                                    packet.setUserIdentity(UserIdentity.fromUid(uid, pkg));
+                                    packet.setActionPacket(ActionPacket.create(ActionFlag.DELETE, false));
+                                    if(A_CODE.isSuccessful(PutSettingExCommand.call(context, packet))) {
+                                        packet.value = null;
+                                        changed.add(packet);
+                                    }
+                                }
+                            }
+
+                            onItemsChange(changed);
+                        })
+                        .show(getFragmentMan(), getString(R.string.title_confirm));
+
+
+                break;
+        }
+    }
+
+
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public boolean onLongClick(View v) {
+        int id = CoreUiLog.getViewIdOnLongClick(v, TAG);
+        switch (id) {
+            case R.id.btAppIslandProfileDialog:
+                Snackbar.make(v, getString(R.string.msg_hint_create_profile), Snackbar.LENGTH_LONG).show();
+                break;
+            case R.id.btAppIslandToLogsDialog:
+                Snackbar.make(v, getString(R.string.msg_hint_logs), Snackbar.LENGTH_LONG).show();
+                break;
+            case R.id.btAppIslandClearData:
+                Snackbar.make(v, getString(R.string.msg_hint_clear_app), Snackbar.LENGTH_LONG).show();
+                break;
+            case R.id.btAppIslandForceStop:
+                Snackbar.make(v, getString(R.string.msg_hint_force_stop), Snackbar.LENGTH_LONG).show();
+                break;
+            case R.id.btAppIslandSettingsResetAll:
+                Snackbar.make(v, getString(R.string.msg_hint_reset_settings), Snackbar.LENGTH_LONG).show();
+                break;
+            case R.id.btAppIslandCreateConfigDialog:
+                Snackbar.make(v, getString(R.string.msg_hint_create_configs), Snackbar.LENGTH_LONG).show();
+                break;
+            case R.id.btAppIslandConfigDialog:
+                Snackbar.make(v, getString(R.string.msg_hint_manage_configs), Snackbar.LENGTH_LONG).show();
+                break;
+            case R.id.btAppIslandSaveChecked:
+                Snackbar.make(v, getString(R.string.msg_hint_save_checked), Snackbar.LENGTH_LONG).show();
+                break;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void onItemsChange(List<SettingPacket> items) {
+        Log.i(TAG, "On Item Change! Item Count=" + ListUtil.size(items));
+        if(!ListUtil.isValid(items))
+            return;
+
+        try {
+            List<SettingHolder> cachedSettings = SettingFragmentUtils.getSettings(getLiveData());
+            if(!ListUtil.isValid(cachedSettings))
+                return;
+
+            Log.i(TAG, Str.fm("On Items Change! Cached Size=[%s] Updated Size=[%s]", ListUtil.size(cachedSettings), ListUtil.size(items)));
+            WeakHashMap<String, SettingHolder> holders = new WeakHashMap<>();
+            for(SettingHolder holder : cachedSettings)
+                holders.put(holder.getName(), holder);
+
+            //ToDo: Check for added / removed ?
+            for(SettingPacket packet : items) {
+                SettingHolder holder = holders.get(packet.name);
+                if(holder != null) {
+                    String value = packet.value;
+                    holder.setValue(value, true);
+                    holder.ensureUiUpdated(value == null ? Str.EMPTY : value);
+                    holder.setNameLabelColor(getContext());
+                    holder.notifyUpdate(sharedRegistry.notifier);
+                }
+            }
+        }catch (Exception e) {
+            Log.e(TAG, Str.fm("On Event Item Change Count [%s] Failed, Error=%s", ListUtil.size(items), e));
+        }
+    }
+
+    public void handleCodeToSnack(A_CODE code, String extraIfSucceeded, View v) {
+        Snackbar.make(v,
+                A_CODE.isSuccessful(code) ?
+                        Str.combine(getString(R.string.msg_task_finished_command), TextUtils.isEmpty(extraIfSucceeded) ? "" :  " >> " + extraIfSucceeded) :
+                        Str.combine(getString(R.string.msg_task_failure), " >> " + code.name(), false) , Snackbar.LENGTH_LONG).show();
+    }
+
+    public Context tryGetContext() {
+        try {
+            return requireContext();
+        }catch (Exception ignored) {
+            return getContext();
+        }
+    }
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Profiles: two layered identity cards. Flat. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp" android:height="120dp"
+    android:viewportWidth="160" android:viewportHeight="120">
+    <path android:fillColor="@color/identra_container" android:pathData="M80,60m-56,0a56,56 0,1 1,112 0a56,56 0,1 1,-112 0"/>
+    <path android:fillColor="@color/identra_container_high" android:pathData="M58,30h56a8,8 0,0 1,8 8v36a8,8 0,0 1,-8 8h-56a8,8 0,0 1,-8 -8v-36a8,8 0,0 1,8 -8z"/>
+    <path android:fillColor="@color/identra_surface" android:strokeColor="@color/identra_outline" android:strokeWidth="1.5"
+        android:pathData="M46,42h56a8,8 0,0 1,8 8v36a8,8 0,0 1,-8 8h-56a8,8 0,0 1,-8 -8v-36a8,8 0,0 1,8 -8z"/>
+    <path android:fillColor="@color/identra_primary" android:pathData="M60,60m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0"/>
+    <path android:fillColor="@color/identra_primary" android:pathData="M48,82c0,-7 5.4,-11 12,-11s12,4 12,11z"/>
+    <path android:fillColor="@color/identra_container_high" android:pathData="M78,56h20a3,3 0,0 1,0 6h-20a3,3 0,0 1,0 -6z"/>
+    <path android:fillColor="@color/identra_container_high" android:pathData="M78,68h14a3,3 0,0 1,0 6h-14a3,3 0,0 1,0 -6z"/>
+</vector>

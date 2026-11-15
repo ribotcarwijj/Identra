@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 0.4.0 MaterialSwitch thumb: on = surface-coloured knob on the primary track,
+     off = calm slate knob (visible on the light container track), disabled = same hue, muted. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:alpha="0.95" android:color="@color/identra_switch_thumb_on" android:state_checked="true" android:state_enabled="false" />
+    <item android:alpha="0.38" android:color="@color/identra_on_surface_variant" android:state_enabled="false" />
+    <item android:color="@color/identra_switch_thumb_on" android:state_checked="true" />
+    <item android:color="@color/identra_on_surface_variant" />
+</selector>

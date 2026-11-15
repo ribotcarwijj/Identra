@@ -1,0 +1,22 @@
+[
+  {
+    "builtin": false,
+    "collection": "Identra",
+    "group": "ID.Keyboard",
+    "name": "EditText.setImeOptions",
+    "author": "Identra",
+    "className": "android.widget.EditText",
+    "methodName": "setImeOptions",
+    "parameterTypes": [ "int" ],
+    "returnType": "void",
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "",
+    "enabled":false,
+    "optional":true,
+    "usage":true,
+    "notify":false,
+    "luaScript": "@id_keyboard_incognito"
+  } //Needs more Work
+]

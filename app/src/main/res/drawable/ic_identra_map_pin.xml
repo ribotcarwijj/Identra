@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Selected place: solid ink pin with paper dot. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp" android:height="48dp"
+    android:viewportWidth="40" android:viewportHeight="48">
+    <path android:fillColor="@color/identra_primary"
+        android:pathData="M20,2C11.16,2 4,9.16 4,18c0,11.5 16,28 16,28s16,-16.5 16,-28C36,9.16 28.84,2 20,2z"/>
+    <path android:fillColor="@color/identra_on_primary"
+        android:pathData="M20,18m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0"/>
+</vector>

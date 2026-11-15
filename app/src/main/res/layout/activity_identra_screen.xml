@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 0.3.0: shared shell for rebuilt tool screens: collapsing large title + body. -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/identraScreenRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/identraScreenAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/colorBackground"
+        app:elevation="0dp"
+        app:liftOnScroll="false">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/identraScreenCollapsing"
+            style="@style/Widget.Material3.CollapsingToolbar.Large"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/collapsingToolbarLayoutLargeSize"
+            android:background="?android:attr/colorBackground"
+            app:collapsedTitleTextAppearance="@style/TextAppearance.Identra.ActionBarTitle"
+            app:contentScrim="?android:attr/colorBackground"
+            app:expandedTitleMarginStart="20dp"
+            app:expandedTitleTextAppearance="@style/TextAppearance.Identra.LargeTitle"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/identraScreenToolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:elevation="0dp"
+                app:layout_collapseMode="pin"
+                app:navigationIcon="@drawable/ic_identra_back" />
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <FrameLayout
+        android:id="@+id/identraScreenBody"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/identraScreenProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_anchor="@id/identraScreenAppBar"
+        app:layout_anchorGravity="bottom"
+        app:trackThickness="2dp" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

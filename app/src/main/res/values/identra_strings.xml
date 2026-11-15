@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- New Identra UI (0.2.0). English only for now. -->
+    <string name="identra_tab_apps" translatable="false">Apps</string>
+    <string name="identra_tab_profiles" translatable="false">Profiles</string>
+    <string name="identra_tab_settings" translatable="false">Settings</string>
+
+    <string name="identra_search_hint" translatable="false">Search apps</string>
+    <string name="identra_filter_all" translatable="false">All</string>
+    <string name="identra_filter_protected" translatable="false">Protected</string>
+    <string name="identra_filter_user" translatable="false">User</string>
+    <string name="identra_filter_system" translatable="false">System</string>
+    <string name="identra_status_off" translatable="false">Off</string>
+    <string name="identra_status_protected" translatable="false">Protected · %1$d groups</string>
+    <string name="identra_status_protected_one" translatable="false">Protected · 1 group</string>
+    <string name="identra_apps_empty" translatable="false">No apps match.</string>
+    <string name="identra_apps_loading_failed" translatable="false">Could not load apps. Is the module active?</string>
+    <string name="identra_no_protections" translatable="false">No protections available. Check Settings → Collections.</string>
+    <string name="identra_change_failed" translatable="false">That change did not go through (%1$s).</string>
+
+    <string name="identra_banner_unavailable" translatable="false">Identra isn\'t active yet. In Vector, enable Identra with System Framework, Settings Storage and Identra in its scope.</string>
+    <string name="identra_banner_reboot" translatable="false">The system part isn\'t answering right now. Identra checks again each time you open it.</string>
+    <string name="identra_banner_updating" translatable="false">Identra was updated. Loading the new version into the system part…</string>
+    <string name="identra_banner_system_older" translatable="false">Identra is updated. Apps get the new version when they next open. The system part keeps its earlier version for now, because it was loaded before Identra could reload itself; it moves to the new version on its own the next time it starts.</string>
+    <string name="identra_reloaded" translatable="false">Identra updated and reloaded. No restart needed.</string>
+    <string name="identra_banner_database" translatable="false">The Identra database reported a problem. Open Settings → Database for details.</string>
+    <string name="identra_banner_fix" translatable="false">Open</string>
+
+    <string name="identra_section_protection" translatable="false">Protection</string>
+    <string name="identra_section_advanced" translatable="false">Advanced</string>
+    <string name="identra_partial" translatable="false">%1$d of %2$d groups on</string>
+    <string name="identra_detail_protected" translatable="false">Protected</string>
+    <string name="identra_detail_off" translatable="false">Not protected</string>
+
+    <string name="identra_cat_device" translatable="false">Device</string>
+    <string name="identra_cat_device_desc" translatable="false">Hide hardware IDs, model, display and battery details</string>
+    <string name="identra_cat_network" translatable="false">Network</string>
+    <string name="identra_cat_network_desc" translatable="false">Mask Wi-Fi, IP, VPN state and browser identity</string>
+    <string name="identra_cat_location" translatable="false">Location &amp; region</string>
+    <string name="identra_cat_location_desc" translatable="false">Control location, time zone and language</string>
+    <string name="identra_cat_phone" translatable="false">Phone &amp; SIM</string>
+    <string name="identra_cat_phone_desc" translatable="false">Hide carrier, SIM, calls and messages</string>
+    <string name="identra_cat_apps" translatable="false">Apps &amp; accounts</string>
+    <string name="identra_cat_apps_desc" translatable="false">Hide installed apps, accounts and contacts</string>
+    <string name="identra_cat_sensors" translatable="false">Sensors &amp; clipboard</string>
+    <string name="identra_cat_sensors_desc" translatable="false">Block camera, mic, sensors and clipboard reads</string>
+    <string name="identra_cat_trackers" translatable="false">Trackers</string>
+    <string name="identra_cat_trackers_desc" translatable="false">Cut off ad IDs and analytics</string>
+    <string name="identra_cat_stealth" translatable="false">Stealth</string>
+    <string name="identra_cat_stealth_desc" translatable="false">Hide root, Xposed and environment</string>
+    <string name="identra_cat_other" translatable="false">Other</string>
+    <string name="identra_cat_other_desc" translatable="false">Groups that don\'t fit a category above</string>
+
+    <string name="identra_adv_app_settings" translatable="false">Per-app values</string>
+    <string name="identra_adv_app_settings_desc" translatable="false">Spoofed values, configs, profiles and tools for this app</string>
+    <string name="identra_adv_groups" translatable="false">All hook groups</string>
+    <string name="identra_adv_groups_desc" translatable="false">Turn individual groups on or off</string>
+    <string name="identra_adv_force_stop" translatable="false">Force-stop on change</string>
+    <string name="identra_adv_force_stop_desc" translatable="false">Restart the app when protection changes</string>
+    <string name="identra_adv_logs" translatable="false">Activity log</string>
+    <string name="identra_adv_logs_desc" translatable="false">What the hooks did in this app</string>
+    <string name="identra_adv_launch" translatable="false">Open app</string>
+
+    <string name="identra_profiles_title" translatable="false">Profiles are coming next</string>
+    <string name="identra_profiles_body" translatable="false">Soon you\'ll save a full identity once and give it to any app in one tap.</string>
+
+    <string name="identra_settings_general" translatable="false">General</string>
+    <string name="identra_settings_follow_system" translatable="false">Theme follows system</string>
+    <string name="identra_settings_follow_system_desc" translatable="false">Light or dark, same as your phone</string>
+    <string name="identra_settings_dark" translatable="false">Dark theme</string>
+    <string name="identra_settings_notify_new" translatable="false">Notify about new apps</string>
+    <string name="identra_settings_notify_new_desc" translatable="false">Get a notification when an app is installed</string>
+    <string name="identra_settings_verbose" translatable="false">Verbose logging</string>
+    <string name="identra_settings_verbose_desc" translatable="false">Detailed logs for troubleshooting</string>
+    <string name="identra_settings_english" translatable="false">Force English</string>
+    <string name="identra_settings_force_stop_note" translatable="false">Force-stop on change is set per app, under Advanced.</string>
+    <string name="identra_settings_tools" translatable="false">Advanced</string>
+    <string name="identra_tool_collections" translatable="false">Collections</string>
+    <string name="identra_tool_collections_desc" translatable="false">Choose which hook sets are active</string>
+    <string name="identra_tool_hooks" translatable="false">Hooks</string>
+    <string name="identra_tool_hooks_desc" translatable="false">Every hook by group: details, script, on/off per app</string>
+    <string name="identra_tool_values" translatable="false">Global values</string>
+    <string name="identra_tool_values_desc" translatable="false">Default spoofed values for every app</string>
+    <string name="identra_tool_props" translatable="false">Properties</string>
+    <string name="identra_tool_props_desc" translatable="false">System build properties</string>
+    <string name="identra_tool_configs" translatable="false">Configs</string>
+    <string name="identra_tool_configs_desc" translatable="false">Saved value sets</string>
+    <string name="identra_tool_cpu" translatable="false">CPU maps</string>
+    <string name="identra_tool_cpu_desc" translatable="false">Processor identities to spoof</string>
+    <string name="identra_tool_database" translatable="false">Database</string>
+    <string name="identra_tool_database_desc" translatable="false">Inspect the Identra database</string>
+    <string name="identra_tool_export" translatable="false">Back up</string>
+    <string name="identra_tool_export_desc" translatable="false">Export settings, hooks and assignments to a file</string>
+    <string name="identra_tool_import" translatable="false">Restore</string>
+    <string name="identra_tool_import_desc" translatable="false">Import a backup file</string>
+    <string name="identra_tool_logs" translatable="false">Logs</string>
+    <string name="identra_tool_logs_desc" translatable="false">Logs are kept per app: open an app, then Advanced → Activity log</string>
+    <string name="identra_settings_about" translatable="false">About</string>
+    <string name="identra_about_help" translatable="false">Help</string>
+    <string name="identra_about_version" translatable="false">Version %1$s</string>
+
+    <!-- Collection display names (UI only; internal keys unchanged) -->
+</resources>

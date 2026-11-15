@@ -1,0 +1,934 @@
+package dev.identra.app;
+
+import android.app.ActivityManager;
+import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.net.wifi.WifiConfiguration;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.util.Log;
+import android.view.InputDevice;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+
+import dev.identra.xposed.XC_MethodHook;
+import dev.identra.app.x.Str;
+import dev.identra.app.x.StrConversionUtils;
+import dev.identra.app.x.data.GroupedMap;
+import dev.identra.app.api.properties.MockPropSetting;
+import dev.identra.app.api.xmock.XMockCall;
+import dev.identra.app.interceptors.shell.ShellInterception;
+import dev.identra.app.interceptors.UserContextMaps;
+import dev.identra.app.interceptors.ShellIntercept;
+import dev.identra.app.logger.XLog;
+import dev.identra.app.x.data.XParamExtra;
+import dev.identra.app.x.data.utils.ListUtil;
+import dev.identra.app.x.data.utils.TryRun;
+import dev.identra.app.x.data.utils.random.RandomGenerator;
+import dev.identra.app.x.hook.filter.FilterContainerElement;
+import dev.identra.app.x.hook.filter.PropRules;
+import dev.identra.app.x.hook.filter.kinds.IPCCallFilterContainer;
+import dev.identra.app.x.hook.interceptors.battery.BatteryInterceptor;
+import dev.identra.app.x.hook.interceptors.cell.SubscriptionInfoInterceptor;
+import dev.identra.app.x.hook.interceptors.devices.InputDeviceInterceptor;
+import dev.identra.app.x.hook.interceptors.file.FileInterceptor;
+import dev.identra.app.x.hook.interceptors.file.StatCleaner;
+import dev.identra.app.x.hook.interceptors.file.StorageAvailInterceptor;
+import dev.identra.app.x.hook.interceptors.ipc.BinderInterceptor;
+import dev.identra.app.x.hook.interceptors.ipc.holders.IntentQueryData;
+import dev.identra.app.x.hook.interceptors.ipc.holders.IntentCallData;
+import dev.identra.app.x.hook.interceptors.network.DhcpInfoInterceptor;
+import dev.identra.app.x.hook.interceptors.network.LinkPropertiesInterceptor;
+import dev.identra.app.x.hook.interceptors.network.NetworkInfoInterceptor;
+import dev.identra.app.x.hook.interceptors.network.NetworkInterfaceInterceptor;
+import dev.identra.app.x.hook.interceptors.network.WifiInfoInterceptor;
+import dev.identra.app.random.randomizers.RandomMediaCodec;
+import dev.identra.app.random.randomizers.RandomMediaCodecInfo;
+import dev.identra.app.utilities.Evidence;
+import dev.identra.app.utilities.ListFilterUtil;
+import dev.identra.app.utilities.MemoryUtilEx;
+import dev.identra.app.utilities.MockFileUtil;
+import dev.identra.app.display.MotionRangeUtil;
+import dev.identra.app.utilities.FileUtil;
+import dev.identra.app.utilities.LuaLongUtil;
+import dev.identra.app.utilities.MemoryUtil;
+import dev.identra.app.utilities.StringUtil;
+import dev.identra.app.utilities.MockUtils;
+import dev.identra.app.x.hook.interceptors.network.WifiScanFilter;
+import dev.identra.app.x.hook.interceptors.pkg.PackageInfoInterceptor;
+import dev.identra.app.x.hook.interceptors.user.UserCreationTimeInterceptor;
+import dev.identra.app.x.process.ProcessUtils;
+import dev.identra.app.x.runtime.reflect.DynamicType;
+import dev.identra.app.x.core.LibUtil;
+//import dev.identra.app.x.hook.handlers.settings.CallData;
+
+public class XParam extends XParamExtra {
+    private static final List<String> ALLOWED_PACKAGES = Arrays.asList("google", "system", "settings", "android", "webview");
+    private static final String TAG = LibUtil.generateTag(XParam.class);
+
+    public static String generateSettingForceName(String original) { return "!.force." + original; }
+
+    private final Context context;
+    private final Field field;
+    private final XC_MethodHook.MethodHookParam param;
+    private final Class<?>[] paramTypes;
+    private final Class<?> returnType;
+    private final Map<String, String> settings;
+    private final Map<String, Integer> propSettings;
+    private final Map<String, String> propMaps;
+    private final String key;
+    private final boolean useDefault;
+    private final String packageName;
+
+    private static final Map<Object, Map<String, Object>> nv = new WeakHashMap<>();
+    private UserContextMaps getUserMaps() { return new UserContextMaps(this.settings, this.propMaps, this.propSettings); }
+
+
+    public final Map<String, Map<String, String>> WILD_NAMES_CALL = new HashMap<>();
+
+
+    // Field param
+    public XParam(
+            Context context,
+            Field field,
+            Map<String, String> settings,
+            Map<String, Integer> propSettings,
+            Map<String, String> propMaps,
+            String key,
+            boolean useDefault,
+            String packageName) {
+
+        this.context = context;
+        this.field = field;
+        this.param = null;
+        this.paramTypes = null;
+        this.returnType = field.getType();
+        this.settings = settings;
+        this.propSettings = propSettings;
+        this.propMaps = propMaps;
+        this.key = key;
+        this.useDefault = useDefault;
+        this.packageName = packageName;
+    }
+
+    // Method param
+    public XParam(
+            Context context,
+            XC_MethodHook.MethodHookParam param,
+            Map<String, String> settings,
+            Map<String, Integer> propSettings,
+            Map<String, String> propMaps,
+            String key,
+            boolean useDefault,
+            String packageName) {
+
+        this.context = context;
+        this.field = null;
+        this.param = param;
+        if (param.method instanceof Constructor) {
+            this.paramTypes = ((Constructor) param.method).getParameterTypes();
+            this.returnType = null;
+        } else {
+            this.paramTypes = ((Method) param.method).getParameterTypes();
+            this.returnType = ((Method) param.method).getReturnType();
+        }
+        this.settings = settings;
+        this.propSettings = propSettings;
+        this.propMaps = propMaps;
+        this.key = key;
+        this.useDefault = useDefault;
+        this.packageName = packageName;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isForceSetting(String settingName) {
+        return !Str.isEmpty(settingName) &&
+                Boolean.TRUE.equals(StrConversionUtils
+                        .tryParseBoolean(getSetting("!.force." + settingName, "false"), false));
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isForceSetting(String settingName, Object resultValue) {
+        try {
+            if(Str.isEmpty(settingName))
+                return false;
+
+            if(DebugUtil.isDebug())
+                Log.d(TAG, "Checking Setting [" + settingName + "] If it is a Force Setting, Value=(" + Str.toStringOrNull(resultValue) + ")");
+
+            if(resultValue instanceof String) {
+                String s = (String) resultValue;
+                if(Str.isNullOrDefaultValue(s))
+                    return isForceSetting(settingName);
+
+                return true;
+            } else {
+                //Check if it is zero ??
+                if(resultValue == null)
+                    return isForceSetting(settingName);
+
+                return true;
+            }
+        }catch (Exception e) {
+            Log.e(TAG, "Internal Error, Critical Error Checking if a Setting is a Force Setting! Setting=" + settingName + " Error=" + e);
+            return false;
+        }
+    }
+
+
+    @SuppressWarnings("unused")
+    public int getTargetSubIndex() { return tryGetArgument(0, 0); }
+
+    @SuppressWarnings("unused")
+    public GroupedMap getGroupedMap(String category) {
+        //category, applicationContext
+        Context ctx = getApplicationContext();
+        Object v = getValue(category, ctx);
+        if(!(v instanceof GroupedMap)) {
+            GroupedMap map = new GroupedMap();
+            putValue(category, map, ctx);
+            return map;
+        }
+
+        return (GroupedMap) v;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isDriverFiles(String pathOrFile) { return FileUtil.isDeviceDriver(pathOrFile); }
+
+    /*
+        ToDO: Rename "setSettingResult" & "setOldResult" & "setNewResult"
+                Update to ensure working with Index Settings, and Control Prop
+     */
+    @SuppressWarnings("unused")
+    public boolean ensurePropertyIsSafe() {
+        try {
+            String propName = Str.trimOriginal(tryGetArgument(0, Str.EMPTY));
+            if(Str.isEmpty(propName) ||  MockUtils.isPropVxpOrLua(propName))
+                return false;
+
+            if(DebugUtil.isDebug())
+                Log.d(TAG, "Property Get=" + propName);
+
+            // 0.5.0: shared with the getprop shell lens (PropRules); only replace a property that
+            // really exists, never invent one. get(key, def) returns def for a missing key.
+            String retValue = tryGetResult(Str.EMPTY);
+            if(paramTypes != null && paramTypes.length >= 2) {
+                Object def = tryGetArgument(1, null);
+                if(def != null && def.equals(retValue))
+                    return false;   // the key is missing (or equals the caller's default): leave it
+            }
+
+            String newValue = PropRules.resolve(this.settings, propName, retValue);
+            if(newValue == null)
+                return false;
+
+            setLogExtra(propName);
+            setLogOld(retValue);
+            setLogNew(newValue);
+            if(DebugUtil.isDebug())
+                Log.d(TAG, Str.fm("Intercepted Property [%s] value [%s] replacing [%s] value",
+                        propName,
+                        Str.ensureNoDoubleNewLines(newValue),
+                        Str.ensureNoDoubleNewLines(retValue)));
+
+            if(newValue.isEmpty() && paramTypes != null && paramTypes.length >= 2) {
+                // hidden: behave like a missing key, get(key, def) -> def
+                Object def = tryGetArgument(1, null);
+                setResult(def instanceof String ? def : newValue);
+            } else {
+                setResult(newValue);
+            }
+            return true;
+        }catch (Throwable e) {
+            Log.e(TAG, "Error ensuring Build.Prop Property is Safe! Error=" + e);
+            return false;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isArgumentType(int index, Class<?> clazz) {
+        return TryRun.getOrDefault(() -> {
+            Object p = getArgument(index);
+            return p.getClass().isAssignableFrom(clazz) || p.getClass().equals(clazz);
+        }, false);
+    }
+
+    @SuppressWarnings("unused")
+    public String filterBuildProperty(String property) {
+        if(property == null || MockUtils.isPropVxpOrLua(property))
+            return MockUtils.NOT_BLACKLISTED;
+
+        if(BuildConfig.DEBUG)
+            Log.i(TAG, "Filtering Property=" + property + " prop maps=" + propMaps.size() + " settings size=" + settings.size());
+
+        Integer code = propSettings.get(property);
+        if(code != null) {
+            if(code == MockPropSetting.PROP_HIDE) return null;//return MockUtils.HIDE_PROPERTY;
+            if(code == MockPropSetting.PROP_SKIP) return MockUtils.NOT_BLACKLISTED;
+            else {
+                if(code != MockPropSetting.PROP_FORCE) {
+                    try {
+                        Object res = getResult();
+                        if(res == null) return MockUtils.NOT_BLACKLISTED;
+                    } catch (Throwable ignore) {  }
+                }
+            }
+        }
+
+        boolean cleanEmulator = getSettingBool(Evidence.SETTING_QEMU_EMULATOR, false) || getSettingBool(Evidence.SETTING_EMULATOR, false);
+        boolean cleanRoot = getSettingBool(Evidence.SETTING_ROOT, false);
+        if(cleanEmulator || cleanRoot) {
+            if(cleanEmulator && Evidence.property(property, 1))
+                return null;
+            if(cleanRoot) {
+                if(Evidence.property(property, 2))
+                    return null;
+                if(property.equalsIgnoreCase(Evidence.PROP_DEBUGGABLE))
+                    return Evidence.PROP_DEBUGGABLE_GOOD;
+                if(property.equalsIgnoreCase(Evidence.PROP_SECURE))
+                    return Evidence.PROP_SECURE_GOOD;
+            }
+        }
+
+        //add force options now
+        if(propMaps != null && !propMaps.isEmpty()) {
+            String settingName = propMaps.get(property);
+            if(settingName != null) {
+                if(settings.containsKey(settingName))
+                    return getSetting(settingName, null);
+            }
+        }
+
+        return MockUtils.NOT_BLACKLISTED;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean interceptUserManagerCreationTime() { return UserCreationTimeInterceptor.interceptUserManager(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptFileFree() { return StorageAvailInterceptor.interceptFileFreeSpace(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptStorageStatsManagerFree() {  return StorageAvailInterceptor.interceptStorageStatsManager(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptStructStatVfsFree() { return StorageAvailInterceptor.interceptStructVfs(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptSubscriptionInfo(boolean isResult, int indexOverride) { return SubscriptionInfoInterceptor.interceptObject(this, isResult, indexOverride, null); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptNetworkInfo(boolean isResult) { return NetworkInfoInterceptor.intercept(this, isResult); }
+
+    @SuppressWarnings("unused")
+    public boolean ensurePutIsSafe(boolean isPutAll, String badKey, String replaceSetting) {
+         if(!isPutAll) {
+             Object firstParam = getArgument(0);
+             Object secondParam = getArgument(1);
+             if(!(firstParam instanceof String) || !(secondParam instanceof String))
+                 return false;
+
+             String key = (String) firstParam;
+             if(badKey.equalsIgnoreCase(key)) {
+                 //Add check in for class caller
+                 String value = (String) secondParam;
+                 if(value.length() == 16) {
+                     //Mostly assume its an Android ID then
+                     String replaceValue = getSetting(replaceSetting);
+                     if(replaceValue == null)
+                         return false;
+
+                     setArgument(1, replaceValue);
+                     setLogOld(value);
+                     setLogNew(replaceValue);
+                     return true;
+                 }
+             }
+         } else {
+             //ToDO:
+         }
+
+         return false;
+    }
+
+    public String resolveIpcSetting(String rawArg, String authority, boolean isCall, boolean setLastSettingName) {
+        if(Str.isEmpty(rawArg))
+            return null;
+        // 0.7.8: IPCCallFilterContainer stores call args lowercased (Phenotype_boot_count -> phenotype_boot_count)
+        final String arg = isCall ? Str.toLowerCase(rawArg) : rawArg;
+
+        return TryRun.getOrDefault(() -> {
+            synchronized (this.settings) {
+                if(isCall) {
+                    //Also resolve authority, settings=> , MiUiSetting=> etc etc
+                    String auth = Str.getNonNullOrEmptyString(authority, Str.ASTERISK);
+                    String nameOne = IPCCallFilterContainer.createCallSetting(arg, auth);
+
+                    boolean doWild = Str.areEqual(auth, Str.ASTERISK) || !this.settings.containsKey(nameOne);
+                    String finalSettingName = !doWild ?
+                            this.settings.get(nameOne) :
+                            this.settings.get(IPCCallFilterContainer.createCallSetting(arg, Str.ASTERISK));
+
+                    if(DebugUtil.isDebug())
+                        Log.d(TAG, Str.fm("Resolving Call Arg [%s] with Authority [%s] Auth Cleaned [%s] Name One [%s] Do Wild [%s] Return to Mapped Setting [%s] with Total of (%s) wild card searched",
+                                arg,
+                                authority,
+                                auth,
+                                nameOne,
+                                doWild,
+                                finalSettingName,
+                                WILD_NAMES_CALL.size()));
+
+                    if(Str.isEmpty(finalSettingName)) {
+                        if(!doWild) finalSettingName = this.settings.get(IPCCallFilterContainer.createCallSetting(arg, Str.ASTERISK));
+                        if(Str.isEmpty(finalSettingName) && !WILD_NAMES_CALL.isEmpty()) {
+                            Map<String, String> allItems = new HashMap<>();
+                            ListUtil.addAll(allItems, this.WILD_NAMES_CALL.get(Str.ASTERISK));
+                            if(!Str.ASTERISK.equals(auth))
+                                ListUtil.addAll(allItems, this.WILD_NAMES_CALL.get(auth));
+
+                            for(Map.Entry<String, String> entry : allItems.entrySet()) {
+                                String pattern = Str.toLowerCase(entry.getKey());
+                                if(!Str.isEmpty(pattern) && arg.contains(pattern)) {
+                                    String last = entry.getValue();
+                                    if(!Str.isEmpty(last)) {
+                                        finalSettingName = last;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    setLastSetting(Str.toStringOrNull(finalSettingName), setLastSettingName);
+                    if(DebugUtil.isDebug())
+                        Log.d(TAG, Str.fm("Finished Resolving Call Arg [%s] with Authority [%s] Auth Cleaned [%s] Name One [%s] Do Wild [%s] Return to Mapped Setting [%s] with Total of (%s) wild card searched",
+                                arg,
+                                authority,
+                                auth,
+                                nameOne,
+                                doWild,
+                                finalSettingName,
+                                WILD_NAMES_CALL.size()));
+
+                    return Str.isEmpty(finalSettingName) ? null : this.settings.get(finalSettingName);
+                } else {
+                    return null;
+                }
+            }
+        }, null);
+    }
+
+    @SuppressWarnings("unused")
+    public boolean interceptRemoveExternalDeviceIds() { return InputDeviceInterceptor.removeExternalDevices(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptDevice(boolean isResult) { return InputDeviceInterceptor.interceptDevice(this, isResult); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptOpen() { return FileInterceptor.interceptOpen(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptFileList() { return FileInterceptor.interceptList(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptFileBool() { return FileInterceptor.interceptExistsOrIsFileOrDirectory(this); }
+
+    @SuppressWarnings("unused")
+    public boolean packageInfoInstallTimeSpoof(boolean isReturn) { return PackageInfoInterceptor.interceptTimeStamps(this, isReturn); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptLastModified() { return StatCleaner.cleanFileLastModified(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptStatStruct() { return StatCleaner.cleanOsStatStructure(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptNioFileAttributes() { return StatCleaner.cleanNioAttributes(this); }
+
+    @SuppressWarnings("unused")
+    public boolean isDriverFile(String path) { return FileUtil.isDeviceDriver(path); }
+
+    @SuppressWarnings("unused")
+    public File[] filterFilesArray(File[] files) { return FileUtil.filterFileArray(files); }
+
+    @SuppressWarnings("unused")
+    public List<File> filterFilesList(List<File> files) { return FileUtil.filterFileList(files); }
+
+    @SuppressWarnings("unused")
+    public String[] filterFileStringArray(String[] files) { return FileUtil.filterArray(files); }
+
+    @SuppressWarnings("unused")
+    public List<String> filterFileStringList(List<String> files) { return FileUtil.filterList(files); }
+
+    @SuppressWarnings("unused")
+    public boolean isPackageAllowed(String str) {
+        if(str == null || str.isEmpty() || str.equalsIgnoreCase(this.packageName)) return true;
+        str = str.toLowerCase().trim();
+        String blackSetting = getSetting("apps.blacklist.mode.bool");
+        if(blackSetting != null) {
+            boolean isBlacklist = StringUtil.toBoolean(blackSetting, false);
+            if(isBlacklist) {
+                String block = getSetting("apps.block.list");
+                if(Str.isValidNotWhitespaces(block)) {
+                    block = block.trim();
+                    if(block.contains(",")) {
+                        String[] blocked = block.split(",");
+                        for(String b : blocked)
+                            if(b.trim().equalsIgnoreCase(str))
+                                return false;
+                    }else {
+                        if(block.equalsIgnoreCase("*"))
+                            return false;
+                        else if(block.equalsIgnoreCase(str))
+                            return false;
+                    }
+                }
+            } else {
+                String allow = getSetting("applications.allow.list");
+                if(Str.isValidNotWhitespaces(allow)) {
+                    allow = allow.trim();
+                    if(allow.contains(",")) {
+                        String[] allowed = allow.split(",");
+                        for(String a : allowed)
+                            if(a.trim().equalsIgnoreCase(str))
+                                return true;
+                    }else {
+                        if(allow.equalsIgnoreCase("*"))
+                            return true;
+                        else if(allow.equalsIgnoreCase(str))
+                            return true;
+                    }
+                }
+                if(Evidence.packageName(str, 3))
+                    return false;
+
+                //Revert this
+                if(getSettingBool("apps.blacklist.allow.vital.apps.bool", true)) {
+                    for(String p : ALLOWED_PACKAGES)
+                        if(str.contains(p))
+                            return true;
+                }
+
+                return false;
+            }
+        } return !Evidence.packageName(str, 3);
+    }
+
+
+    @SuppressWarnings("unused")
+    public boolean interceptBatteryParcel() { return BatteryInterceptor.intercept(this); }
+    @SuppressWarnings("unused")
+    public boolean interceptBatteryManagerGet() { return BatteryInterceptor.interceptGet(this); }
+
+    @SuppressWarnings("unused")
+    public ShellInterception createShellContext(boolean isProcessBuilder) { return new ShellInterception(this, isProcessBuilder, getUserMaps()); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptAndFilterIpc(boolean getResult) { return BinderInterceptor.intercept(this, getResult); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptAndFilterQuery(boolean getResult) { return new IntentQueryData(this, getResult).intercept(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptAndFilerCall(boolean getResult) { return new IntentCallData(this, getResult).replaceSettingStringResult(this); }
+
+    @SuppressWarnings("unused")
+    public boolean isCommandBad(ShellInterception shellData) {
+        if(shellData == null) {
+            Log.w(TAG, "[ShellIntercept] Command Shell Data Object is Null...");
+            return false;
+        }
+
+        ShellInterception res = ShellIntercept.intercept(shellData);
+        if(!res.isMalicious() || res.getNewValue() == null) {
+            if(DebugUtil.isDebug())
+                Log.d(TAG, "[ShellIntercept] Command is not Malicious: " + shellData.getCommandLine());
+
+            return false;
+        }
+
+        try {
+            String orgOutput = res.getCommandOutput();
+            String newOutput = res.getNewValue();
+            setLogOld(orgOutput);
+            setLogNew(newOutput);
+            if(DebugUtil.isDebug())
+                Log.d(TAG, "Shell Intercepted, Old Length=" + orgOutput.length() +
+                        " Old Hex=" + Str.toHex(orgOutput) +
+                        " New Length=" + newOutput.length() +
+                        " New Hex=" + Str.toHex(newOutput));
+
+            setResult(ProcessUtils.createProcess(res.process, newOutput));
+            return true;
+        }catch (Throwable e) {
+            Log.e(TAG, "Error Setting the new Intercepted Process Command Value " + e);
+            return false;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public boolean interceptFileOpenProcIfNet6() { return NetworkInterfaceInterceptor.interceptFileOpenProcIfNet6(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptIoctlInetAddress() { return NetworkInterfaceInterceptor.interceptIoctlInetAddress(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptFileListForNetworkInterfaces() { return NetworkInterfaceInterceptor.interceptFileList(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptGetifaddrs() { return NetworkInterfaceInterceptor.interceptGetifaddrs(this); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptDhcpInfo(boolean isResult) { return DhcpInfoInterceptor.intercept(this, isResult); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptLinkProperties(boolean isResult) {  return LinkPropertiesInterceptor.intercept(this, isResult); }
+
+    @SuppressWarnings("unused")
+    public boolean interceptWifiInfo(boolean isResult) { return WifiInfoInterceptor.intercept(this, isResult); }
+
+    @SuppressWarnings("unused")
+    public int getFileDescriptorId(FileDescriptor fs) { return FileUtil.getDescriptorNumber(fs);  }
+
+    @SuppressWarnings("unused")
+    public File createFakeMeminfoFile(int totalGigabytes, int availableGigabytes) { return FileUtil.generateTempFakeFile(MemoryUtil.generateFakeMeminfoContents(totalGigabytes, availableGigabytes)); }
+
+    @SuppressWarnings("unused")
+    public FileDescriptor createFakeMeminfoFileDescriptor(int totalGigabytes, int availableGigabytes) { return FileUtil.generateFakeFileDescriptor(MemoryUtil.generateFakeMeminfoContents(totalGigabytes, availableGigabytes)); }
+
+    @SuppressWarnings("unused")
+    public ActivityManager.MemoryInfo getFakeMemoryInfo(int totalMemoryInGB, int availableMemoryInGB) { return MemoryUtilEx.getMemory(totalMemoryInGB, availableMemoryInGB); }
+
+    @SuppressWarnings("unused")
+    public FileDescriptor createFakeCpuinfoFileDescriptor() { return MockFileUtil.generateFakeFileDescriptor(XMockCall.getSelectedMockCpu(getApplicationContext())); }
+
+    @SuppressWarnings("unused")
+    public File createFakeCpuinfoFile() { return MockFileUtil.generateFakeFile(XMockCall.getSelectedMockCpu(getApplicationContext())); }
+
+    @SuppressWarnings("unused")
+    public FileDescriptor createFakeUUIDFileDescriptor() { return MockFileUtil.generateFakeBootUUIDDescriptor(getSetting("unique.boot.id")); }
+
+    @SuppressWarnings("unused")
+    public File createFakeUUIDFile() { return MockFileUtil.generateFakeBootUUIDFile(getSetting("unique.boot.id")); }
+
+    @SuppressWarnings("unused")
+    public Set<BluetoothDevice> filterSavedBluetoothDevices(Set<BluetoothDevice> devices, List<String> allowList) { return ListFilterUtil.filterSavedBluetoothDevices(devices, allowList); }
+
+    @SuppressWarnings("unused")
+    public boolean filterWifiScanResults() { return WifiScanFilter.filter(this); }
+
+    @SuppressWarnings("unused")
+    public List<WifiConfiguration> filterSavedWifiNetworks(List<WifiConfiguration> results, List<String> allowList) { return ListFilterUtil.filterSavedWifiNetworks(results, allowList); }
+
+
+    @SuppressWarnings("unused")
+    public InputDevice.MotionRange createXAxis(int height) { return MotionRangeUtil.createXAxis(height); }
+
+    @SuppressWarnings("unused")
+    public InputDevice.MotionRange createYAxis(int width) { return MotionRangeUtil.createYAxis(width); }
+
+
+    @SuppressWarnings("unused")
+    public String[] generateMediaCodecSupportedTypeList() { return RandomMediaCodecInfo.generateSupportedTypes(); }
+
+    @SuppressWarnings("unused")
+    public String generateMediaCodecName() { return RandomMediaCodec.generateName(); }
+
+
+    @SuppressWarnings("unused")
+    public File[] fileArrayHasEvidence(File[] files, int code) { return Evidence.fileArray(files, code); }
+    @SuppressWarnings("unused")
+    public List<File> fileListHasEvidence(List<File> files, int code) { return Evidence.fileList(files, code); }
+    @SuppressWarnings("unused")
+    public String[] stringArrayHasEvidence(String[] file, int code) { return Evidence.stringArray(file, code); }
+    @SuppressWarnings("unused")
+    public List<String> stringListHasEvidence(List<String> files, int code) { return Evidence.stringList(files, code); }
+    @SuppressWarnings("unused")
+    public boolean packageNameHasEvidence(String packageName, int code) { return Evidence.packageName(packageName, code); }
+    @SuppressWarnings("unused")
+    public boolean fileIsEvidence(String file, int code) { return Evidence.file(new File(file), code); }
+    @SuppressWarnings("unused")
+    public boolean fileIsEvidence(File file,  int code) { return Evidence.file(file.getAbsolutePath(), file.getName(), code); }
+    @SuppressWarnings("unused")
+    public boolean fileIsEvidence(String fileFull, String fileName, int code) { return Evidence.file(fileFull, fileName, code); }
+    @SuppressWarnings("unused")
+    public StackTraceElement[] stackHasEvidence(StackTraceElement[] elements) { return Evidence.stack(elements); }
+
+    @SuppressWarnings("unused")
+    public String createFilledString(String s, String fillChar) { return Str.createFilledCopy(s, fillChar); }
+
+    @SuppressWarnings("unused")
+    public String[] extractSelectionArgs() {
+        String[] sel = null;
+        try {
+            if(paramTypes[2].getName().equals(Bundle.class.getName())){
+                //ContentResolver.query26
+                Bundle bundle = (Bundle) getArgument(2);
+                if(bundle != null) sel = bundle.getStringArray("android:query-arg-sql-selection-args");
+            }
+            else if(paramTypes[3].getName().equals(String[].class.getName())) sel = (String[]) getArgument(3);
+        }catch (Exception ignore) { }
+        return sel;
+    }
+
+    @SuppressWarnings("unused")
+    public Context getApplicationContext() { return this.context; }
+
+    @SuppressWarnings("unused")
+    public String getPackageName() { return this.context.getPackageName(); }
+
+    @SuppressWarnings("unused")
+    public int getUid() { return this.context.getApplicationInfo().uid; }
+
+    @SuppressWarnings("unused")
+    public Object getScope() { return this.param; }
+
+    @SuppressWarnings("unused")
+    public int getSDKCode() { return Build.VERSION.SDK_INT; }
+
+
+    //
+    //START OF LONG HELPER FUNCTIONS
+    //
+    @SuppressWarnings("unused")
+    public String getFieldLong(Object instance, String fieldName) { return Long.toString(LuaLongUtil.getFieldValue(instance, fieldName)); }
+
+    @SuppressWarnings("unused")
+    public void setFieldLong(Object instance, String fieldName, String longValue) { LuaLongUtil.setLongFieldValue(instance, fieldName, longValue); }
+
+    @SuppressWarnings("unused")
+    public void parcelWriteLong(Parcel parcel, String longValue) { LuaLongUtil.parcelWriteLong(parcel, longValue); }
+
+    @SuppressWarnings("unused")
+    public String parcelReadLong(Parcel parcel) { return LuaLongUtil.parcelReadLong(parcel); }
+
+    @SuppressWarnings("unused")
+    public void bundlePutLong(Bundle bundle, String key, String longValue) { LuaLongUtil.bundlePutLong(bundle, key, longValue); }
+
+    @SuppressWarnings("unused")
+    public String bundleGetLong(Bundle bundle, String key) { return LuaLongUtil.bundleGetLong(bundle, key); }
+
+    @SuppressWarnings("unused")
+    public void setResultToLong(String long_value) throws Throwable { try { setResult(Long.parseLong(long_value)); }catch (Exception e) { XLog.e("Failed to set result to Long Value. Make sure its a valid Number.", e); } }
+
+    @SuppressWarnings("unused")
+    public void setResultToLongInt(String long_int) throws Throwable { try { setResult(Integer.parseInt(long_int)); }catch (Exception e) {  XLog.e("Failed to set result to Long Int Value. Make sure its a valid Number.", e); } }
+
+    @SuppressWarnings("unused")
+    public String getResultLong() throws Throwable { try { return Long.toString((long)getResult()); }catch (Exception e) { XLog.e("Failed Get Result as Long String", e); return "0"; } }
+
+    //
+    //END OF LONG HELPER FUNCTIONS
+    //
+
+    @SuppressWarnings("unused")
+    public Object getThis() { return this.field == null ? this.param.thisObject : null; }
+    @SuppressWarnings("unused")
+    public Class<?> getThisClazz() { return getThis().getClass(); }
+
+
+    @SuppressWarnings("unused")
+    public int tryGetArgumentInt(int index, int defaultValue) {
+        try {
+            Object arg = getArgument(index);
+            return arg instanceof Integer ? (int)arg : defaultValue;
+        }catch (Exception ignored) {
+            return defaultValue;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public<T> T tryGetArgument(int index, T defaultValue) { return TryRun.getOrDefault(() -> (T)getArgument(index), defaultValue); }
+    @SuppressWarnings("unused")
+    public Object getArgument(int index) {
+        if (index < 0 || index >= this.paramTypes.length) throw new ArrayIndexOutOfBoundsException("Argument #" + index);
+        return this.param.args[index];
+    }
+
+    @SuppressWarnings("unused")
+    public void setArgumentString(int index, Object value) { setArgument(index, (String)String.valueOf(value)); }
+
+    @SuppressWarnings("unused")
+    public void setArgumentString(int index, String value) { setArgument(index, value); }
+
+    @SuppressWarnings("unused")
+    public void setArgument(int index, Object value) {
+        if (index < 0 || index >= this.paramTypes.length) throw new ArrayIndexOutOfBoundsException("Argument #" + index);
+        if (value != null) {
+            value = DynamicType.coerceValue(this.paramTypes[index], value);
+            if (!DynamicType.boxType(this.paramTypes[index]).isInstance(value))
+                throw new IllegalArgumentException("Expected argument #" + index + " " + this.paramTypes[index] + " got " + value.getClass());
+        } this.param.args[index] = value;
+    }
+
+    @SuppressWarnings("unused")
+    public Throwable getException() {
+        Throwable ex = (this.field == null ? this.param.getThrowable() : null);
+        if(DebugUtil.isDebug())
+            Log.i(TAG, "Get " + this.getPackageName() + ":" + this.getUid() + " result=" + (ex == null ? "null" : ex.getMessage()));
+        return ex;
+    }
+
+    @SuppressWarnings("unused")
+    public<T> T  tryGetResult(T defaultValue) {
+        try {
+            return (T)getResult();
+        }catch (Throwable t) {
+            Log.e(TAG, "Error Getting Result! Error: " + t);
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public Object getResult() throws Throwable {
+        Object result = (this.field == null ? this.param.getResult() : this.field.get(null));
+        if (DebugUtil.isDebug())
+            Log.i(TAG, "Get " + this.getPackageName() + ":" + this.getUid() + " result=" + result);
+
+        return result;
+    }
+
+    @SuppressWarnings("unused")
+    public void setResultString(Object result) throws Throwable { setResult(String.valueOf(result)); }
+    @SuppressWarnings("unused")
+    public void setResultString(String result) throws Throwable { setResult(result); }
+    @SuppressWarnings("unused")
+    public void setResultByteArray(Byte[] result) throws Throwable { setResult(result); }
+    @SuppressWarnings("unused")
+    public void setResultBytes(byte[] result) throws Throwable { setResult(result); }
+
+    @SuppressWarnings("unused")
+    public void setResult(Object result) throws Throwable {
+        if (result != null && !(result instanceof Throwable) && this.returnType != null) {
+            result = DynamicType.coerceValue(this.returnType, result);
+            if (!DynamicType.boxType(this.returnType).isInstance(result)) {
+                String msg = "Expected return " + this.returnType + " got " + Str.toObjectClassNameNonNull(result) + " v=" + Str.toStringOrNull(result);
+                Log.w(TAG, msg);
+                throw new IllegalArgumentException(msg);
+            }
+        }
+
+        if (this.field == null)
+            if (result instanceof Throwable) this.param.setThrowable((Throwable) result);
+            else this.param.setResult(result);
+        else
+            this.field.set(null, result);
+    }
+
+    @SuppressWarnings("unused")
+    public Integer getSettingInt(String name, int defaultValue) {
+        String setting = getSetting(name);
+        if(setting == null)
+            return useDefault ? defaultValue : null;
+        try {
+            if(setting.contains(",")) {
+                try {
+                    String[] parts = setting.split(",");
+                    int one = Str.tryParseInt(parts[0].trim(), defaultValue);
+                    int two = Str.tryParseInt(parts[1].trim(), defaultValue);
+                    int value = RandomGenerator.nextInt(one, two);
+                    synchronized (this.settings) {
+                        this.settings.put(name, String.valueOf(value));
+                        if(DebugUtil.isDebug())
+                            Log.d(TAG, "Generated Int from (" + one + ") to (" + two + ") Value=" + value + " Setting Original Value=" + setting + " Name=" + name);
+                    }
+
+                    return value;
+                }catch (Exception ex) {
+                    Log.e(TAG, "Error Trying to handle Setting with Comma Int! Error=" + ex);
+                }
+            }
+
+            return Integer.parseInt(setting);
+        }catch (Exception e) {
+            return useDefault ? defaultValue : null;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public String getSettingReMap(String name, String oldName) { return getSettingReMap(name, oldName, null); }
+
+    @SuppressWarnings("unused")
+    public String getSettingReMap(String name, String oldName, String defaultValue) {
+        if(name == null && oldName == null) return useDefault ? defaultValue : null;
+        String setting = getSetting(name);
+        if (setting != null) return setting;
+        if(oldName != null) {
+            setting = getSetting(oldName);
+            if (setting != null) return setting;
+            return useDefault ? defaultValue : null;
+        }
+        return useDefault ? defaultValue : null;
+    }
+
+    @SuppressWarnings("unused")
+    public String getSetting(String name, String defaultValue) {
+        String setting = getSetting(name);
+        return setting == null && useDefault ? defaultValue : setting;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean getSettingBool(String name, boolean defaultValue) {
+        String setting = getSetting(name);
+        if(setting == null) return defaultValue;
+        return Str.toBoolean(setting, defaultValue);
+    }
+
+
+    @SuppressWarnings("unused")
+    public String getSetting(String name) { synchronized (this.settings) { return (this.settings.containsKey(name) ? this.settings.get(name) : null); } }
+
+    @SuppressWarnings("unused")
+    public void putValue(String name, Object value, Object scope) {
+        if(DebugUtil.isDebug()) Log.i(TAG, "Put value " + this.getPackageName() + ":" + this.getUid() + " " + name + "=" + value + " @" + scope);
+        synchronized (nv) {
+            if (!nv.containsKey(scope))
+                nv.put(scope, new HashMap<String, Object>());
+            nv.get(scope).put(name, value);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public <T> T tryGetValue(String name) {
+        Object value = getValueInternal(name, getApplicationContext());
+        if(value == null) return null;
+        try {
+            if(DebugUtil.isDebug()) Log.i(TAG, "Get value " + this.getPackageName() + ":" + this.getUid() + " " + name + "=" + value);
+            return (T)value;
+        }catch (Exception e) {
+            Log.e(TAG, "Failed to get Value, Name=" + name + " Error=" + e);
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public Object getValue(String name, Object scope) {
+        Object value = getValueInternal(name, scope);
+        if(DebugUtil.isDebug())
+            Log.i(TAG, "Get value " + this.getPackageName() + ":" + this.getUid() + " " + name + "=" + value + " @" + scope);
+        return value;
+    }
+
+    private static Object getValueInternal(String name, Object scope) {
+        synchronized (nv) {
+            if (!nv.containsKey(scope))
+                return null;
+            if (!nv.get(scope).containsKey(name))
+                return null;
+            return nv.get(scope).get(name);
+        }
+    }
+}

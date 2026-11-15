@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Empty list: two stacked paper cards and a small ink "i". Flat. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp" android:height="120dp"
+    android:viewportWidth="160" android:viewportHeight="120">
+    <path android:fillColor="@color/identra_container" android:pathData="M80,60m-56,0a56,56 0,1 1,112 0a56,56 0,1 1,-112 0"/>
+    <path android:fillColor="@color/identra_container_high" android:pathData="M44,34h72a8,8 0,0 1,8 8v40a8,8 0,0 1,-8 8h-72a8,8 0,0 1,-8 -8v-40a8,8 0,0 1,8 -8z"/>
+    <path android:fillColor="@color/identra_surface" android:strokeColor="@color/identra_outline" android:strokeWidth="1.5"
+        android:pathData="M38,42h72a8,8 0,0 1,8 8v40a8,8 0,0 1,-8 8h-72a8,8 0,0 1,-8 -8v-40a8,8 0,0 1,8 -8z"/>
+    <path android:fillColor="@color/identra_container_high" android:pathData="M58,56h40a3,3 0,0 1,0 6h-40a3,3 0,0 1,0 -6z"/>
+    <path android:fillColor="@color/identra_container_high" android:pathData="M58,70h28a3,3 0,0 1,0 6h-28a3,3 0,0 1,0 -6z"/>
+    <path android:fillColor="@color/identra_primary" android:pathData="M46,55m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+    <path android:fillColor="@color/identra_primary" android:pathData="M44.5,61h3a1,1 0,0 1,1 1v14a1,1 0,0 1,-1 1h-3a1,1 0,0 1,-1 -1v-14a1,1 0,0 1,1 -1z"/>
+</vector>

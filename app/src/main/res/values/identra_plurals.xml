@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="identra_hooks_count" translatable="false">
+        <item quantity="one">%d hook</item>
+        <item quantity="other">%d hooks</item>
+    </plurals>
+    <plurals name="identra_values_count" translatable="false">
+        <item quantity="one">%d value</item>
+        <item quantity="other">%d values</item>
+    </plurals>
+    <plurals name="identra_logs_count" translatable="false">
+        <item quantity="one">%d entry</item>
+        <item quantity="other">%d entries</item>
+    </plurals>
+</resources>

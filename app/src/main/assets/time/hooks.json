@@ -1,0 +1,115 @@
+[
+
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Spoof.TimeZone",
+    "name": "TimeZone.getDefault",
+    "author": "Identra",
+    "className": "java.util.TimeZone",
+    "methodName": "getDefault",
+    "parameterTypes": [ ],
+    "returnType": "java.util.TimeZone",
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "",
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "notify":false,
+    "luaScript": "@spoof_timezone_getdefault",
+    "settings": [ "zone.timezone.offset" ]
+  },
+
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Spoof.TimeZone",
+    "name": "TimeZone.getID",
+    "author": "Identra",
+    "className": "java.util.TimeZone",
+    "methodName": "getID",
+    "parameterTypes": [ ],
+    "returnType": "java.lang.String",
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "",
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "notify":false,
+    "luaScript": "@spoof_timezone_getid",
+    "settings": [ "zone.timezone.id" ]
+  },
+
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Spoof.TimeZone",
+    "name": "TimeZone.getDisplayName",
+    "author": "Identra",
+    "className": "java.util.TimeZone",
+    "methodName": "getDisplayName",
+    "parameterTypes": [ ],
+    "returnType": "java.lang.String",
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "",
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "notify":false,
+    "luaScript": "@spoof_timezone_getdisplayname",
+    "settings": [ "zone.timezone.display.name" ]
+  },
+
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Spoof.TimeZone",
+    "name": "Calendar.getTimeZone",
+    "author": "Identra",
+    "className": "java.util.Calendar",
+    "methodName": "getTimeZone",
+    "parameterTypes": [ ],
+    "returnType": "java.util.TimeZone",
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "",
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "notify":false,
+    "luaScript": "@spoof_timezone_getdefault",
+    "settings": [ "zone.timezone.offset" ]
+  },
+  // 0.7.3 consistency rules (system property / settings side of hooks that already spoof the Java side)
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Spoof.TimeZone",
+    "name": "TimeZone/Rule",
+    "author": "Identra",
+    "className": "Intercept.Properties",
+    "methodName": "get",
+    "parameterTypes": [
+      "persist.sys.timezone"
+    ],
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "TimeZone id for SystemProperties / getprop / native (matches TimeZone.getID)",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "notify": false,
+    "luaScript": "",
+    "settings": [
+      "zone.timezone.id"
+    ]
+  }
+]

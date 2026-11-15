@@ -1,0 +1,257 @@
+package dev.identra.app.x.core.database;
+
+import dev.identra.IdentraNs;
+
+import android.content.Context;
+import android.os.Environment;
+import android.os.Process;
+import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.regex.Pattern;
+
+import dev.identra.xposed.XposedBridge;
+import dev.identra.app.DebugUtil;
+import dev.identra.app.XposedUtil;
+import dev.identra.app.x.Str;
+import dev.identra.app.x.data.utils.ArrayUtils;
+import dev.identra.app.x.data.utils.ListUtil;
+import dev.identra.app.x.file.FileApi;
+import dev.identra.app.x.file.FileEx;
+import dev.identra.app.x.file.FileTransfer;
+import dev.identra.app.x.file.FileUtils;
+import dev.identra.app.x.file.ModePermission;
+import dev.identra.app.x.file.UnixAccessBuilder;
+import dev.identra.app.x.file.UnixAccessControl;
+import dev.identra.app.x.core.LibUtil;
+import dev.identra.app.x.core.XposedUtility;
+import dev.identra.app.x.core.database.sql.SQLDatabase;
+
+public class DatabasePathUtil {
+    private static final String TAG = LibUtil.generateTag(DatabasePathUtil.class);
+
+    public static final long MAX_FILE_SIZE = 2L * 1024 * 1024L * 1024L;
+
+    public static final String NEW_DIRECTORY = FileApi.buildPath("data", "misc");
+    public static final String OLD_DIRECTORY = FileApi.buildPath("data", "system");
+
+    public static final String NEW_PREFIX = IdentraNs.DB_DIR_PREFIX;
+    public static final String OLD_PREFIX = "xlua";
+    public static final String X_NAME = "xlua.db";
+
+    public static final UnixAccessControl DEFAULT_ACCESS = UnixAccessBuilder.create()
+            .setOwnerUid(Process.SYSTEM_UID)
+            .setGroupUid(Process.SYSTEM_UID)
+            .setOwnerMode(ModePermission.READ_WRITE_EXECUTE)
+            .setGroupMode(ModePermission.READ_WRITE_EXECUTE)
+            .setOtherMode(ModePermission.NONE)
+            .build();
+
+    public static void deleteAndroidDirectories() {
+        internalTryDelete("data");
+        internalTryDelete("obb");
+    }
+
+    public static FileEx getDatabaseDirectory(Context context) {
+        if (context != null && XposedUtil.isVirtualXposed())
+            return new FileEx(context.getFilesDir());
+
+        FileEx newBaseDirectory = FileEx.createFromDirectory(NEW_DIRECTORY);
+        List<FileEx> newFolders = FileUtils.sortFromLastModified(findXplDatabaseFolders(newBaseDirectory,
+                true,
+                true,
+                NEW_PREFIX,
+                true,
+                DEFAULT_ACCESS));
+
+        if(ListUtil.isValid(newFolders)) {
+            FileEx first = ListUtil.getFirst(newFolders);
+            logD(Str.fm("Found Database Folder! Using Folder [%s] as Identra base Folder for Databases!", first.getAbsolutePath()));
+            return first;
+        }
+
+        List<FileEx> oldFolders = FileUtils.combineTwoLists(
+                findXplDatabaseFolders(FileEx.createFromDirectory(OLD_DIRECTORY), true, true, NEW_PREFIX, true, DEFAULT_ACCESS),
+                findXplDatabaseFolders(FileEx.createFromDirectory(OLD_DIRECTORY), true, true, OLD_PREFIX, false, DEFAULT_ACCESS),
+                true);
+
+        if(DebugUtil.isDebug())
+            XposedUtility.logW_xposed(TAG, Str.fm("Missing Identra Database Folder! Parent Directory=[%s] Found in old Directory [%] Count=%s",
+                    NEW_DIRECTORY,
+                    OLD_DIRECTORY,
+                    ListUtil.size(oldFolders)));
+
+        if(!ListUtil.isValid(oldFolders)) {
+            FileEx newDirectory = newBaseDirectory.openSub(Str.combine(NEW_PREFIX, UUID.randomUUID().toString()));
+            newDirectory.mkdirs();
+            newDirectory.takeFullControl(DEFAULT_ACCESS, true);
+            if(DebugUtil.isDebug())
+                XposedUtility.logD_xposed(TAG, Str.fm("Failed to Find Identra Database Folder in [%s] and in [%s] now creating and using Folder [%s] Created=%s",
+                        NEW_DIRECTORY,
+                        OLD_DIRECTORY,
+                        newDirectory.getAbsolutePath(),
+                        String.valueOf(newDirectory.isDirectory())));
+
+            return newDirectory;
+        } else {
+            FileEx firstDirectory = ListUtil.getFirst(oldFolders);
+            //We can also just force it a new name ?
+            //We can also create it here should we ?
+            FileEx newDirectory = firstDirectory.getName().equalsIgnoreCase(OLD_PREFIX) ?
+                    newBaseDirectory.openSub(Str.combine(NEW_PREFIX, UUID.randomUUID().toString())) :
+                    newBaseDirectory.openSub(firstDirectory.getName());
+
+            newDirectory.mkdirs();
+            int copied = FileTransfer.copyDirectory(firstDirectory, newDirectory, true, DEFAULT_ACCESS);
+            if(DebugUtil.isDebug())
+                XposedUtility.logD_xposed(TAG, Str.fm("Failed to Find Identra Database Folder in [%s] copying from the old Folder [%s] to [%s] Copied Count=%s Is Directory=%s",
+                        NEW_DIRECTORY,
+                        firstDirectory.getAbsolutePath(),
+                        newDirectory.getAbsolutePath(),
+                        String.valueOf(copied),
+                        String.valueOf(newDirectory.isDirectory())));
+
+            return newDirectory;
+        }
+    }
+
+    public static List<FileEx> findXplDatabaseFolders(
+            FileEx source,
+            boolean hasXDatabase,
+            boolean deleteEmpty,
+            String prefix,
+            boolean startsWith,
+            UnixAccessControl access) {
+        List<FileEx> files = new ArrayList<>();
+        if(!source.isDirectory() || Str.isEmpty(prefix)) {
+            logE(Str.fm("Source is not a Directory [%s] is Directory ? %s or Prefix [%s] is Empty / Null! ",
+                    source.getAbsolutePath(),
+                    String.valueOf(source.isDirectory()),
+                    Str.toStringOrNull(prefix)));
+            return files;
+        }
+
+        FileEx[] subFiles = source.listFilesEx();
+        if(!ArrayUtils.isValid(subFiles)) {
+            logE(Str.fm("No Sub Files in Directory [%s] Prefix=%s",
+                    source.getAbsolutePath(),
+                    prefix));
+            return files;
+        }
+
+        if(DebugUtil.isDebug())
+            logD(Str.fm("Starting Database Folder search in Directory [%s] Prefix [%s] HasXDatabase Flag=%s Delete If Empty Flag=%s Starts With Flag=%s",
+                    source.getAbsolutePath(),
+                    prefix,
+                    String.valueOf(hasXDatabase),
+                    String.valueOf(deleteEmpty),
+                    String.valueOf(startsWith)));
+
+        String prefixLower = prefix.toLowerCase();
+        for(FileEx sub : subFiles) {
+            String name = sub.getName();
+            if(Str.isEmpty(name) || !sub.isDirectory())
+                continue;
+
+            if((startsWith && name.toLowerCase().startsWith(prefixLower)) || (!startsWith && name.equalsIgnoreCase(prefixLower))) {
+                sub.takeFullControl(access, true);
+                if(hasXDatabase) {
+                    FileEx database = sub.openSub(X_NAME);
+                    if(!database.isFile()) {
+                        if(deleteEmpty) {
+                            boolean res = sub.delete();
+                            if(DebugUtil.isDebug())
+                                logD(Str.fm("Deleted Empty Identra Directory [%s] from [%s] Prefix [%s] Result=%s",
+                                        sub.getName(),
+                                        source.getAbsolutePath(),
+                                        prefix,
+                                        res));
+                        }
+
+                        logD(Str.fm("Found Identra Directory [%s] in Source Directory [%s] with Prefix [%s] but it lacks its database file! Skipping",
+                                sub.getName(),
+                                source.getAbsolutePath(),
+                                prefix));
+                        continue;
+                    }
+                }
+
+                files.add(sub);
+                if(DebugUtil.isDebug())
+                    logD(Str.fm("Found Identra Directory [%s] in Source Directory [%s] Prefix=%s",
+                            sub.getName(),
+                            source.getAbsolutePath(),
+                            prefix));
+            }
+        }
+
+        return files;
+    }
+
+    public static void logD(String msg) { XposedUtility.logD_xposed(TAG, msg); }
+    public static void logI(String msg) { XposedUtility.logI_xposed(TAG, msg); }
+    public static void logE(String msg) { XposedUtility.logE_xposed(TAG, msg); }
+    public static void logW(String msg) { XposedUtility.logW_xposed(TAG, msg); }
+
+
+    //ToDo: Asap move this crap code
+    private static void internalTryDelete(String scope) {
+        List<String> paths = Arrays.asList(
+                Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/" + scope + "/dev.identra.app",
+                "/storage/emulated/0/\\342\\200\\213Android/" + scope + "/dev.identra.app",
+                "/storage/emulated/0/​Android/" + scope + "/dev.identra.app",
+                "/storage/emulated/0/\u200BAndroid/" + scope + "/dev.identra.app");
+
+        for(String p : paths) {
+            makeDirectoryDeletable(p);
+            forceDeleteDirectory(p);
+        }
+    }
+
+    public static boolean makeDirectoryDeletable(String targetPath) {
+        try {
+            String currentUid = String.valueOf(Process.myUid());
+            String[] chownCommand = {"chown", "-R", currentUid + ":" + currentUid, targetPath};
+            java.lang.Process chownProcess = Runtime.getRuntime().exec(chownCommand);
+
+            // Wait for chown to complete
+            int chownExitValue = chownProcess.waitFor();
+            // Then change permissions to 777 (rwxrwxrwx)
+            String[] chmodCommand = {"chmod", "-R", "777", targetPath};
+            java.lang.Process chmodProcess = Runtime.getRuntime().exec(chmodCommand);
+
+            // Wait for chmod to complete
+            int chmodExitValue = chmodProcess.waitFor();
+
+            // Return success if either operation was successful
+            boolean success = chownExitValue == 0 || chmodExitValue == 0;
+            return success;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
+    public static boolean forceDeleteDirectory(String targetPath) {
+        try {
+            // Create the process
+            String[] command = {"rm", "-rf", targetPath};
+            java.lang.Process process = Runtime.getRuntime().exec(command);
+
+            // Wait for the process to complete
+            int exitValue = process.waitFor();
+            // Check if the directory still exists
+            File checkDir = new File(targetPath);
+            boolean exists = checkDir.exists();
+            return exitValue == 0 && !exists;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+}

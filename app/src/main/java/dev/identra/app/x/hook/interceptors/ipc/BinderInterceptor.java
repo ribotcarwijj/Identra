@@ -1,0 +1,72 @@
+package dev.identra.app.x.hook.interceptors.ipc;
+
+import android.util.Log;
+
+import dev.identra.app.DebugUtil;
+import dev.identra.app.XParam;
+import dev.identra.app.utilities.ParcelUtil;
+import dev.identra.app.x.Str;
+import dev.identra.app.x.hook.interceptors.ipc.bases.IBinderInterceptor;
+import dev.identra.app.x.hook.interceptors.ipc.holders.InterfaceBinderData;
+import dev.identra.app.x.runtime.RuntimeUtils;
+import dev.identra.app.x.core.LibUtil;
+
+public class BinderInterceptor {
+    private static final String TAG = LibUtil.generateTag(BinderInterceptor.class);
+
+    //android.adservices.appsetid.AppSetId;
+    //com.google.android.gms.appset.service.AppSetIdProviderService
+    //com.google.android.gms.appset.internal.IAppSetService
+    //com.google.android.gms.appset.internal.IAppSetIdCallback
+    //com.google.android.gms.appset.service.START
+    //com.google.android.gms.appset.internal.IAppSetIdCallback
+    //com.google.android.gms.appset.internal.IAppSetService
+
+    public static boolean intercept(XParam param, boolean getResult) {
+        //data.enforceInterface(this.getInterfaceDescriptor());
+        InterfaceBinderData helper = InterfaceBinderData.create(param, getResult);
+        if(!helper.hasInterfaceName()) {
+            if(DebugUtil.isDebug())
+                Log.w(TAG, "Interface Name is NULL for IPC Call Returning...");
+
+            return false;
+        }
+
+        if(!getResult) {
+            if(!helper.hasData()) {
+                Log.w(TAG, "Data Parcel for IPC Call is Not Valid Size=" + helper.getDataSize() + " Name=" + helper.interfaceName);
+                return false;
+            }
+
+            if(!InterfacesGlobal.APPSET_INTERFACE.equalsIgnoreCase(helper.interfaceName)) {
+                Log.w(TAG, "Black Listed Interface for an Before Hook: " + helper.interfaceName);
+                return false;
+            }
+        } else {
+            if(InterfacesGlobal.APPSET_INTERFACE.equalsIgnoreCase(helper.interfaceName)) {
+                Log.w(TAG, "Black Listed Interface for an After Hook: " + helper.interfaceName);
+                return false;
+            }
+
+            if(!helper.hasReply()) {
+                Log.w(TAG, "Reply Parcel for IPC Call is Not Valid Size=" + helper.getReplySize() + " Name=" + helper.interfaceName);
+                return false;
+            }
+        }
+
+        //
+        if(DebugUtil.isDebug())
+            Log.d(TAG, "Checking Interface IPC Call => " + helper.interfaceName);
+
+        for(IBinderInterceptor i : InterfacesGlobal.INTERCEPTORS) {
+            if(helper.isInterfaceName(i.getInterfaceName())) {
+                if(DebugUtil.isDebug())
+                    Log.d(TAG, "Found Interface => " + i.getInterfaceName());
+
+                return i.intercept(param, helper);
+            }
+        }
+
+        return false;
+    }
+}

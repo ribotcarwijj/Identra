@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Identra" parent="Base.Theme.Identra">
+        <item name="colorPrimary">@color/identra_primary</item>
+        <item name="colorOnPrimary">@color/identra_on_primary</item>
+        <item name="colorPrimaryContainer">@color/identra_container</item>
+        <item name="colorOnPrimaryContainer">@color/identra_on_surface</item>
+        <item name="colorPrimaryDark">@color/identra_background</item>
+        <item name="colorAccent">@color/identra_primary</item>
+        <item name="colorSecondary">@color/identra_primary</item>
+        <item name="colorOnSecondary">@color/identra_on_primary</item>
+        <item name="colorSecondaryContainer">@color/identra_container_high</item>
+        <item name="colorOnSecondaryContainer">@color/identra_on_surface</item>
+        <item name="colorTertiary">@color/identra_primary</item>
+        <item name="colorOnTertiary">@color/identra_on_primary</item>
+        <item name="android:colorBackground">@color/identra_background</item>
+        <item name="colorOnBackground">@color/identra_on_surface</item>
+        <item name="colorSurface">@color/identra_surface</item>
+        <item name="colorOnSurface">@color/identra_on_surface</item>
+        <item name="colorSurfaceVariant">@color/identra_container</item>
+        <item name="colorOnSurfaceVariant">@color/identra_on_surface_variant</item>
+        <item name="colorOutline">@color/identra_outline</item>
+        <item name="colorOutlineVariant">@color/identra_outline</item>
+        <item name="colorSurfaceContainerLowest">@color/identra_surface</item>
+        <item name="colorSurfaceContainerLow">@color/identra_surface</item>
+        <item name="colorSurfaceContainer">@color/identra_background</item>
+        <item name="colorSurfaceContainerHigh">@color/identra_surface</item>
+        <item name="colorSurfaceContainerHighest">@color/identra_container_high</item>
+        <item name="colorSurfaceBright">@color/identra_surface</item>
+        <item name="colorSurfaceDim">@color/identra_background</item>
+        <item name="colorError">@color/identra_error</item>
+        <item name="android:windowBackground">@color/identra_background</item>
+        <item name="android:statusBarColor">@color/identra_background</item>
+        <item name="android:navigationBarColor">@color/identra_background</item>
+        <item name="android:windowLightStatusBar">@bool/identra_light_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/identra_light_bars</item>
+        <item name="materialCardViewStyle">@style/Widget.Identra.Card</item>
+        <item name="materialSwitchStyle">@style/Widget.Identra.Switch</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Identra.BottomSheet</item>
+    </style>
+
+    <!-- 0.3.0: old (classic) screens keep their action bar but get the Identra look -->
+    <style name="Theme.Identra.Classic" parent="Theme.Identra">
+        <item name="windowActionBar">true</item>
+        <item name="windowNoTitle">false</item>
+        <item name="actionBarStyle">@style/Widget.Identra.ActionBar</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.ActionBar</item>
+        <item name="actionBarSize">64dp</item>
+    </style>
+
+    <style name="Widget.Identra.ActionBar" parent="Widget.Material3.ActionBar.Solid">
+        <item name="background">@color/identra_background</item>
+        <item name="elevation">0dp</item>
+        <item name="titleTextStyle">@style/TextAppearance.Identra.ActionBarTitle</item>
+    </style>
+
+    <style name="TextAppearance.Identra.ActionBarTitle" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">@color/identra_on_surface</item>
+    </style>
+
+    <style name="ThemeOverlay.Identra.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.Identra.BottomSheet</item>
+        <item name="android:navigationBarColor">@color/identra_surface</item>
+    </style>
+
+    <style name="Widget.Identra.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">@color/identra_surface</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Identra.Sheet</item>
+    </style>
+
+    <style name="ShapeAppearance.Identra.Sheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">24dp</item>
+        <item name="cornerSizeTopRight">24dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+
+    <style name="Widget.Identra.Card" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardBackgroundColor">@color/identra_surface</item>
+        <item name="strokeColor">@color/identra_outline</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- 0.4.0: explicit palette states; the M3 defaults put an outline-coloured thumb on an
+         outline-coloured track, which made "off" and "disabled" switches look broken. -->
+    <style name="Widget.Identra.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="thumbTint">@color/identra_switch_thumb</item>
+        <item name="trackTint">@color/identra_switch_track</item>
+        <item name="trackDecorationTint">@color/identra_switch_track_outline</item>
+        <item name="thumbIconTint">@color/identra_switch_icon</item>
+    </style>
+
+    <style name="TextAppearance.Identra.LargeTitle" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:textColor">@color/identra_on_surface</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <style name="TextAppearance.Identra.StatValue" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textColor">@color/identra_on_surface</item>
+    </style>
+
+    <style name="TextAppearance.Identra.CardTitle" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/identra_on_surface</item>
+    </style>
+
+    <style name="TextAppearance.Identra.Caption" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textColor">@color/identra_on_surface_variant</item>
+    </style>
+
+    <style name="TextAppearance.Identra.Mono" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/identra_on_surface</item>
+        <item name="android:fontFamily">monospace</item>
+    </style>
+
+    <style name="Widget.Identra.Card.Hero" parent="Widget.Identra.Card">
+        <item name="cardCornerRadius">24dp</item>
+    </style>
+
+    <style name="Widget.Identra.Card.Tonal" parent="Widget.Identra.Card">
+        <item name="cardBackgroundColor">@color/identra_container</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="TextAppearance.Identra.Title" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textColor">@color/identra_on_surface</item>
+    </style>
+
+    <style name="TextAppearance.Identra.Section" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textColor">@color/identra_on_surface_variant</item>
+        <item name="android:letterSpacing">0.04</item>
+    </style>
+
+    <style name="TextAppearance.Identra.RowTitle" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/identra_on_surface</item>
+    </style>
+
+    <style name="TextAppearance.Identra.RowSub" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/identra_on_surface_variant</item>
+    </style>
+</resources>

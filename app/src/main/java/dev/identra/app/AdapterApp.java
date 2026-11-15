@@ -1,0 +1,829 @@
+package dev.identra.app;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.content.res.Resources;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Process;
+import android.preference.PreferenceManager;
+import android.text.TextUtils;
+import android.util.Log;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.Filter;
+import android.widget.Filterable;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.constraintlayout.widget.Group;
+import androidx.fragment.app.FragmentManager;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import dev.identra.app.api.hook.IdentraHook;
+import dev.identra.app.api.hook.assignment.LuaAssignmentPacket;
+
+import dev.identra.app.logger.XLog;
+import dev.identra.app.ui.GroupHelper;
+import dev.identra.app.ui.interfaces.ILoader;
+import dev.identra.app.utilities.ViewUtil;
+import dev.identra.app.x.Str;
+import dev.identra.app.x.data.utils.ListUtil;
+import dev.identra.app.x.data.utils.TryRun;
+import dev.identra.app.x.ui.activities.SettingsExActivity;
+import dev.identra.app.x.ui.adapters.hooks.elements.XHook;
+import dev.identra.app.x.ui.core.UserClientAppContext;
+import dev.identra.app.x.ui.dialogs.ConfirmDialog;
+import dev.identra.app.x.core.LibUtil;
+import dev.identra.app.x.core.commands.call.AssignHooksCommand;
+import dev.identra.app.x.core.commands.call.PutSettingExCommand;
+import dev.identra.app.x.core.database.A_CODE;
+import dev.identra.app.x.core.hook.AssignmentPacket;
+import dev.identra.app.x.core.hook.AppXpPacket;
+import dev.identra.app.x.core.hook.AssignmentUtils;
+import dev.identra.app.x.core.hook.AssignmentsPacket;
+import dev.identra.app.x.core.hook.IAssignListener;
+//import dev.identra.app.GlideApp;
+
+public class AdapterApp extends RecyclerView.Adapter<AdapterApp.ViewHolder> implements Filterable {
+    private static final String TAG = LibUtil.generateTag(AdapterApp.class);
+
+    private int iconSize;
+
+    public enum enumShow {none, user, icon, all, hook, system }
+
+    private ILoader fragmentLoader;
+    private boolean warn = false;
+
+    private enumShow show = enumShow.icon;
+    private String group = null;
+    private CharSequence query = null;
+    private List<String> collection = new ArrayList<>();
+    private boolean dataChanged = false;
+    private List<XHook> hooks = new ArrayList<>();
+    private final List<AppXpPacket> all = new ArrayList<>();
+    private List<AppXpPacket> filtered = new ArrayList<>();
+    private final Map<String, Boolean> expanded = new HashMap<>();
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    public class ViewHolder extends RecyclerView.ViewHolder
+            implements
+            View.OnClickListener,
+            View.OnLongClickListener,
+            CompoundButton.OnCheckedChangeListener,
+            IAssignListener {
+
+        final View itemView;
+        //ivProfile
+        final ImageView ivExpander, ivIcon, ivPersistent, ivSettings;
+        final TextView tvLabel,tvUid, tvPackage, tvAndroid;
+        final AppCompatCheckBox cbAssigned, cbForceStop;
+        final RecyclerView rvGroup;
+        final Group grpExpanded;
+        final AdapterGroup adapter;
+
+        ViewHolder(View itemView) {
+            super(itemView);
+
+            this.itemView = itemView;
+            ivExpander = itemView.findViewById(R.id.ivExpander);
+            ivIcon = itemView.findViewById(R.id.ivIcon);
+            tvLabel = itemView.findViewById(R.id.tvLabel);
+            tvUid = itemView.findViewById(R.id.tvUid);
+            tvPackage = itemView.findViewById(R.id.tvPackage);
+            ivPersistent = itemView.findViewById(R.id.ivPersistent);
+            ivSettings = itemView.findViewById(R.id.ivSettings);
+            tvAndroid = itemView.findViewById(R.id.tvAndroid);
+            cbAssigned = itemView.findViewById(R.id.cbAssigned);
+            cbForceStop = itemView.findViewById(R.id.cbForceStop);
+
+            //ivHooks = itemView.findViewById(R.id.ivGroupHooks);
+            //ivConfigs = itemView.findViewById(R.id.ivConfigsButton);
+            //ivSettingEx = itemView.findViewById(R.id.ivSettingsExButton);
+            //ivProperties = itemView.findViewById(R.id.ivPropertiesButton);
+
+            //ivProfile = itemView.findViewById(R.id.ivGroupProfile);
+
+            rvGroup = itemView.findViewById(R.id.rvGroup);
+            rvGroup.setHasFixedSize(true);
+            LinearLayoutManager llm = new LinearLayoutManager(itemView.getContext());
+            llm.setAutoMeasureEnabled(true);
+            rvGroup.setLayoutManager(llm);
+            adapter = new AdapterGroup(fragmentLoader);
+            rvGroup.setAdapter(adapter);
+            rvGroup.addItemDecoration(GroupHelper.createGroupDivider(itemView.getContext()));
+            grpExpanded = itemView.findViewById(R.id.grpExpanded);
+
+            //fragmentLoader.
+        }
+
+        private void wire() {
+            itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
+            ivSettings.setOnClickListener(this);
+            ivSettings.setOnLongClickListener(this);
+            cbAssigned.setOnCheckedChangeListener(this);
+            cbForceStop.setOnCheckedChangeListener(this);
+            //ivHooks.setOnClickListener(this);
+            //ivHooks.setOnLongClickListener(this);
+            //ivConfigs.setOnClickListener(this);
+            //ivConfigs.setOnLongClickListener(this);
+            //ivSettingEx.setOnClickListener(this);
+            //ivSettingEx.setOnLongClickListener(this);
+            //ivProperties.setOnClickListener(this);
+            //ivProperties.setOnLongClickListener(this);
+
+            //ivProfile.setOnClickListener(this);
+            //ivProfile.setOnLongClickListener(this);
+        }
+
+        private void unWire() {
+            itemView.setOnClickListener(null);
+            itemView.setOnLongClickListener(null);
+            ivSettings.setOnClickListener(null);
+            ivSettings.setOnLongClickListener(null);
+            cbAssigned.setOnCheckedChangeListener(null);
+            cbForceStop.setOnCheckedChangeListener(null);
+            //ivHooks.setOnClickListener(null);
+            //ivHooks.setOnLongClickListener(null);
+            //ivConfigs.setOnClickListener(null);
+            //ivConfigs.setOnLongClickListener(null);
+            //ivSettingEx.setOnClickListener(null);
+            //ivSettingEx.setOnLongClickListener(null);
+            //ivProperties.setOnClickListener(null);
+            //ivProperties.setOnLongClickListener(null);
+
+            //ivProfile.setOnClickListener(null);
+            //ivProfile.setOnLongClickListener(null);
+        }
+
+        @SuppressLint("NonConstantResourceId")
+        @Override
+        public void onClick(View view) {
+            try {
+                AppXpPacket app = filtered.get(getAdapterPosition());
+                String pkgName = app.packageName;
+                switch (view.getId()) {
+                    case R.id.itemView:
+                        ViewUtil.internalUpdateExpanded(expanded, pkgName);
+                        updateExpand();
+                        break;
+                    /*case R.id.ivGroupHooks:
+                        Intent settingIntent = new Intent(view.getContext(), ActivityAppControl.class);
+                        settingIntent.putExtra("packageName", app.packageName);
+                        view.getContext().startActivity(settingIntent);
+                        break;
+                    case R.id.ivConfigsButton:
+                        Intent configIntent = new Intent(view.getContext(), ActivityConfig.class);
+                        configIntent.putExtra("packageName", app.packageName);
+                        view.getContext().startActivity(configIntent);
+                        break;
+                    case R.id.ivSettingsExButton:
+
+                        //public static String FIELD_ICON = "icon";
+                        //public static String FIELD_USER_ID = "userId";
+                        //public static String FIELD_APP_UID = "appUid";
+                        //public static String FIELD_APP_NAME = "appName";
+                        //public static String FIELD_APP_PACKAGE_NAME = "appPackageName";
+
+
+                        //Intent settingExIntent = new Intent(view.getContext(), ActivitySettings.class);
+                        //settingExIntent.putExtra("packageName", app.getPackageName());
+                        //view.getContext().startActivity(settingExIntent);
+
+                        Intent settingsExIntent = new Intent(view.getContext(), SettingsExActivity.class);
+                        settingsExIntent.putExtra(UserClientAppContext.USER_CONTEXT_ARG, UserClientAppContext.create(app).toBundle());
+                        view.getContext().startActivity(settingsExIntent);
+                        break;
+                    case R.id.ivPropertiesButton:
+                        Intent propsIntent = new Intent(view.getContext(), ActivityProperties.class);
+                        propsIntent.putExtra("packageName", app.packageName);
+                        view.getContext().startActivity(propsIntent);
+                        break;*/
+                    case R.id.ivSettings:
+                        Intent settingsExIntent = new Intent(view.getContext(), SettingsExActivity.class);
+                        settingsExIntent.putExtra(UserClientAppContext.USER_CONTEXT_ARG, UserClientAppContext.create(app).toBundle());
+                        view.getContext().startActivity(settingsExIntent);
+                        /*PackageManager pm = view.getContext().getPackageManager();
+                        Intent settings = pm.getLaunchIntentForPackage(XUtil.PRO_PACKAGE_NAME);
+                        if (settings == null) {
+                            Intent browse = new Intent(Intent.ACTION_VIEW);
+                            browse.setData(Uri.parse("about:blank"));
+                            if (browse.resolveActivity(pm) == null)
+                                Snackbar.make(view, view.getContext().getString(R.string.msg_no_browser), Snackbar.LENGTH_LONG).show();
+                            else
+                                view.getContext().startActivity(browse);
+                        } else {
+                            settings.putExtra("packageName", pkgName);
+                            view.getContext().startActivity(settings);
+                        }*/
+                        break;
+                }
+            }catch (Exception e) {
+                XLog.e("Error with AdapterApp onClick", e);
+            }
+        }
+
+        @SuppressLint("NonConstantResourceId")
+        @Override
+        public boolean onLongClick(View view) {
+            try {
+                AppXpPacket app = filtered.get(getAdapterPosition());
+                int id = view.getId();
+                Log.i(TAG, "onLongClick=" + id + " full=" + view);
+                switch (id) {
+                    /*case R.id.ivGroupHooks:
+                        Toast.makeText(view.getContext(), R.string.button_hooks_group_hint, Toast.LENGTH_SHORT).show();
+                        break;
+                    case R.id.ivConfigsButton:
+                        Toast.makeText(view.getContext(), R.string.button_configs_hint, Toast.LENGTH_SHORT).show();
+                        break;
+                    case R.id.ivSettingsExButton:
+                        Toast.makeText(view.getContext(), R.string.button_settings_ex_hint, Toast.LENGTH_SHORT).show();
+                        break;
+                    case R.id.ivPropertiesButton:
+                        Toast.makeText(view.getContext(), R.string.button_props_hint, Toast.LENGTH_SHORT).show();
+                        break;*/
+                    default:
+                        Intent launch = view.getContext().getPackageManager().getLaunchIntentForPackage(app.packageName);
+                        if (launch != null) view.getContext().startActivity(launch);
+                        else Toast.makeText(view.getContext(), R.string.error_no_activity, Toast.LENGTH_SHORT).show();
+                        break;
+                }
+
+                return true;
+            }catch (Exception e) {
+                XLog.e("Error with AdapterApp onLongClick", e);
+                return false;
+            }
+        }
+
+        //private FragmentManager fragmentManager;
+
+        @SuppressLint("NonConstantResourceId")
+        @Override
+        public void onCheckedChanged(final CompoundButton compoundButton, boolean checked) {
+            try {
+                Log.i(TAG, "Check changed");
+                final AppXpPacket app = filtered.get(getAdapterPosition());
+                final Context context = compoundButton.getContext();
+                switch (compoundButton.getId()) {
+                    case R.id.cbAssigned:
+                        if(checked && (warn)) {
+                            ConfirmDialog.create()
+                                    .setContext(context)
+                                    .setMessage(context.getString(R.string.warning_bulk_check))
+                                    .setDelay(10)
+                                    .onConfirm(() -> {
+                                        try {
+                                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+                                            prefs.edit().putBoolean("bulkWarn", false).apply();
+                                            warn = false;
+                                        }catch (Exception ignored) { }
+                                        TryRun.onMain(() -> {
+                                            updateAssignments(context, app, group, checked);
+                                            notifyItemChanged(getAdapterPosition());
+                                        });
+                                    })
+                                    .onCancel(() -> {
+                                        TryRun.onMain(() -> {
+                                            notifyItemChanged(getAdapterPosition());
+                                        });
+                                    })
+                                    .show(fragmentLoader.getManager(), context.getString(R.string.warning_bulk_check_title));
+                        } else {
+                            updateAssignments(context, app, group, checked);
+                            notifyItemChanged(getAdapterPosition());
+                        }
+                        break;
+                    case R.id.cbForceStop:
+                        app.forceStop = checked;
+                        executor.submit(() -> {
+                            final A_CODE result = PutSettingExCommand.putForceStop(compoundButton.getContext(), app.uid, app.packageName, app.forceStop);
+                            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                @SuppressLint("NotifyDataSetChanged")
+                                @Override
+                                public void run() {
+                                    Toast.makeText(compoundButton.getContext(), result.name(), Toast.LENGTH_SHORT).show();
+                                    //notifyDataSetChanged();
+                                }
+                            });
+                        });
+                        break;
+                }
+            }catch (Exception e) {
+                Log.e(TAG, "Failed to update Check State of Application Hook Group! Error=" + e);
+            }
+        }
+
+        @Override
+        public void setAssigned(Context context, String groupName, boolean assign) {
+            Log.i(TAG, "Group changed: " + groupName);
+            AppXpPacket app = filtered.get(getAdapterPosition());
+            updateAssignments(context, app, groupName, assign);
+            notifyItemChanged(getAdapterPosition());
+        }
+
+        private void updateAssignments(final Context context, final AppXpPacket app, String groupName, final boolean assign) {
+            final String pkgName = app.packageName;
+            Log.i(TAG, pkgName + " " + groupName + "=" + assign);
+            final ArrayList<String> hookIds = new ArrayList<>();
+            for (XHook hook : hooks) {
+                if (hook.isAvailable(pkgName, collection) && (groupName == null || groupName.equals(hook.group))) {
+                    hookIds.add(hook.getObjectId());
+                    if(assign)
+                        app.addAssignment(AssignmentPacket.create(hook));
+                    else
+                        app.removeAssignment(AssignmentPacket.create(hook));
+                }
+            }
+
+            executor.submit(() ->
+                    AssignHooksCommand.call(context, AssignmentsPacket.create(app.uid, app.packageName, hookIds, !assign, app.forceStop)));
+        }
+
+        void updateExpand() {
+            AppXpPacket app = filtered.get(getAdapterPosition());
+            boolean isExpanded = (group == null && expanded.containsKey(app.packageName) && Boolean.TRUE.equals(expanded.get(app.packageName)));
+            ivExpander.setImageLevel(isExpanded ? 1 : 0);
+            ivExpander.setVisibility(group == null ? View.VISIBLE : View.INVISIBLE);
+            grpExpanded.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    AdapterApp(Context context, ILoader loader, boolean warn) {
+        this(context);
+        this.fragmentLoader = loader;
+        this.warn = warn;
+    }
+    AdapterApp(Context context) {
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(android.R.attr.listPreferredItemHeight, typedValue, true);
+        int height = TypedValue.complexToDimensionPixelSize(typedValue.data, context.getResources().getDisplayMetrics());
+        iconSize = Math.round(height * context.getResources().getDisplayMetrics().density + 0.5f);
+        setHasStableIds(true);
+    }
+
+    //void setFragmentManager(FragmentManager manager) {
+    //    if(manager != null) {
+    //        this.
+    //    }
+    //}
+
+    void set(List<String> collection, List<XHook> hooks, List<AppXpPacket> apps) {
+        this.dataChanged = (this.hooks.size() != hooks.size());
+        for (int i = 0; i < this.hooks.size() && !this.dataChanged; i++) {
+            XHook hook = this.hooks.get(i);
+            XHook other = hooks.get(i);
+            if(hook == null || other == null || hook.getObjectId() == null || other.getObjectId() == null) {
+                Log.e(TAG, "Invalid Hook! index=" + i + " set function for adapter ");
+                continue;
+            }
+
+            if(BuildConfig.DEBUG)
+                Log.i(TAG, "hook1=" + hook + "   hook2=" + other);
+
+            if (!Str.areEqual(hook.group, other.group) || !hook.getObjectId().equals(other.getObjectId()))
+                this.dataChanged = true;
+        }
+
+        Log.i(TAG, "Set collections=" + collection.size() +
+                " hooks=" + hooks.size() +
+                " apps=" + apps.size() +
+                " changed=" + this.dataChanged);
+
+        this.collection = collection;
+        this.hooks = hooks;
+
+        final Collator collator = Collator.getInstance(Locale.getDefault());
+        collator.setStrength(Collator.SECONDARY); // Case insensitive, process accents etc
+
+        for(AppXpPacket app : apps) {
+            List<AssignmentPacket> allowed = new ArrayList<>();
+            for(AssignmentPacket ass : new ArrayList<>(app.assignments)) {
+                String idOne = ass.hookId;
+                String idTwo = ass.hook;
+                if(Str.isEmpty(idOne) && Str.isEmpty(idTwo)) {
+                    if(ass.hookObj == null) {
+                        continue;
+                    } else {
+                        allowed.add(ass);
+                    }
+                }
+
+                boolean isBad = false;
+
+                if(!Str.isEmpty(idOne) && idOne.length() > 6 && ListUtil.isValid(collection)) {
+                    if(AssignmentUtils.BAD_ASSIGNMENTS.contains(idOne)) {
+                        continue;
+                    } else {
+                        String lowered = Str.toLowerCase(idOne);
+                        boolean found = false;
+                        for (String c : collection) {
+                            if(lowered.startsWith(c.toLowerCase() + ".")) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if(!found) {
+                            isBad = true;
+                        }
+                    }
+                }
+
+                if(!isBad) {
+                    if(!Str.isEmpty(idTwo) && idTwo.length() > 6 && ListUtil.isValid(collection)) {
+                        if(AssignmentUtils.BAD_ASSIGNMENTS.contains(idTwo)) {
+                            continue;
+                        } else {
+                            String lowered = Str.toLowerCase(idTwo);
+                            boolean found = false;
+                            for (String c : collection) {
+                                if(lowered.startsWith(c.toLowerCase() + ".")) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if(!found) {
+                                isBad = true;
+                            }
+                        }
+                    }
+                }
+
+                if(!isBad) {
+                    allowed.add(ass);
+                    if(DebugUtil.isDebug())
+                        Log.d(TAG, Str.fm("App [%s] Assignment ID1=[%s] ID2=[%s] ID3=[%s] ToString=%s",
+                                app.packageName,
+                                idOne,
+                                idTwo,
+                                Str.toObjectId(ass.hookObj),
+                                Str.toStringOrNull(ass.hookObj)));
+                }
+            }
+
+            app.assignments.clear();
+            if(!allowed.isEmpty())
+                app.assignments.addAll(allowed);
+        }
+
+        Collections.sort(apps, (app1, app2) -> collator.compare(app1.label, app2.label));
+
+        all.clear();
+        all.addAll(apps);
+        getFilter().filter(query);
+    }
+
+    void setShow(enumShow value) {
+        if (show != value) {
+            show = value;
+            getFilter().filter(query);
+        }
+    }
+
+    void setGroup(String name) {
+        if (!Objects.equals(group, name)) {
+            group = name;
+            this.dataChanged = true;
+            getFilter().filter(query);
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    void restrict(final Context context) {
+        final List<LuaAssignmentPacket> actions = new ArrayList<>();
+        boolean revert = false;
+        for (AppXpPacket app : filtered) {
+            for (XHook hook : hooks) {
+                if (group == null || Str.areEqual(group, hook.group)) {
+                    AssignmentPacket assignment = new AssignmentPacket(hook);
+                    if (app.hasAssignment(assignment)) {
+                        revert = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        Log.i(TAG, "revert=" + revert);
+
+        for (AppXpPacket app : filtered) {
+            ArrayList<String> hookIds = new ArrayList<>();
+
+            for (XHook hook : hooks)
+                if (hook.isAvailable(app.packageName, this.collection) &&
+                        (group == null || group.equals(hook.group))) {
+                    AssignmentPacket assignment = new AssignmentPacket(hook);
+                    if (revert) {
+                        if (app.hasAssignment(assignment)) {
+                            hookIds.add(hook.getObjectId());
+                            app.removeAssignment(assignment);
+                        }
+                    } else {
+                        if (!app.hasAssignment(assignment)) {
+                            hookIds.add(hook.getObjectId());
+                            app.addAssignment(assignment);
+                        }
+                    }
+                }
+
+            if (!hookIds.isEmpty()) {
+                Log.i(TAG, "Applying " + group + "=" + hookIds.size() + "=" + revert + " package=" + app.packageName);
+                notifyDataSetChanged();
+                //List<String> ids = ListUtil.forEachTo(hooks, IdentraHookBase::getObjectId);
+                A_CODE result = AssignHooksCommand.call(context, AssignmentsPacket.create(app.uid, app.packageName, hookIds, revert, app.forceStop));
+                if(DebugUtil.isDebug())
+                    Log.d(TAG, "Result of Restriction: " + result.name() + " App=" + app.packageName + " Count=" + ListUtil.size(hookIds));
+
+                /*LuaAssignmentPacket packet = new LuaAssignmentPacket();
+                packet.setHookIds(hookIds);
+                packet.setCategory(app.packageName);
+                packet.setUser(app.uid);
+                packet.setIsDelete(revert);
+                packet.setKill(app.forceStop);
+                actions.add(packet);*/
+            }
+        }
+
+
+        /*
+                            List<String> oldHookIds = new ArrayList<>();
+                    List<AssignmentPacket> oldAssignments = GetAssignmentsCommand.get(context, true, uid, packageName);
+                    for(AssignmentPacket assignmentPacket : oldAssignments)
+                        if(!oldHookIds.contains(assignmentPacket.getHookId()))
+                            oldHookIds.add(assignmentPacket.getHookId());
+
+                    AssignHooksCommand.call(context, AssignmentsPacket.create(uid, packageName, hooks, true, false));
+                }
+
+                AssignHooksCommand.call(context, AssignmentsPacket.create(uid, packageName, hooks, false, false));
+         */
+
+        /*notifyDataSetChanged();
+        executor.submit(new Runnable() {
+            @Override
+            public void run() {
+                for (LuaAssignmentPacket packet : actions)
+                    IdentraCall.assignHooks(context, packet);
+            }
+        });*/
+    }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            private boolean expanded1 = false;
+
+            @Override
+            protected FilterResults performFiltering(CharSequence query) {
+                AdapterApp.this.query = query;
+
+                List<AppXpPacket> visible = new ArrayList<>();
+                if (show == enumShow.all || !TextUtils.isEmpty(query))
+                    visible.addAll(all);
+                else
+                    for (AppXpPacket app : all) {
+                        if(show == enumShow.system) {
+                            if(app.system)
+                                visible.add(app);
+                        }
+                        else if(show == enumShow.hook) {
+                            if(ListUtil.size(app.assignments) > 0)
+                                visible.add(app);
+                        } else {
+                            if (app.uid > Process.FIRST_APPLICATION_UID && app.enabled && (show == enumShow.icon ? app.icon > 0 : !app.system)) {
+                                visible.add(app);
+                            }
+                        }
+                    }
+
+                List<AppXpPacket> results = new ArrayList<>();
+
+                if (TextUtils.isEmpty(query))
+                    results.addAll(visible);
+                else {
+                    String q = query.toString().toLowerCase().trim();
+
+                    boolean restricted = false;
+                    boolean unrestricted = false;
+                    boolean system = false;
+                    boolean user = false;
+
+                    while (true) {
+                        if (q.startsWith("!")) {
+                            restricted = true;
+                            q = q.substring(1);
+                            continue;
+                        } else if (q.startsWith("?")) {
+                            unrestricted = true;
+                            q = q.substring(1);
+                            continue;
+                        } else if (q.startsWith("#")) {
+                            system = true;
+                            q = q.substring(1);
+                            continue;
+                        } else if (q.startsWith("@")) {
+                            user = true;
+                            q = q.substring(1);
+                            continue;
+                        }
+                        break;
+                    }
+
+                    int uid;
+                    try {
+                        uid = Integer.parseInt(q);
+                    } catch (NumberFormatException ignore) {
+                        uid = -1;
+                    }
+
+                    for (AppXpPacket app : visible) {
+                        if (restricted || unrestricted) {
+                            int assignments = app.getAssignments(group).size();
+                            if (restricted && assignments == 0)
+                                continue;
+                            if (unrestricted && assignments > 0)
+                                continue;
+                        }
+                        if (system && !app.system)
+                            continue;
+                        if (user && app.system)
+                            continue;
+                        if (app.uid == uid ||
+                                app.packageName.toLowerCase().contains(q) ||
+                                (app.label != null && app.label.toLowerCase().contains(q)))
+                            results.add(app);
+                    }
+                }
+
+                if (results.size() == 1) {
+                    String packageName = results.get(0).packageName;
+                    if (!expanded.containsKey(packageName)) {
+                        expanded1 = true;
+                        expanded.put(packageName, true);
+                    }
+                }
+
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = results;
+                filterResults.count = results.size();
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence query, FilterResults result) {
+                final List<AppXpPacket> apps = (result.values == null
+                        ? new ArrayList<AppXpPacket>()
+                        : (List<AppXpPacket>) result.values);
+                Log.i(TAG, "Filtered apps count=" + apps.size());
+
+                if (dataChanged) {
+                    dataChanged = false;
+                    filtered = apps;
+                    notifyDataSetChanged();
+                } else {
+                    DiffUtil.DiffResult diff = DiffUtil.calculateDiff(new AppDiffCallback(expanded1, filtered, apps));
+                    filtered = apps;
+                    diff.dispatchUpdatesTo(AdapterApp.this);
+                }
+            }
+        };
+    }
+
+    private class AppDiffCallback extends DiffUtil.Callback {
+        private final boolean refresh;
+        private final List<AppXpPacket> prev;
+        private final List<AppXpPacket> next;
+
+        AppDiffCallback(boolean refresh, List<AppXpPacket> prev, List<AppXpPacket> next) {
+            this.refresh = refresh;
+            this.prev = prev;
+            this.next = next;
+        }
+
+        @Override
+        public int getOldListSize() { return prev.size(); }
+
+        @Override
+        public int getNewListSize() { return next.size(); }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            AppXpPacket app1 = prev.get(oldItemPosition);
+            AppXpPacket app2 = next.get(newItemPosition);
+            return (!refresh && app1.packageName.equals(app2.packageName) && Objects.equals(app1.uid, app2.uid));
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            AppXpPacket app1 = prev.get(oldItemPosition);
+            AppXpPacket app2 = next.get(newItemPosition);
+
+            if (!Objects.equals(app1.icon, app2.icon) ||
+                    !app1.label.equals(app2.label) ||
+                    app1.enabled != app2.enabled ||
+                    app1.persistent != app2.persistent ||
+                    app1.getAssignments(group).size() != app2.getAssignments(group).size())
+                return false;
+
+            for (AssignmentPacket a1 : app1.getAssignments(group)) {
+                int i2 = app2.assignmentIndex(a1);
+                if (i2 < 0) return false;
+
+                AssignmentPacket a2 = app2.assignmentAt(i2);
+                if (a1.installed != a2.installed ||
+                        a1.used != a2.used ||
+                        a1.restricted != a2.restricted)
+                    return false;
+            }
+
+            return true;
+        }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        AppXpPacket assignment = filtered.get(position);
+        return ((long) assignment.packageName.hashCode()) << 32 | assignment.uid;
+    }
+
+    @Override
+    public int getItemCount() { return filtered.size(); }
+
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) { return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.app, parent, false)); }
+
+    @Override
+    public void onBindViewHolder(final ViewHolder holder, int position) {
+        holder.unWire();
+        AppXpPacket app = filtered.get(position);
+        app.setListener(holder);
+
+        Resources resources = holder.itemView.getContext().getResources();
+
+        // App icon
+        if (app.icon <= 0)
+            holder.ivIcon.setImageResource(android.R.drawable.sym_def_app_icon);
+        else
+            UserClientAppContext.attachIcon(holder.itemView.getContext(), iconSize, holder.ivIcon, app.packageName, app.icon);
+
+
+        // App info
+        holder.itemView.setBackgroundColor(app.system
+                ? XUtil.resolveColor(holder.itemView.getContext(), R.attr.colorSystem)
+                : resources.getColor(android.R.color.transparent, null));
+
+        holder.tvLabel.setText(app.label);
+        holder.tvUid.setText(Integer.toString(app.uid));
+        holder.tvPackage.setText(app.packageName);
+        holder.ivPersistent.setVisibility(app.persistent ? View.VISIBLE : View.GONE);
+
+        List<XHook> selectedHooks = new ArrayList<>();
+        for (XHook hook : hooks)
+            if (hook.isAvailable(app.packageName, collection) &&
+                    (group == null || group.equals(hook.group)))
+                selectedHooks.add(hook);
+
+        // Assignment info
+        holder.cbAssigned.setChecked(!app.getAssignments(group).isEmpty());
+        holder.cbAssigned.setButtonTintList(ColorStateList.valueOf(resources.getColor(
+                !selectedHooks.isEmpty() && app.getAssignments(group).size() == selectedHooks.size()
+                        ? R.color.colorAccent
+                        : android.R.color.darker_gray, null)));
+
+        holder.tvAndroid.setVisibility("android".equals(app.packageName) ? View.VISIBLE : View.GONE);
+        holder.cbForceStop.setChecked(app.forceStop);
+        holder.cbForceStop.setEnabled(!app.persistent);
+        holder.adapter.set(app, selectedHooks, holder.itemView.getContext(), () -> {
+            holder.updateExpand();
+            holder.wire();
+        });
+    }
+}

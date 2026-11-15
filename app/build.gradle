@@ -1,0 +1,183 @@
+apply plugin: 'com.android.application'
+
+//def keystorePropertiesFile = rootProject.file("keystore.properties")
+//def keystoreProperties = new Properties()
+//keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+android {
+    compileSdk 34
+    namespace "dev.identra.app"
+    ndkVersion "27.2.12479018"
+    externalNativeBuild { cmake { path "src/main/cpp/CMakeLists.txt"; version "3.22.1" } }
+    //Upgrade this shit
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    defaultConfig {
+        applicationId "dev.identra.app"
+        minSdkVersion 27
+        targetSdkVersion 34
+        versionCode 47
+        versionName "0.7.32"
+        archivesBaseName = "Identra-v$versionName-$versionCode"
+        ndk { abiFilters "arm64-v8a", "armeabi-v7a" }
+        externalNativeBuild { cmake { arguments "-DANDROID_STL=c++_static" } }
+    }
+
+    signingConfigs {
+        release {
+            if (System.getenv('GITHUB_WORKSPACE') != null && new File("${System.getenv('GITHUB_WORKSPACE')}/KEYSTORE.JKS").exists()) {
+                storeFile file("${System.getenv('GITHUB_WORKSPACE')}/KEYSTORE.JKS")
+                storePassword System.getenv('KEYSTORE_PASSWORD')
+                keyAlias System.getenv('KEY_ALIAS')
+                keyPassword System.getenv('KEY_PASSWORD')
+            }
+        }
+
+        // Fixed Identra debug key (debug builds only) so test APKs update in place
+        identraDebug {
+            // Only present in the maintainer's private tree; public builds fall back to the default debug key
+            if (file("identra-debug.jks").exists()) storeFile file("identra-debug.jks")
+            storePassword "identra-debug"
+            keyAlias "identra"
+            keyPassword "identra-debug"
+        }
+
+        // Keys from release are being used anyway but whatever
+        debug {
+            if (System.getenv('GITHUB_WORKSPACE') != null && new File("${System.getenv('GITHUB_WORKSPACE')}/KEYSTORE.JKS").exists()) {
+                storeFile file("${System.getenv('GITHUB_WORKSPACE')}/KEYSTORE.JKS")
+                storePassword System.getenv('KEYSTORE_PASSWORD')
+                keyAlias System.getenv('KEY_ALIAS')
+                keyPassword System.getenv('KEY_PASSWORD')
+            }
+        }
+    }
+
+    lint {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
+
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+
+    buildTypes {
+        release {
+            shrinkResources false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (signingConfigs.release.storeFile) {
+                signingConfig signingConfigs.release
+            }
+        }
+
+        debug {
+            debuggable true
+            shrinkResources false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (file("identra-debug.jks").exists()) signingConfig signingConfigs.identraDebug
+        }
+    }
+
+
+    packagingOptions {
+        // 16 KB page devices (Android 15+): AGP 8.2 zip-aligns stored .so only to 4 KB.
+        // Compress + extract native libs so the APK alignment check passes.
+        jniLibs { useLegacyPackaging true }
+        excludes += 'META-INF/kotlinx_coroutines_core.version'
+        excludes += 'META-INF/versions/**'
+        excludes += 'META-INF/*.kotlin_module'
+        pickFirsts += 'META-INF/kotlinx_coroutines_core.version'
+        pickFirsts += 'META-INF/INDEX.LIST'
+    }
+}
+
+dependencies {
+    //    def material_version = "1.3.0"
+    implementation 'androidx.gridlayout:gridlayout:1.0.0'
+    def appcompat_version = "1.6.1"
+    def swiperefresh_version = "1.1.0"
+    def recyclerview_version = "1.1.0"
+    def constraintlayout_version = "1.1.3"
+    def material_version = "1.12.0"
+    def glide_version = "4.11.0"
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // Material 1.12 pulls newer androidx (Kotlin 1.8); align kotlin stdlib artifacts to avoid duplicate classes
+    implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.22')
+
+
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
+
+    // Location tab map (OpenStreetMap tiles)
+    implementation 'org.osmdroid:osmdroid-android:6.1.20'
+
+    implementation 'me.zhanghai.android.fastscroll:library:1.3.0'
+
+    //implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
+    //implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
+
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-livedata:2.5.1'
+
+    // https://mvnrepository.com/artifact/androidx.appcompat/appcompat
+    implementation "androidx.appcompat:appcompat:$appcompat_version"
+
+    // https://mvnrepository.com/artifact/androidx.swiperefreshlayout/swiperefreshlayout
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:$swiperefresh_version"
+
+    // https://mvnrepository.com/artifact/androidx.recyclerview/recyclerview
+    implementation "androidx.recyclerview:recyclerview:$recyclerview_version"
+    //implementation "androidx.recyclerview:recyclerview-selection:$recyclerview_version"
+
+    // https://mvnrepository.com/artifact/androidx.constraintlayout/constraintlayout
+    implementation "androidx.constraintlayout:constraintlayout:$constraintlayout_version"
+
+    // https://mvnrepository.com/artifact/com.google.android.material/material
+    implementation "com.google.android.material:material:$material_version"
+
+    // https://bumptech.github.io/glide/
+    // https://mvnrepository.com/artifact/com.github.bumptech.glide/glide
+    // { exclude group: "com.android.support" }
+    implementation("com.github.bumptech.glide:glide:$glide_version") {
+        exclude group: "com.android.support"
+    }
+    annotationProcessor 'androidx.annotation:annotation:1.1.0'
+    annotationProcessor "com.github.bumptech.glide:compiler:$glide_version"
+
+    // libxposed modern API (https://github.com/libxposed/api)
+    compileOnly 'io.github.libxposed:api:102.0.0'
+    // 0.6.1: framework service (hot reload requests from the app)
+    // The service classes are vendored in app/src/main/java/io/github/libxposed/service (102.0.0,
+    // record rewritten for Java 8) because D8 cannot desugar the published HotReloadResult record;
+    // only the AIDL interface comes from Maven.
+    implementation 'io.github.libxposed:interface:102.0.0'
+    implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:4.3'
+
+    implementation 'com.getkeepsafe.taptargetview:taptargetview:1.14.0'
+
+    def coreVersion = "5.0.2"
+    implementation "com.github.topjohnwu.libsu:core:$coreVersion"
+    implementation "com.github.topjohnwu.libsu:service:$coreVersion"
+    implementation "com.github.topjohnwu.libsu:nio:$coreVersion"
+
+
+
+
+    // http://www.luaj.org/luaj/3.0/README.html
+    // https://mvnrepository.com/artifact/org.luaj/luaj-jse
+    // implementation 'org.luaj:luaj-jse:3.0.1'
+}
+
+// 0.6.1: io.github.libxposed:interface declares minCompileSdk 37 in its AAR metadata. The classes we use
+// (XposedService, HookedTarget, HotReloadResult) only need API 26+ and the phone runs Android 17 (API 37),
+// so the metadata check is skipped instead of moving the whole toolchain to AGP/compileSdk 37.
+tasks.matching { it.name.startsWith('check') && it.name.endsWith('AarMetadata') }.configureEach { enabled = false }

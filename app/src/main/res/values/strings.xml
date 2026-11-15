@@ -1,0 +1,944 @@
+<resources>
+    <string name="app_name" translatable="false">Identra</string>
+    <string name="channel_privacy" translatable="false">Identra</string>
+
+    <string name="title_license" translatable="false">
+        Identra protects your privacy by controlling what apps can read about you and your device.
+        <![CDATA[<br><br>]]>Identra is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+        <![CDATA[<br><br>]]>This program is distributed in the hope that it will be useful but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the <![CDATA[<a href="http://www.gnu.org/licenses/gpl.txt">GNU General Public License</a>]]> for more details.
+        <![CDATA[<br><br><b>LuaJ</b><br>]]>Copyright 2007-2013 LuaJ. All rights reserved. See the <![CDATA[<a href="http://luaj.sourceforge.net/license.txt">license</a>]]>.
+        <![CDATA[<br><br><b>Glide</b><br>]]>Copyright 2014 Google, Inc. All rights reserved. See the <![CDATA[<a href="https://raw.githubusercontent.com/bumptech/glide/master/LICENSE">license</a>]]>.
+        <![CDATA[<br><br><b>Android Support Library</b><br>]]>Copyright 2011 The Android Open Source Project. See the <![CDATA[<a href="https://android.googlesource.com/platform/frameworks/support/+/master/LICENSE.txt">license</a>]]>.
+    </string>
+    <string name="title_accept">I agree</string>
+    <string name="title_deny">I disagree</string>
+
+    <string name="title_fix">Fix</string>
+
+    <string name="title_all">All</string>
+    <string name="title_restrict">Restrict</string>
+    <string name="title_bootloop">Restricting can cause a bootloop</string>
+    <string name="title_force_stop">Force stop automatically</string>
+    <string name="title_use_default" translatable="false">Use Default if Null</string>
+    <string name="button_reset_settings" translatable="false">Reset Settings</string>
+
+    <string name="title_hooks_assign" translatable="false">Assign Hooks</string>
+    <string name="title_delete_action" translatable="false">Delete</string>
+
+
+    <string name="button_terminate" translatable="false">Terminate</string>
+    <string name="button_properties" translatable="false">Properties</string>
+    <string name="button_configs" translatable="false">Configs</string>
+    <string name="button_profiles" translatable="false">Profiles</string>
+    <string name="button_create_config" translatable="false">Create Config</string>
+
+    <string name="button_create_profile" translatable="false">Create Profile</string>
+
+
+    <string name="button_logs" translatable="false">Logs</string>
+    <string name="button_force_stop" translatable="false">Force Stop</string>
+    <string name="button_clear_app_data" translatable="false">Clear App Data</string>
+
+
+
+    <string name="menu_whats_new_button" translatable="false">Whats New!</string>
+
+    <string name="whats_new" translatable="false">
+        Identra 0.1.0
+        <![CDATA[<br><br>]]>• New name, new look, new identity.
+        <![CDATA[<br>]]>• Runs on the modern Xposed API (libxposed 102).
+        <![CDATA[<br>]]>• Installs and runs beside other privacy modules without sharing their data.
+    </string>
+
+    <string name="warning_bulk_check" translatable="false">Selecting this will Enable Every Hook Possible (Super Highly NOT recommended). Why ? Why use a BOMB causing Chaos, when you should Enable what you think is best Needed for your situation.\n\nRemember, in Settings "unique" Filter is everything that can be used to Identify you, the rest does not matter. \n\nIf you Continue, you are NOT to ask for Help if Target App Crashes or acts abnormally, you accept such behaviour due to a lack of patience. (Do NOT ask for Help if App Crashes when you Select all at once) \n\nSelect what is NEEDED by Testing, Trying, or FAQ. \n\n\nOnce you click (ok) this Dialog will never Appear again hence the Long Timeout (READ THIS DAMN MESSAGE!!!)</string>
+    <string name="warning_bulk_check_title" translatable="false">Select all Hooks ?</string>
+
+
+    <string name="warning_hook_ad_analytics" translatable="false">This will attempt to disable the analytics libraries from being loaded into the application. This does not support all (80+) right now, so be patient until I get around to all of them. If analytics are still being loaded in or ads are still appearing, it means they are not supported for now. This can also cause applications to crash if they heavily depend on the analytics/ad library. IF Application Crashes go into the New HOOK UI and disable some of the Ad Analytics Hooks test app rinse and repeat until you find the Hook that is crashing it. I WILL not help with this as Disabling ads and analytics can crash some apps so figure out your self what is causing it disable it!</string>
+    <string name="warning_hook_ad_analytics_spoof" translatable="false">This will not disable the analytics/ad libraries from being loaded in but will spoof unique/critical IDs and/or keys within the library to make analytics more difficult.</string>
+    <string name="warning_hook_embed_paypal" translatable="false">This will attempt to spoof the environment to help trick PayPal payment gateways within apps into thinking the phone is not rooted or an emulator. This is an attempt, not bulletproof.</string>
+    <string name="warning_hook_get_app" translatable="false">This will prevent the action of getting single application data. It will not filter the list of applications but will intercept the functions that can get single pieces of data on the target application, thus revealing that the app exists. HMA (Hide My App List) will block and filter the lists. This will cover everything else that is not listing apps but getting something from an app. You can have whitelist mode or blacklist mode, controlled in settings.</string>
+    <string name="warning_hook_get_apps_ex" translatable="false">This hides almost every other app from the hooked app, usually leaving only itself visible. Use it instead of the Get.Apps hooks, not together with them.</string>
+    <string name="warning_hook_get_location" translatable="false">Get Location will allow control over the target application if it is allowed to get the location versus spoofing it. Spoof Location will imply that you allow it to get the location, but you want to spoof it.</string>
+    <string name="warning_hook_gsm_status" translatable="false">These hooks will only spoof the state of data, showing it as enabled despite being disabled.</string>
+    <string name="warning_hook_hide_environment" translatable="false">This hook will attempt to hide if the system is an emulator and/or is rooted. By no means is this bulletproof or even super effective, especially if the target app uses native detection methods. Do not complain if it does not hide for some apps. To ensure it works the best, select the (Intercept Shell, Intercept Properties, and Get Apps) hooks. Combine Get Apps with HMA (Hide My App List). The Get Apps hook, if whitelist mode is enabled, will automatically block my hardcoded list of root packages. To ensure strength, add your own list in settings. Finally, in settings, enable (hide.root) and (hide.emulator).</string>
+    <string name="warning_hook_id_user" translatable="false">Enabling this will spoof the user via Activity Manager but not using the command `whoami`. To ensure this works, enable the `whoami` command intercept in settings, then select the Intercept Shell hook group. The Activity Manager method will also only be useful for applications that have higher-level privileges, either via system or root.</string>
+    <string name="warning_hook_intercept_shell" translatable="false">You can control the commands it will intercept (hardcoded) in the settings UI containing shell. If the app uses native shell, this hook will not work.</string>
+    <string name="warning_hook_language" translatable="false">This may not always work and can be unstable at times, as it targets many APIs that can be used for legitimate reasons. If you notice odd behavior in the application, disable this hook.</string>
+    <string name="warning_hook_properties" translatable="false">To control the interception filter, use the Properties UI. This hook currently does not support native build proper properties interception. If the property is still being intercepted despite your filter configuration, assume they are using native methods.</string>
+    <string name="warning_hook_soc_ex" translatable="false">This hook can cause applications to crash on certain versions of Android and/or devices. Disable this if you experience issues with the application crashing. Enable only this hook, open the app, and see if it causes the application to crash.</string>
+    <string name="warning_hook_spoof_features" translatable="false">Enabling this hook can cause odd behavior in the application, such as possible connection issues. This filter removes all device features for now. When applications use this function to check if you have a camera or Wi-Fi chip, it will appear as if you do not, since those are considered features.</string>
+    <string name="warning_hook_user_agent" translatable="false">If you have installed a custom WebView on the device, such as BroMite, this hook may not work as expected. It will still work on applications that use OkHttp3, HttpUrlConnection, and GeckoWebView from Firefox. These hooks will not work on Chromium-based browsers, such as Chrome and Brave, since they use native code to build their user agents. Lastly, using this on apps like DoorDash is unwise, as DoorDash uses its own type of user agent. If you do not spoof it correctly, it can make DoorDash flag you.</string>
+    <string name="warning_hook_vpn_state" translatable="false">This will hide the fact that you have a VPN enabled and connected. However, if the target application uses server-side methods to detect the VPN, it cannot be bypassed via hooks. This hook is a local detection bypass using four methods.</string>
+
+    <string name="save_setting_success" translatable="false">Settings were saved! </string>
+    <string name="save_setting_error" translatable="false">Failed to save Settings! </string>
+
+    <string name="msg_export_hook_error" translatable="false">Failed Export Hook to File! </string>
+    <string name="msg_export_hook_success" translatable="false">Successfully Exported Hook to File! </string>
+    <string name="msg_create_hook_error" translatable="false">Failed to Create the Hook! </string>
+    <string name="msg_create_hook_success" translatable="false">Successfully Created the Hook! </string>
+
+
+
+    <string name="msg_error_processing"  translatable="false">An error occurred while processing settings. Please try again.</string>
+    <string name="msg_error_no_description"  translatable="false">No Description for this Setting  Container (%s)</string>
+
+    <string name="text_backup_name" translatable="false">Backup Name:</string>
+    <string name="text_enter_backup_name" translatable="false">Enter backup name</string>
+    <string name="text_definitions_count" translatable="false">Definitions (%d)</string>
+    <string name="text_all_hooks" translatable="false">All Hooks (%d)</string>
+    <string name="text_settings_count" translatable="false">Settings (%d)</string>
+    <string name="text_assignments_count" translatable="false">Assignments (%d)</string>
+    <string name="text_delete_old_database" translatable="false">Delete the old Database Table Items, for the Checked to replace with the new Items!</string>
+
+    <string name="title_backup" translatable="false">Backup Manager</string>
+    <string name="title_settings_search" translatable="false">Settings Search</string>
+
+
+    <string name="task_status_dropping_tables" translatable="false">Dropping old tables...</string>
+    <string name="task_status_applying_settings" translatable="false">Applying %1$d settings</string>
+    <string name="task_status_progress" translatable="false">Progress: %1$d of %2$d</string>
+    <string name="task_status_settings_completed" translatable="false">Completed %1$d of %2$d settings</string>
+    <string name="task_status_processing_scripts" translatable="false">Processing scripts</string>
+    <string name="task_status_applying_hooks" translatable="false">Applying %1$d hooks</string>
+    <string name="task_status_hooks_completed" translatable="false">Completed %1$d of %2$d hooks</string>
+    <string name="task_status_applying_assignments" translatable="false">Applying %1$d assignments</string>
+    <string name="task_status_assignments_completed" translatable="false">Completed %1$d of %2$d assignments</string>
+    <string name="cancelling" translatable="false">Cancelling...</string>
+    <string name="task_cancelled" translatable="false">Cancelled</string>
+
+    <string name="title_applying_backup" translatable="false">Applying Backup</string>
+    <string name="task_applying_settings" translatable="false">Applying Settings</string>
+    <string name="task_applying_definitions" translatable="false">Applying Definitions</string>
+    <string name="task_applying_assignments" translatable="false">Applying Assignments</string>
+    <string name="task_complete" translatable="false">Complete</string>
+    <string name="task_progress_format" translatable="false">Progress: %1$d of %2$d</string>
+    <string name="task_detail_dropping_settings" translatable="false">Dropping Old Settings</string>
+    <string name="task_detail_dropping_settings_table" translatable="false">Dropping old settings table...</string>
+    <string name="task_detail_dropping_hooks" translatable="false">Dropping Old Hooks</string>
+    <string name="task_detail_dropping_hooks_table" translatable="false">Dropping old hooks table...</string>
+    <string name="task_detail_dropping_assignments" translatable="false">Dropping Old Assignments</string>
+    <string name="task_detail_dropping_assignments_table" translatable="false">Dropping old assignments table...</string>
+    <string name="task_detail_processing_scripts_status" translatable="false">Processing Scripts</string>
+    <string name="task_detail_processing_scripts" translatable="false">Preparing Lua scripts for hook definitions...</string>
+    <string name="task_detail_applying_setting" translatable="false">Setting: %1$s</string>
+    <string name="task_detail_applying_hook" translatable="false">Hook: %1$s</string>
+    <string name="task_detail_applying_assignment" translatable="false">Hook: %1$s to Package: %2$s</string>
+    <string name="task_detail_settings_complete" translatable="false">Completed %1$d of %2$d settings</string>
+    <string name="task_detail_definitions_complete" translatable="false">Completed %1$d of %2$d definitions</string>
+    <string name="task_detail_assignments_complete" translatable="false">Completed %1$d of %2$d assignments</string>
+
+
+
+    <string name="title_hook_edit" translatable="false">Edit Hook</string>
+    <string name="title_hook_target" translatable="false">Target Packages</string>
+
+    <string name="title_wifi_networks" translatable="false">Wi-Fi Networks</string>
+    <string name="title_edit_wifi_network" translatable="false">Edit Wi-Fi Network</string>
+    <string name="btn_create_network" translatable="false">Create New Network</string>
+
+
+    <string name="msg_error_mismatch_bridge_version" translatable="false">The system part runs Identra %s, the app is %s. Identra reloads the system part by itself; open Identra again in a moment.</string>
+
+
+    <string name="msg_error_service" translatable="false">Could not reach Identra\'s system part for a database check.\n\nMake sure Settings Storage (com.android.providers.settings) and System Framework are in Identra\'s scope in Vector.</string>
+    <string name="msg_error_service_bridge" translatable="false">Identra\'s system part did not answer.\n\nMake sure Settings Storage (com.android.providers.settings) and System Framework are in Identra\'s scope in Vector. Identra reloads its system part by itself after updates.</string>
+
+    <string name="msg_error_generic_global" translatable="false">Sorry this Action is not Allowed on Global! </string>
+
+    <string name="msg_error_global_limit" translatable="false">Error this Action can not be completed because its Global Context </string>
+    <string name="msg_error_generic" translatable="false">Error executing Action! </string>
+    <string name="msg_error_generic_null" translatable="false">Error executing Action! NULL PTR </string>
+    <string name="msg_error_no_hooks" translatable="false">Error No Hooks for this Action!</string>
+    <string name="msg_error_no_hooks_global" translatable="false">Error No Hooks for this Action! Hooks are Disabled in Global! </string>
+
+    <string name="msg_finished_applying_config" translatable="false">Finished Applying Config! </string>
+
+    <string name="msg_task_finished_command" translatable="false">Command was executed Successfully!</string>
+    <string name="msg_task_failure" translatable="false">Command Failed to execute!</string>
+
+    <string name="result_prefix_notify" translatable="false">Notify</string>
+    <string name="result_prefix_restrict" translatable="false">Restrict</string>
+    <string name="result_prefix_theme" translatable="false">Theme</string>
+    <string name="result_prefix_debug" translatable="false">Debug</string>
+    <string name="result_prefix_force_stop" translatable="false">App Force Closed!</string>
+    <string name="result_prefix_cleared_app_data" translatable="false">AppData Cleared!</string>
+    <string name="result_settings_update" translatable="false">Updated %s Settings! Failed Count %s</string>
+    <string name="result_settings_update_empty" translatable="false">No Settings were saved! Nothing needs to be Saved!</string>
+
+    <string name="search_settings_hint" translatable="false">Search Settings...</string>
+    <string name="search_log_hint" translatable="false">Search Logs...</string>
+    <string name="search_config_hint" translatable="false">Search Configs...</string>
+    <string name="hint_input_value" translatable="false">Enter Value...</string>
+
+    <string name="hook_button_edit" translatable="false">Edit</string>
+    <string name="hook_button_delete" translatable="false">Delete</string>
+    <string name="hook_button_export" translatable="false">Export</string>
+    <string name="hook_label_name" translatable="false">Name:</string>
+    <string name="hook_label_author" translatable="false">Author:</string>
+    <string name="hook_label_class" translatable="false">Class:</string>
+    <string name="hook_label_method" translatable="false">Method:</string>
+    <string name="hook_label_sdk" translatable="false">SDK:</string>
+    <string name="hook_label_version" translatable="false">Version:</string>
+    <string name="hook_label_description" translatable="false">Description:</string>
+    <string name="hook_label_optional" translatable="false">Optional</string>
+    <string name="hook_label_usage" translatable="false">Usage</string>
+    <string name="hook_label_notify" translatable="false">Notify</string>
+
+    <string name="hook_delete_error" translatable="false">Failed to Delete Hook! Error=%s</string>
+    <string name="hook_delete_success" translatable="false">Successfully Deleted Hook! %s</string>
+    <string name="hook_update_error" translatable="false">Failed to Update Hook! Error=%s</string>
+    <string name="hook_update_success" translatable="false">Successfully Updated Hook! %s</string>
+
+
+    <string name="msg_hint_create_profile" translatable="false">Create a Profile for the Targeted Application!</string>
+    <string name="msg_hint_clear_app" translatable="false">Clear target Application Data!</string>
+    <string name="msg_hint_logs" translatable="false">Target app Logs!</string>
+    <string name="msg_hint_force_stop" translatable="false">Force Stop target Application!</string>
+    <string name="msg_hint_reset_settings" translatable="false">Reset Identra Settings back to Default aka Nothing!</string>
+
+    <string name="msg_hint_create_configs" translatable="false">Create a Config what more to say ?</string>
+    <string name="msg_hint_manage_configs" translatable="false">Edit and Manager your Configs</string>
+    <string name="msg_hint_save_checked" translatable="false">Save the Checked Options for a Pre Check on UI Open</string>
+
+
+    <string name="msg_shared_prefs_saved" translatable="false">Shared preferences were saved!</string>
+
+
+    <string name="msg_hint_wild_card" translatable="false">Randomize when app event, easter egg randomizer</string>
+    <string name="msg_hint_reset_container" translatable="false">Reset Values to last saved Values</string>
+    <string name="msg_hint_randomize_container" translatable="false">Randomize Settings</string>
+    <string name="msg_hint_save_container" translatable="false">Save Un Saved Settings</string>
+    <string name="msg_hint_delete_container" translatable="false">Delete Settings</string>
+    <string name="msg_hint_warning_save" translatable="false">There are Un Saved Settings!</string>
+    <string name="msg_hint_settings_stat" translatable="false">Settings Saved out of the Total Settings</string>
+
+
+    <string name="title_save_file" translatable="false">Save File</string>
+
+
+    <string name="msg_no_config_selected" translatable="false">Please select a config first</string>
+    <string name="title_time_pairs" translatable="false">Time Pairs</string>
+    <string name="title_time_input" translatable="false">Time Input</string>
+    <string name="text_time_value" translatable="false">Value</string>
+    <string name="text_time_unit" translatable="false">Time Unit</string>
+    <string name="text_enter_time_value" translatable="false">Enter numeric value</string>
+
+    <string name="msg_hint_setting_description" translatable="false">The Description for the Specified Setting Container.</string>
+
+    <string name="msg_hint_hook_control" translatable="false">Hooks Control, Enabled=%s Total=%s</string>
+    <string name="msg_result_randomized" translatable="false">Settings were Randomized! Ensure to save the new values!</string>
+    <string name="msg_error_randomizer_none" translatable="false">No Randomizers</string>
+
+    <string name="msg_result_deleted" translatable="false">Delete action was Successful</string>
+    <string name="msg_error_result_generic" translatable="false">Action failed, Reason:</string>
+
+    <string name="msg_error_nothing_deleted" translatable="false">Nothing Deleted</string>
+    <string name="msg_error_bad_app" translatable="false">Invalid App</string>
+    <string name="msg_error_bad_options" translatable="false">No options Selected for applying...</string>
+
+
+    <string name="title_hook_warning" translatable="false">Hook Group Warning!</string>
+
+
+
+    <string name="title_delete_property" translatable="false">Property Delete</string>
+    <string name="title_delete_setting" translatable="false">Setting Delete</string>
+    <string name="title_add_property" translatable="false">Property Add</string>
+    <string name="title_delete_config" translatable="false">Config Delete</string>
+    <string name="title_no_groups" translatable="false">Groups Error</string>
+    <string name="title_error_generic" translatable="false">Error</string>
+
+
+    <string name="title_error_database_service" translatable="false">Database Service Error!</string>
+    <string name="title_error_service_version" translatable="false">System part not answering</string>
+
+
+    <string name="title_global" translatable="false">Global</string>
+    <string name="title_app" translatable="false">App</string>
+
+    <string name="title_tag_cell" translatable="false">Cell</string>
+    <string name="title_tag_hardware" translatable="false">Hardware</string>
+    <string name="title_tag_unique" translatable="false">Unique</string>
+    <string name="title_tag_rom" translatable="false">ROM</string>
+    <string name="title_tag_device" translatable="false">Device</string>
+    <string name="title_tag_etc" translatable="false">ETC</string>
+    <string name="title_tag_custom" translatable="false">Custom</string>
+
+    <string name="title_new_to_old" translatable="false">New to Old</string>
+    <string name="title_show_installed" translatable="false">Show Installed</string>
+
+
+
+
+    <string name="title_select_file" translatable="false">Select File</string>
+    <string name="title_no_random" translatable="false">Setting Missing Random</string>
+    <string name="title_collection_privacy" translatable="false">For my mental health</string>
+
+    <string name="title_check_all" translatable="false">Check All</string>
+    <string name="title_uncheck_all" translatable="false">Uncheck All</string>
+
+    <string name="title_select_tags" translatable="false">Select Tags</string>
+
+    <string name="msg_config_push" translatable="false">Pushed Config! Result = </string>
+
+
+
+
+    <string name="msg_delete_config" translatable="false">Are you sure you really want to Delete this Config ? (whole config) </string>
+    <string name="msg_na_randomizer" translatable="false">This setting does not have a Randomizer and or you set the Randomizer to N/A. Reason most likely is due to the Fact that there are SOO many settings to make Randomizers for all is asking North Korea to free its people. That being said as each Update comes more Randomizers will come, in the mean Time Use Google to find out what you think best fits this setting and use Description for help and maybe a Possible Format. Thank you! </string>
+    <string name="msg_delete_property" translatable="false">Are you sure you want to delete the property? This will Delete the MAP (object that links the Property Name to a Setting) and the Actual Property Setting Value (not the linked setting but the setting that specifies control on the property)</string>
+    <string name="msg_no_groups" translatable="false">No protection groups found yet. Open Identra again in a moment; the hook list loads in the system part.</string>
+
+    <string name="msg_old_group" translatable="false">The legacy Privacy collection is outdated and has been turned off. Re-enabling it is not supported.</string>
+
+
+    <string name="msg_confirm_save_options_config" translatable="false">
+       This will save all your currently checked options as a preset configuration.\n\n
+        This has NOTHING to do with Saving the actual value of the settings to the database\n
+       You can choose to have these checks automatically applied:\n
+       • Only when opening this screen for this specific app\n
+       • Or when opening this screen for any app\n\n
+       Your current selection will be saved as the default configuration.\n\n
+        Settings Checked:
+    </string>
+
+    <string name="msg_confirm_force_stop" translatable="false">
+        Are you sure you want to Force Stop the Target application?\n\n
+        This should not cause any issues but will force your target application
+        to stop running, so save any tasks if not saved in the app you\'re stopping!
+    </string>
+
+    <string name="msg_confirm_clear_data" translatable="false">
+        Are you sure you want to clear this target\'s application data?\n\n
+        You will not be able to recover it unless you have made a backup.
+        You will be signed out of all accounts, and will lose all data on that application.
+    </string>
+
+    <string name="msg_confirm_delete_all_settings" translatable="false">
+        Are you sure you want to Delete (all) this target\'s application Saved Settings ?
+    </string>
+
+    <string name="msg_confirm_delete_config" translatable="false">
+        Are you sure you want to delete this Config? Name:
+    </string>
+
+    <string name="msg_confirm_delete_settings" translatable="false">
+        Are you sure you want to Delete the Settings, Count:
+    </string>
+
+    <string name="result_update_setting_success" translatable="false">Setting Updated Successfully</string>
+    <string name="result_delete_setting_success" translatable="false">Setting Deleted Successfully</string>
+    <string name="result_delete_setting_failed" translatable="false">Failed to Delete Setting</string>
+    <string name="result_delete_setting_null" translatable="false">Parameters are NULL or not filled, make sure something is checked or input!</string>
+    <string name="result_property_added_success" translatable="false">Property Map was added Successfully!</string>
+    <string name="result_property_added_failed" translatable="false">Failed to add Property Map!</string>
+
+    <string name="result_open_directory_failed" translatable="false">Failed to open Access to the Target Directory</string>
+    <string name="result_open_file_failed" translatable="false">Failed to open Access to the Target File</string>
+
+    <string name="result_config_read_failed" translatable="false">Failed to read and or parse the Target Config File</string>
+    <string name="result_config_read_success" translatable="false">Config Read:</string>
+    <string name="result_config_parse_failed" translatable="false">Failed to parse Config, ensure its proper format and extension / type</string>
+
+    <string name="result_file_save_success" translatable="false">File Saved Successfully!</string>
+    <string name="result_file_save_failed" translatable="false">Failed to Save File!</string>
+    <string name="result_config_failed_delete_settings" translatable="false">Failed to Delete Settings / Config, make sure the Config is Saved First!</string>
+
+    <string name="result_config_finish_applying" translatable="false">Finished Applying Config Values to settings!</string>
+
+    <string name="menu_setting_delete_hint" translatable="false">Delete Setting, either Value and or Map.</string>
+    <string name="menu_setting_save_hint" translatable="false">Save the Modified Setting Value to the Database</string>
+    <string name="menu_setting_reset_hint" translatable="false">Reset the Setting Value in the UI back to the original value of the last Save.</string>
+    <string name="menu_setting_random_hint" translatable="false">Randomize Setting Value. (Will not save unless you select save)</string>
+    <string name="menu_setting_add_prop_hint" translatable="false">Add Build Property to Setting Group. Link the Property to a setting.</string>
+    <string name="menu_setting_selecting_all_hint" translatable="false">Either Selecting and or De-Selecting all Settings in the targeted group</string>
+    <string name="menu_property_setting_delete_hint" translatable="false">Delete the Build Property from the Setting Group.</string>
+    <string name="menu_property_add_hint" translatable="false">Add a Build Property to a Group or the Group</string>
+
+    <string name="menu_config_import_hint" translatable="false">Import a Config from Files</string>
+    <string name="menu_config_export_hint" translatable="false">Export a Config to Files</string>
+    <string name="menu_config_delete_settings_hint" translatable="false">Delete the Config Selected Settings</string>
+    <string name="menu_config_save_hint" translatable="false">Save the Modified Config to the Database (not settings!!)</string>
+    <string name="menu_config_apply_hint" translatable="false">Apply the Modified Config to the Settings</string>
+    <string name="menu_config_delete_hint" translatable="false">Delete the Config</string>
+    <string name="menu_settings_use_default_hint" translatable="false">When enabled Default Setting Values provided from the Developer will be used IF the setting for the Hook is not set by You as the user. Else return NULL if not set</string>
+
+
+    <string name="menu_settings_randomize_hint" translatable="false">Randomize selected Setting Values</string>
+    <string name="menu_settings_add_hint" translatable="false">Add new setting</string>
+    <string name="menu_settings_save_hint" translatable="false">Saved the Un-Saved settings to the Database</string>
+    <string name="menu_settings_delete_hint" translatable="false">Delete the selected Settings</string>
+    <string name="menu_settings_hint" translatable="false">Options</string>
+    <string name="menu_settings_reset_hint" translatable="false">Reset all settings back to Empty Values</string>
+
+    <string name="msg_settings_reset" translatable="false">Are you sure you want to reset all the settings ? it will just revert the values back to being Empty or Null will not Delete any Maps.</string>
+    <string name="title_settings_reset" translatable="false">Reset all Settings</string>
+    <string name="title_config_rename_config" translatable="false">Rename Config</string>
+
+
+    <string name="text_config_name" translatable="false">Config Name</string>
+    <string name="text_enter_config_name" translatable="false">Enter config name</string>
+
+    <string name="text_config_author" translatable="false">Author Name</string>
+    <string name="text_enter_config_author" translatable="false">Enter author name</string>
+
+    <string name="text_config_version" translatable="false">Version</string>
+    <string name="text_enter_config_version" translatable="false">Enter version string</string>
+
+    <string name="text_label_settings" translatable="false">Settings:</string>
+    <string name="text_label_hooks" translatable="false">Hooks:</string>
+    <string name="text_bulk_select" translatable="false">Bulk Select</string>
+
+
+    <string name="msg_delete_app_data" translatable="false">Are you sure you want to clear Application App Data ? This will delete specifically the App Data not the Hook Settings or Assignments.</string>
+
+
+    <string name="msg_backup_exported" translatable="false">Identra Backup has been Exported!</string>
+    <string name="msg_backup_exported_failed" translatable="false">Identra Backup Failed to Export!</string>
+
+    <string name="msg_settings_imported" translatable="false">Settings have been Imported!</string>
+
+
+    <string name="menu_config_hint" translatable="false">Options</string>
+
+
+    <string name="menu_add_property_name" translatable="false">Property Name</string>
+    <string name="menu_add_property_setting_name" translatable="false">Setting Name</string>
+
+    <string name="option_close" translatable="false">Close</string>
+    <string name="option_apply" translatable="false">Apply</string>
+    <string name="option_update" translatable="false">Update</string>
+    <string name="option_create" translatable="false">Create</string>
+    <string name="option_open" translatable="false">Open</string>
+    <string name="option_save" translatable="false">Save</string>
+    <string name="option_edit" translatable="false">Edit</string>
+    <string name="option_export" translatable="false">Export</string>
+
+    <string name="menu_import_settings" translatable="false">Import Settings</string>
+    <string name="menu_export_settings" translatable="false">Export Settings</string>
+    <string name="msg_error_reading_backup" translatable="false">Error reading backup file</string>
+    <string name="msg_backup_saved" translatable="false">Backup saved successfully</string>
+    <string name="msg_error_saving_backup" translatable="false">Error saving backup</string>
+
+    <string name="option_delete" translatable="false">Delete</string>
+    <string name="option_cancel" translatable="false">Cancel</string>
+    <string name="option_add" translatable="false">Add</string>
+    <string name="option_not_ask" translatable="false">Do not ask Again</string>
+    <string name="option_thanks" translatable="false">OK THANKS</string>
+    <string name="option_ok" translatable="false">Ok</string>
+    <string name="option_rename" translatable="false">Rename</string>
+    <string name="option_clear" translatable="false">Clear</string>
+
+    <string name="title_help" translatable="false">Help Guide</string>
+
+    <string name="title_groups" translatable="false">Groups</string>
+    <string name="title_delete_appdata" translatable="false">Clear App Data</string>
+
+    <string name="menu_filter" translatable="false">Search Filter</string>
+    <string name="menu_filter_settings" translatable="false">Settings</string>
+    <string name="menu_filter_groups" translatable="false">Groups</string>
+    <string name="menu_filter_hooks" translatable="false">Hooks</string>
+    <string name="menu_filter_all" translatable="false">All</string>
+    <string name="menu_force_english" translatable="false">Force English</string>
+
+    <string name="menu_show">Show</string>
+    <string name="menu_show_user">Show user apps</string>
+    <string name="menu_show_icon">Show apps with icon</string>
+    <string name="menu_show_all">Show all apps</string>
+
+    <string name="menu_show_settings_all" translatable="false">All</string>
+    <string name="menu_show_settings_unique" translatable="false">Unique</string>
+    <string name="menu_show_settings_android" translatable="false">Android</string>
+
+
+    <string name="menu_show_hook" translatable="false">Show hooked apps</string>
+    <string name="menu_show_system" translatable="false">Show system apps</string>
+
+
+
+    <string name="menu_search">Search</string>
+    <string name="menu_help">Help</string>
+    <string name="menu_notify_new">Notify on new apps</string>
+    <string name="menu_restrict_new">Restrict new apps</string>
+    <string name="menu_readme">Documentation</string>
+    <string name="menu_faq">FAQ</string>
+    <string name="menu_donate">Donate</string>
+
+
+    <string name="menu_show_priv" translatable="false">Privacy</string>
+    <string name="menu_show_rev" translatable="false">Reverse Engineering</string>
+    <string name="menu_show_byp" translatable="false">Bypass/Hide</string>
+
+    <string name="button_config_from_file" translatable="false">From File</string>
+    <string name="button_config_to_file" translatable="false">To File</string>
+    <string name="button_config_create" translatable="false">Create Config</string>
+    <string name="button_select_config" translatable="false">Select or Create Config</string>
+
+
+
+    <string name="button_hooks_group_hint" translatable="false">Application Hook Group view to see all assigned Hooks and Groups with their Settings</string>
+    <string name="button_configs_hint" translatable="false">Configs Menu, modify application settings via Configs</string>
+    <string name="button_settings_ex_hint" translatable="false">Advance Settings UI not from the Pro App</string>
+    <string name="button_props_hint" translatable="false">Properties UI to control Properties Interceptor</string>
+
+    <string name="button_reset_settings_hint" translatable="false">Reset the Setting Values back to Null or Nothing</string>
+
+
+    <string name="button_settings_reset_data_hint" translatable="false">Reset the Application Data, not Hooks or settings but the actual Data</string>
+    <string name="button_settings_reset_data" translatable="false">Clear Data</string>
+    <string name="button_settings_save_checked_hint" translatable="false">Save what is Checked so next time you open the UI it will have those selections checked.</string>
+    <string name="button_settings_save_checked" translatable="false">Save Checked</string>
+    <string name="button_settings_export_to_config_hint" translatable="false">Export the Selected Settings to a Config to be used in the Configs UI or for other out</string>
+    <string name="button_settings_export_to_config" translatable="false">Export to Config</string>
+
+    <string name="msg_settings_to_config_exporting" translatable="false">Exporting Settings to a Config</string>
+    <string name="msg_imported_hooks_success" translatable="false">Successfully Imported [%s] Hooks!</string>
+
+
+    <string name="check_prop_hide_hint" translatable="false">Hide Specific Property from Build Props</string>
+    <string name="check_prop_skip_hint" translatable="false">Skip/Ignore Specific Property from Build Props</string>
+    <string name="check_prop_force_hint" translatable="false">Force to push Build Property even if it does not exist.</string>
+
+
+    <string name="text_hide" translatable="false">Hide</string>
+    <string name="text_skip" translatable="false">Skip</string>
+    <string name="text_force" translatable="false">Force</string>
+
+    <string name="title_add_dialog_setting_builder" translatable="false">Setting Builder</string>
+    <string name="error_add_dialog_bad_name" translatable="false">Setting Name was invalid please use periods instead of spaces avoid using white spaced</string>
+    <string name="error_add_dialog_bad_input" translatable="false">Invalid Input for the setting Name</string>
+    <string name="error_add_dialog_no_checks" translatable="false">Error no options were selected either setting map and or setting value</string>
+    <string name="text_add_dialog_setting_name" translatable="false">Setting Name</string>
+    <string name="text_add_dialog_setting_value" translatable="false">Setting Value</string>
+    <string name="text_add_dialog_setting_description" translatable="false">Setting Default Description</string>
+    <string name="text_add_dialog_setting_help" translatable="false">A Setting Map is considered a Default setting. Adding a Map and or Default Map will add the Setting to the default settings allowing you to delete the Setting Value yet still have it show up as a setting to modify. It will also allow you to see the setting in different app setting contexts. Not adding a map will make it so when the setting value is Deleted it will disappear. Note setting names and maps should always use periods instead of whitespaces!</string>
+
+
+
+    <string name="error_no_activity" translatable="false">Application has no Start Activity...</string>
+    <string name="error_no_description_hook" translatable="false">Hook does not have a Description sorry...</string>
+    <string name="error_no_description_setting" translatable="false">Setting does not have a Description sorry...</string>
+    <string name="error_no_settings_hook" translatable="false">Hook does not have any settings...</string>
+    <string name="error_no_input_property" translatable="false">Property Builder is either Missing Property Name or Setting Name make sure they are filled in...</string>
+
+
+    <string name="title_hook_script" translatable="false">Lua script</string>
+    <string name="title_hook_collection" translatable="false">Collection</string>
+    <string name="title_hook_group" translatable="false">Group</string>
+    <string name="title_hook_name" translatable="false">Name</string>
+    <string name="title_hook_author" translatable="false">Author</string>
+    <string name="title_hook_version" translatable="false">Version</string>
+    <string name="title_hook_description" translatable="false">Description</string>
+    <string name="title_hook_enabled" translatable="false">Enabled</string>
+    <string name="title_hook_optional" translatable="false">Optional</string>
+    <string name="title_hook_usage" translatable="false">Usage</string>
+    <string name="title_hook_notify" translatable="false">Notify</string>
+    <string name="title_hook_class" translatable="false">Class</string>
+    <string name="title_hook_method" translatable="false">Method</string>
+    <string name="title_hook_params" translatable="false">Parameter types</string>
+    <string name="title_hook_return" translatable="false">Return type</string>
+    <string name="title_hook_minsdk" translatable="false">Min. SDK</string>
+    <string name="title_hook_maxsdk" translatable="false">Max. SDK</string>
+    <string name="title_hook_minapk" translatable="false">Min. APK</string>
+    <string name="title_hook_maxapk" translatable="false">Max. APK</string>
+    <string name="title_hook_exclude" translatable="false">Exclude packages</string>
+    <string name="title_hook_settings" translatable="false">Settings</string>
+    <string name="title_deploy_hooks" translatable="false">Updating Hook Assignments...</string>
+    <string name="title_deploy_settings" translatable="false">Updating Setting...</string>
+    <string name="title_profile_manager" translatable="false">Profile Manager</string>
+    <string name="title_config_modify" translatable="false">Modify Config</string>
+
+    <string name="title_logs" translatable="false">Logs</string>
+    <string name="title_confirm" translatable="false">Confirm</string>
+    <string name="title_save_options" translatable="false">Save Checked Settings</string>
+    <string name="title_config_manager" translatable="false">Config Manager</string>
+
+
+    <string name="menu_hooks" translatable="false">Hooks</string>
+    <string name="menu_props" translatable="false">Prop Values</string>
+    <string name="menu_settings" translatable="false">Setting Values</string>
+    <string name="menu_configs" translatable="false">Config Editor</string>
+    <string name="menu_dark" translatable="false">Dark Mode</string>
+    <string name="menu_debug_logs" translatable="false">Debug Logs</string>
+    <string name="menu_database" translatable="false">Database</string>
+    <string name="menu_save" translatable="false">Save</string>
+    <string name="menu_cpumaps" translatable="false">CPU Maps</string>
+    <string name="menu_collections" translatable="false">Collections</string>
+    <string name="menu_info" translatable="false">Info</string>
+
+
+    <string name="message_warning_hooks_title" translatable="false">Warning!</string>
+    <string name="message_warning_hooks_message" translatable="false">Warning! It seems a Setting in this Group and or Container is NOT saved! Ensure you save your modified Changes unless you wish to not save the new values or value!</string>
+
+    <string name="message_unique_title" translatable="false">Unique</string>
+    <string name="message_unique_message" translatable="false">This Setting is a Unique Setting meaning it is and or Can be used in part of trying to Identify as a User. Unlike the Other Settings like your F*cking Model Name, these are what actually used to ID you as a Person. These you should focus on Spoofing</string>
+
+
+    <string name="msg_no_service">Module not running or updated</string>
+    <string name="msg_review_settings">Review privacy settings</string>
+    <string name="msg_usage">Restricted \'%1$s\'</string>
+    <string name="msg_exception">Error in %1$s</string>
+    <string name="msg_restrict_sure">Are you sure to toggle \'%1$s\' for all apps?</string>
+    <string name="msg_no_browser">No browser available to open link</string>
+    <string name="msg_deploy_succeeded"  translatable="false">Updating Hook Assignments Succeeded!</string>
+
+
+    <string name="msg_succeeded_count"  translatable="false">Succeeded:</string>
+    <string name="msg_failed_count"  translatable="false">Failed:</string>
+
+
+    <string name="group_determine_activity">Determine activity</string>
+    <string name="group_get_applications">Get applications</string>
+    <string name="group_get_calendars">Get calendars</string>
+    <string name="group_get_call_log">Get call log</string>
+    <string name="group_get_contacts">Get contacts</string>
+    <string name="group_get_location">Get location</string>
+    <string name="group_get_messages">Get messages</string>
+    <string name="group_get_sensors">Get sensors</string>
+    <string name="group_read_account">Read account name</string>
+    <string name="group_read_clipboard">Read clipboard</string>
+    <string name="group_read_identifiers">Read identifiers</string>
+    <string name="group_read_network">Read network data</string>
+    <string name="group_read_notifications">Read notifications</string>
+    <string name="group_read_sync">Read sync data</string>
+    <string name="group_read_telephony">Read telephony data</string>
+    <string name="group_record_audio">Record audio</string>
+    <string name="group_record_video">Record video</string>
+    <string name="group_send_messages">Send messages</string>
+    <string name="group_use_analytics">Use analytics</string>
+    <string name="group_use_camera">Use camera</string>
+    <string name="group_use_tracking">Use tracking</string>
+
+
+
+
+
+    <!-- Apps Group -->
+    <string name="description_hook_group_apps_spoof_list" translatable="false">
+    Controls app visibility by intercepting package queries and filtering app lists. When enabled, this hook prevents the target application from seeing other installed apps based on your configured filters. Works best with HMA (Hide My App List) settings enabled.
+</string>
+    <string name="description_hook_group_apps_spoof_timestamps" translatable="false">
+    Manages and modifies application timestamps returned to the target app, including installation time, last update time, and first install time. This helps prevent apps from tracking installation patterns or detecting newly installed applications.
+</string>
+    <string name="description_hook_group_apps_spoof_list_ex" translatable="false">
+    Extended version of app list spoofing with enhanced API coverage. This implementation provides more robust package manager interception and additional filtering capabilities. Use this instead of the basic version for stronger app hiding, especially on newer Android versions.
+</string>
+    <!-- Device ID Groups -->
+    <string name="description_hook_group_device_id_lenovo" translatable="false">
+    Intercepts and spoofs Lenovo-specific device identifiers and API calls. This prevents applications from obtaining unique identifiers or detecting Lenovo-specific device characteristics, helping maintain device anonymity.
+</string>
+    <string name="description_hook_group_device_id_asus" translatable="false">
+    Controls and modifies ASUS device identification methods. This hook prevents applications from accessing ASUS-specific device IDs and system information that could be used for device fingerprinting.
+</string>
+    <string name="description_hook_group_device_id_meizu" translatable="false">
+    Manages Meizu device identification by intercepting Meizu-specific system calls. This helps prevent device fingerprinting through Meizu\'s unique device identifiers and system properties.
+</string>
+    <string name="description_hook_group_device_id_xiaomi" translatable="false">
+    Handles Xiaomi device identification including MIUI-specific identifiers. This hook intercepts attempts to access Xiaomi\'s device IDs, MIUI version information, and other unique identifiers that could be used for tracking.
+</string>
+    <string name="description_hook_group_device_id_vivo" translatable="false">
+    Protects against Vivo device identification by intercepting Vivo-specific system calls and identifiers. This prevents apps from accessing unique Vivo device information and system properties.
+</string>
+    <string name="description_hook_group_device_id_samsung" translatable="false">
+    Controls access to Samsung-specific device identifiers and Knox APIs. This hook prevents applications from obtaining unique Samsung device information and accessing Samsung-specific system properties.
+</string>
+    <!-- Devices Group -->
+    <string name="description_hook_group_devices_hide_driver_files" translatable="false">
+    Hides device driver files and paths from applications attempting to detect specific hardware or system modifications. This helps prevent detection of custom drivers or system modifications through file system queries.
+</string>
+    <string name="description_hook_group_devices_hide_external" translatable="false">
+    Controls visibility of external device connections including Bluetooth, USB, and other peripherals. This hook prevents applications from detecting or enumerating connected devices and their characteristics.
+</string>
+    <string name="description_hook_group_devices_spoof_info" translatable="false">
+    Manages device information spoofing for hardware components like fingerprint sensors, Bluetooth adapters, and other peripherals. This hook modifies device descriptors, names, and characteristics to prevent accurate device fingerprinting.
+</string>
+    <string name="description_hook_group_get_sensors" translatable="false">
+    Controls access to device sensors (accelerometer, gyroscope, etc). This hook prevents applications from reading sensor data, which can be used for device fingerprinting or activity monitoring.
+</string>
+    <string name="description_hook_group_get_call_log" translatable="false">
+    Protects your call history by controlling access to the call log. When enabled, this hook prevents applications from reading your incoming, outgoing, and missed call records.
+</string>
+    <string name="description_hook_group_get_calendars" translatable="false">
+    Manages access to calendar data. This hook prevents applications from reading your calendar events, appointments, and related details, protecting your schedule privacy.
+</string>
+    <string name="description_hook_group_get_contacts" translatable="false">
+    Controls access to your contacts database. This hook prevents applications from reading your contact list, protecting information about your connections and their details.
+</string>
+    <string name="description_hook_group_get_account" translatable="false">
+    Manages access to account information on your device. This hook prevents applications from obtaining details about configured accounts, including email and other service accounts.
+</string>
+    <string name="description_hook_group_get_messages" translatable="false">
+    Protects SMS and MMS messages by controlling access to the messaging database. This hook prevents applications from reading your text messages and message metadata.
+</string>
+    <string name="description_hook_group_get_user" translatable="false">
+    Controls access to user profile information. This hook prevents applications from obtaining user account details and profile data from the system.
+</string>
+    <string name="description_hook_group_get_bluetooth" translatable="false">
+    Manages access to Bluetooth information and operations. This hook controls what Bluetooth-related data applications can access, including paired devices and connection history.
+</string>
+    <string name="description_hook_group_get_activity" translatable="false">
+    Controls access to activity recognition and detection. This hook prevents applications from monitoring your physical activities through device sensors and Google Play Services.
+</string>
+    <string name="description_hook_group_get_clipboard" translatable="false">
+    Protects clipboard data by controlling read access. This hook prevents applications from monitoring or reading text and data that youve copied to the clipboard.
+</string>
+    Hardware Groups:
+    ```xml
+    <string name="description_hook_group_hardware_spoof_cpu_ex" translatable="false">
+    Extended CPU information spoofing. This hook modifies reported CPU characteristics, core counts, and hardware capabilities to prevent device fingerprinting through processor identification.
+</string>
+    <string name="description_hook_group_hardware_spoof_gps_model" translatable="false">
+    Controls GPS hardware information reported to applications. This hook modifies GPS model details and capabilities to prevent device identification through GPS hardware fingerprinting.
+</string>
+    <string name="description_hook_group_hardware_spoof_camera_count" translatable="false">
+    Manages reported camera hardware information. This hook can modify the reported number of cameras and their capabilities to prevent device identification through camera hardware fingerprinting.
+</string>
+    <!-- Hardware Group Continued -->
+    <string name="description_hook_group_hardware_spoof_gpu" translatable="false">
+    Controls and modifies GPU information reported to applications. This hook spoofs graphics hardware details including vendor, renderer, and capabilities to prevent device fingerprinting through GPU identification.
+</string>
+    <string name="description_hook_group_hardware_spoof_cpu" translatable="false">
+    Manages CPU information exposed to applications. This hook modifies processor details, architecture information, and feature flags to prevent device identification through CPU characteristics.
+</string>
+    <string name="description_hook_group_hardware_spoof_memory" translatable="false">
+    Controls memory-related information reported to applications. This hook modifies reported RAM size, memory characteristics, and availability details to prevent device fingerprinting through memory specifications.
+</string>
+    <!-- Hide Group -->
+    <string name="description_hook_group_hide_vpn_state" translatable="false">
+    Conceals VPN connection status from applications. This hook prevents apps from detecting active VPN connections through multiple detection methods, helping maintain privacy when using VPN services.
+</string>
+    <!-- Identification Group -->
+    <string name="description_hook_group_id_build" translatable="false">
+    Controls access to device Build information. This hook modifies system Build properties that could be used to identify your specific device model, manufacturer, and hardware details.
+</string>
+    <string name="description_hook_group_id_boot" translatable="false">
+    Manages boot-related identification information. This hook controls access to boot parameters, bootloader information, and related identifiers that could reveal device characteristics.
+</string>
+    <string name="description_hook_group_id_file_stat" translatable="false">
+    Controls file statistics and metadata information. This hook modifies file system information that could be used to identify system modifications or specific device characteristics.
+</string>
+    <string name="description_hook_group_id_unique" translatable="false">
+    Manages access to unique device identifiers. This hook prevents applications from obtaining various unique IDs including IMEI, serial numbers, and other device-specific identifiers.
+</string>
+    <string name="description_hook_group_id_telephony" translatable="false">
+    Controls access to telephony-related identifiers. This hook prevents applications from obtaining phone-specific IDs, IMEI numbers, and other telephony-related unique identifiers.
+</string>
+    <!-- Network Group -->
+    <string name="description_hook_group_network_spoof_wifi_list" translatable="false">
+    Controls WiFi network list information. This hook modifies the list of visible and saved WiFi networks to prevent location tracking through network identification.
+</string>
+    <string name="description_hook_group_network_information_spoof" translatable="false">
+    Manages general network information reported to applications. This hook controls access to network details, connection types, and other network-related data that could be used for tracking.
+</string>
+    <string name="description_hook_group_network_wifi_information_spoof" translatable="false">
+    Controls detailed WiFi network information. This hook modifies specific WiFi connection details, signal strength, and other WiFi-related data to prevent network-based device tracking.
+</string>
+    <!-- Read Group -->
+    <string name="description_hook_group_read_notifications" translatable="false">
+   Controls access to system and app notifications. This hook prevents applications from reading notification content and metadata, protecting sensitive information that appears in notifications.
+</string>
+    <string name="description_hook_group_read_sync_data" translatable="false">
+   Manages access to sync adapter data and sync operations. This hook controls what sync-related information applications can read, protecting data synchronization privacy.
+</string>
+    <!-- Spoof Group -->
+    <string name="description_hook_group_spoof_battery" translatable="false">
+   Controls battery information reported to applications. This hook modifies battery status, level, and charging information to prevent device fingerprinting through battery characteristics.
+</string>
+    <string name="description_hook_group_spoof_status_cell" translatable="false">
+   Manages cellular network status information. This hook modifies reported cellular connection state, signal strength, and related cellular network data.
+</string>
+    <string name="description_hook_group_spoof_timezone" translatable="false">
+   Controls timezone information exposed to applications. This hook modifies the reported timezone and related time settings to prevent location tracking through timezone detection.
+</string>
+    <string name="description_hook_group_spoof_location" translatable="false">
+   Manages location information reported to applications. This hook can modify or block GPS coordinates and other location data to prevent precise location tracking.
+</string>
+    <string name="description_hook_group_spoof_useragent" translatable="false">
+   Controls browser and network user-agent strings. This hook modifies user-agent information to prevent device fingerprinting through web requests and API calls.
+</string>
+    <string name="description_hook_group_spoof_features" translatable="false">
+   Manages device feature information reported to applications. This hook controls what device capabilities and features are visible to apps, preventing device identification through feature detection.
+</string>
+    <string name="description_hook_group_spoof_location_cell" translatable="false">
+   Controls cellular network location information. This hook modifies cell tower location data and related cellular positioning information to prevent location tracking through cellular networks.
+</string>
+    <string name="description_hook_group_spoof_display" translatable="false">
+   Manages display and screen information. This hook modifies reported screen characteristics including resolution, density, and other display properties to prevent device fingerprinting.
+</string>
+    <string name="description_hook_group_spoof_language" translatable="false">
+   Controls language and locale information. This hook modifies reported system language settings and locale data to prevent device identification through language settings.
+</string>
+    <!-- Storage Group -->
+    <string name="description_hook_group_storage_isolate" translatable="false">
+   Manages application storage isolation. This hook controls how applications access storage, helping prevent unauthorized access to files and directories.
+</string>
+    <string name="description_hook_group_storage_spoof_volume_uuid" translatable="false">
+   Controls storage volume identification. This hook modifies storage volume UUIDs and related identifiers to prevent tracking through storage device fingerprinting.
+</string>
+    <!-- Usage Group -->
+    <string name="description_hook_group_use_camera" translatable="false">
+   Controls camera access and usage by applications. This hook can prevent applications from accessing and using device cameras, protecting against unauthorized photo and video capture.
+</string>
+    <string name="description_hook_group_record_audio" translatable="false">
+   Manages audio recording capabilities. This hook controls application access to microphones and audio recording functions, preventing unauthorized audio capture and monitoring.
+</string>
+    <string name="description_hook_group_record_video" translatable="false">
+   Controls video recording functions. This hook manages application access to video recording capabilities, preventing unauthorized video capture from device cameras.
+</string>
+    <string name="description_hook_group_send_messages" translatable="false">
+   Controls messaging capabilities. This hook manages application attempts to send SMS/MMS messages, preventing unauthorized message sending and protecting against SMS-based charges.
+</string>
+
+
+
+
+
+
+    <!-- Help Dialog - Delete -->
+    <string name="help_delete_title" translatable="false">Delete Setting</string>
+    <string name="help_delete_description" translatable="false">This button will delete the selected Setting(s) from the Database, resetting their values to Empty or Null. This action removes any previously saved values.</string>
+
+    <!-- Help Dialog - Save -->
+    <string name="help_save_title" translatable="false">Save Setting</string>
+    <string name="help_save_description" translatable="false">This will save the selected Setting(s) to the Database. Any new values, whether from Randomizer or manual input, will be permanently stored until changed again.</string>
+
+    <!-- Help Dialog - Reset -->
+    <string name="help_reset_title" translatable="false">Reset Setting</string>
+    <string name="help_reset_description" translatable="false">This will reset the selected Setting(s) to their last saved Database values. If you\'ve modified but haven\'t saved new values, this will revert them to their previous state, which may be Null or Empty if no value was saved.</string>
+
+    <!-- Help Dialog - Randomize -->
+    <string name="help_randomize_title" translatable="false">Randomize Setting Value</string>
+    <string name="help_randomize_description" translatable="false">For any selected Setting(s) with configured Randomizers, this will generate new random values according to their Randomizer formats. The new values won\'t be saved to the Database automatically, allowing you to reset unwanted results before saving.</string>
+
+    <!-- Help Dialog - Super Random -->
+    <string name="help_super_random_title" translatable="false">Super Random</string>
+    <string name="help_super_random_description" translatable="false">This sets the selected Setting(s) to use \"%random%\" binding flags. When Identra loads settings for the Target Application at runtime, it will generate fresh random values for that app instance. These runtime values clear when the app stops, generating new randoms on next launch.</string>
+
+    <!-- Help Dialog - Hook Control -->
+    <string name="help_hook_title" translatable="false">Hook Control</string>
+    <string name="help_hook_description" translatable="false">Opens a dialog showing all Hooks linked to this Setting. You can directly enable or disable these Hooks rather than searching through Hook Groups. Note: If you\'re unfamiliar with this concept, this app may not be suitable for your needs.</string>
+
+
+    <string name="help_warning_title" translatable="false">Warning!</string>
+    <string name="help_warning_description" translatable="false">This is a Warning sign warning of something, in this case or most times it is used to Warn that a Setting Value has not been saved to its database.\nSo save the Un Saved Setting Value or Ignore this warning sign.</string>
+
+    <string name="help_color_unsaved_title" translatable="false">Unsaved Setting</string>
+    <string name="help_color_unsaved_description" translatable="false">Settings shown in this color have been modified but not yet saved.</string>
+
+    <string name="help_color_saved_title" translatable="false">Active Setting</string>
+    <string name="help_color_saved_description" translatable="false">Settings shown in this color are currently active and have a value assigned.</string>
+
+
+
+    <string name="help_color_hook_db_title" translatable="false">Non Built In (Database Saved) Hooks</string>
+    <string name="help_color_hook_db_description" translatable="false"> Saved Hooks in the Database versus Hooks from the Service Cache. Hooks from the Service Cache are Considered to be built in (Hooks defined and made by me) and once your Edit any of them, it will show with this Color (no need to Save unless you are in the Editing menu click OK. These typically are your Hooks, You Edited or Imported or from your Database.</string>
+
+
+    <string-array name="scopes" translatable="false">
+        <item>android</item>
+        <item>com.android.providers.settings</item>
+        <item>dev.identra.app</item>
+    </string-array>
+
+    <string name="pro_fingerprint" translatable="false">1062ae961d78854f6c9cd872c4388232849c799</string>
+    <string name="identra_scope_missing_title">This app is not hooked yet</string>
+    <string name="identra_scope_missing_sub">It is not in Identra\'s LSPosed scope, so none of these protections reach it.</string>
+    <string name="identra_scope_hook_now">Hook this app in one tap</string>
+    <string name="identra_scope_hook_now_sub">Adds it to Identra\'s LSPosed scope and restarts it</string>
+    <string name="identra_scope_prompt_msg">Protection is on, but this app is not in Identra\'s LSPosed scope yet, so it still sees the real values. Hook it now? Identra adds it to the scope and restarts it.</string>
+    <string name="identra_scope_hook_now_short">Hook now</string>
+    <string name="identra_scope_later">Later</string>
+    <string name="identra_scope_working">Adding to LSPosed scope with root…</string>
+    <string name="identra_scope_waiting">Waiting for LSPosed… approve the notification if it asks</string>
+    <string name="identra_scope_done">Hooked. Restart the app so the protections load.</string>
+    <string name="identra_scope_done_restarted">Hooked and restarted. Protections load on its next launch.</string>
+    <string name="identra_scope_denied">LSPosed did not add the app to the scope.</string>
+    <string name="identra_scope_failed">Could not hook the app: %1$s</string>
+    <string name="identra_scope_noservice_title">LSPosed is not connected</string>
+    <string name="identra_scope_noservice_sub">Identra cannot check whether this app is hooked. Enable the module in LSPosed and reopen Identra.</string>
+    <string name="identra_tool_instances">Instances</string>
+    <string name="identra_tool_instances_desc">Run an app as extra, isolated copies (hidden)</string>
+    <string name="identra_instances_noroot">Instances need root. Grant Identra root in KernelSU and open this screen again.</string>
+    <string name="identra_instances_running">Your instances</string>
+    <string name="identra_instances_empty">No extra instances yet.</string>
+    <string name="identra_instances_row_sub">Hidden profile %1$d · %2$s</string>
+    <string name="identra_instances_gms_on">Play Services on</string>
+    <string name="identra_instances_gms_off">Play Services off</string>
+    <string name="identra_instances_missing">profile missing</string>
+    <string name="identra_instances_new_section">Add</string>
+    <string name="identra_instances_new">New instance</string>
+    <string name="identra_instances_new_desc">Pick one or more apps; each copy gets its own data and its own device identity</string>
+    <string name="identra_instances_note">Each instance is a hidden clone profile. Only the chosen app may run in it, and it does not show up in Settings, the launcher or other apps. Open it from here.</string>
+    <string name="identra_instances_open">Open</string>
+    <string name="identra_instances_stop">Stop</string>
+    <string name="identra_instances_remove">Remove instance</string>
+    <string name="identra_instances_remove_msg">The copy and all of its data are deleted. The original app is not touched.</string>
+    <string name="identra_instances_gms_q">Does this copy need Google Play Services (sign-in, push, maps)? Without it the copy is lighter and leaks less.</string>
+    <string name="identra_instances_gms_yes">Allow Play Services</string>
+    <string name="identra_instances_gms_no">Without</string>
+    <string name="identra_instances_creating">Creating the instance…</string>
+    <string name="identra_instances_title_n">Instance %1$d</string>
+    <string name="identra_instances_identity">Identity: %1$s</string>
+    <string name="identra_instances_identity_none">Real device identity · hold for options</string>
+    <string name="identra_instances_meta">%1$s · %2$s</string>
+    <plurals name="identra_instances_apps_n">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
+    <string name="identra_instances_identities">Identities</string>
+    <string name="identra_instances_identities_sub">Each app in an instance has its own device IDs, separate from the original app.</string>
+    <string name="identra_instances_stopped">Stopped</string>
+    <string name="identra_instances_in_profile">Instance profile %1$d</string>
+    <string name="identra_instances_new_identity">New random identity</string>
+    <string name="identra_instances_new_identity_sub">New Android ID, GSF/Ad ID, serial, IMEI, model, Wi-Fi/BT MAC…</string>
+    <string name="identra_instances_new_identity_all">New random identity for every app</string>
+    <string name="identra_instances_pick_identity">Use a saved profile</string>
+    <string name="identra_instances_remove_app">Remove from this instance</string>
+    <string name="identra_instances_identity_busy">Applying identity</string>
+    <string name="identra_instances_identity_done">Identity applied. The app starts with it next time.</string>
+    <string name="identra_instances_real_identity">Use real device identity</string>
+    <string name="identra_instances_real_identity_sub">Remove the profile and hooks from this copy</string>
+    <string name="identra_instances_real_identity_all">Real device identity for every app</string>
+    <string name="identra_instances_reverting">Restoring real identity</string>
+    <string name="identra_instances_reverted">Back to the real device identity</string>
+    <string name="identra_instances_identity_section">Identity</string>
+    <string name="identra_instances_identity_real">Real device identity</string>
+    <string name="identra_instances_identity_temp">Random identity, not saved · %1$s</string>
+    <string name="identra_instances_save_profile">Save to Profiles</string>
+    <string name="identra_instances_save_profile_sub">Keep this identity so you can reuse or edit it</string>
+    <string name="identra_instances_again">Another</string>
+    <string name="identra_instances_use">Use</string>
+    <string name="identra_instances_save_use">Save &amp; use</string>
+    <string name="identra_instances_saved">Saved as %1$s</string>
+    <string name="identra_instances_rename">Rename</string>
+    <string name="identra_instances_gms_turn_on">Turn on Play Services</string>
+    <string name="identra_instances_gms_turn_off">Turn off Play Services</string>
+    <string name="identra_instances_gms_sub">Needed by apps that use Google sign-in, push or maps</string>
+    <string name="identra_instances_stop_sub">Stops every app in this instance</string>
+    <string name="identra_instances_remove_sub">Deletes the instance, its app data and its identities</string>
+    <string name="identra_instances_removing">Removing instance</string>
+    <string name="identra_instances_more_section">More</string>
+    <string name="identra_instances_protection">Protection settings</string>
+    <string name="identra_instances_protection_sub">Hooks and protection for this copy only</string>
+    <string name="identra_instances_shortcut">Add to home screen</string>
+    <string name="identra_instances_shortcut_sub">Opens this copy straight from your launcher</string>
+    <string name="identra_instances_shortcut_unsupported">Your launcher doesn\'t accept shortcuts</string>
+    <string name="identra_instances_shortcut_gone">This instance was removed</string>
+    <string name="identra_instances_clear">Clear data</string>
+    <string name="identra_instances_clear_sub">Fresh start: logs out, removes this copy\'s files</string>
+    <string name="identra_instances_clear_msg">Everything this copy saved (logins, settings, files) is deleted. Its identity stays.</string>
+    <string name="identra_instances_cleared">Data cleared</string>
+    <string name="identra_instances_force_stop">Force stop</string>
+    <string name="identra_instances_launch_failed">Couldn\'t open the app in its instance</string>
+    <string name="identra_instances_wait">You can leave this screen; it keeps running.</string>
+    <string name="identra_instances_add_app">Add app</string>
+    <string name="identra_instances_options">Instance options</string>
+    <string name="identra_dash_btn_protected">Protected apps</string>
+    <string name="identra_dash_btn_instances">Instances</string>
+    <string name="identra_instances_apps">Apps in this instance</string>
+    <string name="identra_instances_pick_one">Pick at least one app</string>
+    <string name="identra_instances_created">Instance ready</string>
+    <string name="identra_instances_failed">Could not create the instance</string>
+</resources>

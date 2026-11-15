@@ -1,0 +1,116 @@
+package dev.identra.app.x.core.repos;
+
+import android.content.Context;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import dev.identra.app.DebugUtil;
+import dev.identra.app.x.Str;
+import dev.identra.app.x.data.utils.ListUtil;
+import dev.identra.app.x.data.utils.ObjectUtils;
+import dev.identra.app.x.ui.core.FilterRequest;
+import dev.identra.app.x.ui.core.UserClientAppContext;
+import dev.identra.app.x.core.LibUtil;
+import dev.identra.app.x.core.settings.SettingsContainer;
+import dev.identra.app.x.core.settings.SettingsFactory;
+import dev.identra.app.x.core.commands.query.GetSettingsExCommand;
+import dev.identra.app.x.core.settings.data.SettingPacket;
+
+public class SettingsRepository implements IIdentraRepo<SettingsContainer> {
+    private static final String TAG = LibUtil.generateTag(SettingsRepository.class);
+
+    public static final String DEFAULT_SORT_FIELD = "name";
+
+    public static final IIdentraRepo<SettingsContainer> INSTANCE = new SettingsRepository();
+
+    @Override
+    public List<SettingsContainer> get() { return Collections.emptyList(); }
+
+    /*
+        ToDO: Soon not yet, repo system should tangle with the shared universal app shit object
+                        It can even store the Shared Registries etc
+                        IRepo<TObject, TPacket>
+                        The object can help us by storing more specific flags data args etc
+                        We can also mass invoke handlers that would need an update etc..
+                        Can also be useful when trying to share update objects
+                        and when "filtering".....
+                            IAppCarrier
+                                XApp app;
+                                ...
+                                setApp(XApp app);
+                                XApp getApp()
+     */
+
+    @Override
+    public List<SettingsContainer> get(Context context, UserClientAppContext userContext) {
+        //ToDO: Build settings factory to do as it says
+        //          So in theory, most of this bullshit at least (GetSettingsExCommand) should be done in the Factory!
+        //          Goal is also to make these portable but usable any where Service or Client
+        //          So Perhaps we can use "factory" MAYBE as a repo
+        //          Hmm
+        //          Perhaps it can handle a lot like keeping things up to date in containers etc
+        //          Make a nice one way in linear control system so in theory I can add more it will handle duplicates etc
+
+        return SettingsFactory
+                .create()
+                .initialize(context, userContext, true)
+                .getContainers();
+    }
+
+    @Override
+    public List<SettingsContainer> filterAndSort(List<SettingsContainer> items, FilterRequest request) {
+        return ListUtil.forEachFilter(
+                items,
+                request,
+                SettingsRepository::isMatchingCriteria,
+                getComparator(request.getOrderOrDefault(DEFAULT_SORT_FIELD), request.isReversed),
+                true);
+    }
+
+    public static boolean isMatchingCriteria(SettingsContainer container, FilterRequest request) {
+        if(request == null || container == null)
+            return true;
+        if(!container.getContainerName().toLowerCase().contains(request.getQueryOrDefault(container.getContainerName()).toLowerCase()))
+            return false;
+
+        //Make this into a irreplaceable type from IDiffFace ??
+        if(request.hasFilterTags()) {
+            for(String filter : request.filterTags) {
+                switch (filter) {
+                    case "enabled":
+                        if(!container.isValid())
+                            return false;
+                        break;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public static Comparator<SettingsContainer> getComparator(String sortBy, boolean isReverse) {
+        Comparator<SettingsContainer> comparator;
+        switch (sortBy) {
+            default:
+                comparator = new Comparator<SettingsContainer>() {
+                    @Override
+                    public int compare(SettingsContainer a1, SettingsContainer a2) { return String.CASE_INSENSITIVE_ORDER.compare(a1.getContainerName(), a2.getContainerName()); }
+                };
+                break;
+        }
+
+        if (isReverse) {
+            final Comparator<SettingsContainer> finalComparator = comparator;
+            comparator = new Comparator<SettingsContainer>() {
+                @Override
+                public int compare(SettingsContainer a1, SettingsContainer a2) { return finalComparator.compare(a2, a1); }
+            };
+        }
+
+        return comparator;
+    }
+}

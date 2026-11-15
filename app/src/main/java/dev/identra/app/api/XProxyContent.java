@@ -1,0 +1,79 @@
+package dev.identra.app.api;
+
+import dev.identra.IdentraNs;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
+
+import dev.identra.app.XSecurity;
+import dev.identra.app.api.xstandard.database.SqlQuerySnake;
+import dev.identra.app.logger.XLog;
+import dev.identra.app.x.Str;
+import dev.identra.app.x.core.LibUtil;
+import dev.identra.app.x.core.database.sql.SQLSnake;
+
+public class XProxyContent {
+    private static final String TAG = LibUtil.generateTag(XProxyContent.class);
+
+
+    public static String commandName(String command, boolean marshall) { return marshall ? Str.combine(command, "2") : command; }
+
+    public static Bundle mockCall(Context context, String method) { return mockCall(context, method, new Bundle()); }
+    public static Bundle mockCall(Context context, String method, Bundle extras) { return invokeCall(context, IdentraNs.CMD_MOCK, method, extras); }
+
+    public static Bundle luaCall(Context context, String method) { return luaCall(context, method, new Bundle()); }
+    public static Bundle luaCall(Context context, String method, Bundle extras) { return invokeCall(context, IdentraNs.CMD_LUA, method, extras); }
+
+    //public static Cursor mockQuery(Context context, String method) { return invokeQuery(context, method, null, null); }
+    //public static Cursor mockQuery(Context context, String method, String[] args_selection) { return mockQuery(context, method, args_selection, null); }
+    //public static Cursor mockQuery(Context context, String method, String[] args_selection, String selection) { return invokeQuery(context, IdentraNs.CMD_MOCK, method, args_selection, selection); }
+
+    public static Cursor mockQuery(Context context, String method) { return mockQuery(context, method, null, null); }
+    public static Cursor mockQuery(Context context, String method, String[] args_selection) { return mockQuery(context, method, args_selection, null); }
+    public static Cursor mockQuery(Context context, String method, String[] args_selection, String selection) { return invokeQuery(context, IdentraNs.CMD_MOCK, method, args_selection, selection); }
+    public static Cursor mockQuery(Context context, String method, SqlQuerySnake query) { return invokeQuery(context, IdentraNs.CMD_MOCK, method, query); }
+
+    public static Cursor luaQuery(Context context, String method) { return luaQuery(context, method, null, null); }
+    public static Cursor luaQuery(Context context, String method, String[] args_selection) { return luaQuery(context, method, args_selection, null); }
+    public static Cursor luaQuery(Context context, String method, String[] args_selection, String selection) { return invokeQuery(context, IdentraNs.CMD_LUA, method, args_selection, selection); }
+    public static Cursor luaQuery(Context context, String method, SqlQuerySnake query) { return invokeQuery(context, IdentraNs.CMD_LUA, method, query); }
+
+
+    public static Cursor invokeQuery(Context context, String handler, String method, SqlQuerySnake query) { return invokeQuery(context, handler, method, query.getSelectionCompareValues(), query.getSelectionArgs()); }
+
+    public static Cursor luaQuery(Context context, String method, SQLSnake query) { return invokeQuery(context, IdentraNs.CMD_LUA, method, query); }
+    public static Cursor invokeQuery(Context context, String handler, String method, SQLSnake query) { return invokeQuery(context, handler, method, query.getWhereArgs(), query.getWhereClause()); }
+
+
+    public static Cursor invokeQuery(Context context,String handler, String method) { return invokeQuery(context, handler, method, null, null); }
+    public static Cursor invokeQuery(Context context,String handler, String method, String[] args_selection) { return invokeQuery(context, handler, method, args_selection, null); }
+    public static Cursor invokeQuery(Context context,String handler, String method, String[] args_selection, String selection) {
+        try {
+            return context.getContentResolver()
+                    .query(
+                            XSecurity.getURI(),
+                            new String[]{ handler + "." + method },
+                            selection,
+                            args_selection,
+                            null);
+        }catch (Exception e) {
+            Log.e(TAG, "Failed to Invoke Query! handler=" + handler + " method=" + method + " e=" + e + "\n" + Log.getStackTraceString(e));
+            return null;
+        }
+    }
+
+    public static Bundle invokeCall(Context context, String handler, String method) { return invokeCall(context,handler, method, new Bundle()); }
+    public static Bundle invokeCall(Context context, String handler, String method, Bundle extras) {
+        try {
+            return context.getContentResolver()
+                    .call(XSecurity.getURI(), handler, method, extras);
+        }catch (Exception e) {
+            Log.e(TAG, "Failed to Invoke Call! handler=" + handler + " method=" + method + " e=" + e + "\n" + Log.getStackTraceString(e));
+            return null;
+        }
+    }
+}

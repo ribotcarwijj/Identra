@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 0.4.0: the phone's real position (My location): solid primary dot with a surface ring and a soft halo. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="30dp" android:height="30dp"
+    android:viewportWidth="30" android:viewportHeight="30">
+    <path android:fillColor="@color/identra_primary" android:fillAlpha="0.18"
+        android:pathData="M15,15m-14,0a14,14 0,1 1,28 0a14,14 0,1 1,-28 0"/>
+    <path android:fillColor="@color/identra_surface"
+        android:pathData="M15,15m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0"/>
+    <path android:fillColor="@color/identra_primary"
+        android:pathData="M15,15m-5.5,0a5.5,5.5 0,1 1,11 0a5.5,5.5 0,1 1,-11 0"/>
+</vector>

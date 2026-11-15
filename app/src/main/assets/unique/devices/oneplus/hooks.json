@@ -1,0 +1,64 @@
+[
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Device.ID.OnePlus",
+    "name": "ID/Call/OnePlus",
+    "author": "Identra",
+    "className": "Intercept.Settings.Call",
+    "methodName": "settings",
+    "parameterTypes": [ "op_security_uuid" ],
+    "version": 1,
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "settings":["settings.one.plus.security.uuid"]
+  },
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Device.ID.OnePlus",
+    "name": "ID/Query/OnePlus",
+    "author": "Identra",
+    "className": "Intercept.Intent.Query",
+    "methodName": "settings",
+    "parameterTypes": [ "op_security_uuid" ],
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "settings":[ "settings.one.plus.security.uuid" ]
+  },
+
+  {
+    "collection": "Identra",
+    "group": "Device.ID.OnePlus",
+    "name": "ID/Properties/OnePlus",
+    "author": "Identra",
+    "className": "Intercept.Properties",
+    "methodName": "get",
+    "parameterTypes": ["persist.sys.oneplus.serialno"],
+    "version": 1,
+    "description": "IDs for OnePlus via Properties...",
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "settings":["props.unique.one.plus.serialno"]
+  },
+
+  {
+    "builtin": true,
+    "collection": "Identra",
+    "group": "Profile.Hide.Vendor",
+    "name": "Hide/Properties/OPlus",
+    "author": "Identra",
+    "className": "Intercept.Properties",
+    "methodName": "get",
+    "parameterTypes": ["persist.sys.oneplus.*", "persist.oneplus.*", "ro.oneplus.*", "persist.sys.oplus.*", "persist.oplus.*", "ro.oplus.*", "sys.oplus.*", "ro.vendor.oplus.*", "persist.vendor.oplus.*", "vendor.oplus.*", "persist.sys.oppo.*", "ro.oppo.*", "ro.build.version.ota", "ro.build.version.opporom", "ro.build.version.oplusrom", "ro.build.version.oplusrom.display", "ro.build.version.oplusrom.confidential", "ro.build.version.realmeui", "ro.rom.version"],
+    "version": 1,
+    "description": "Hides the real phone's OnePlus / OPPO / realme (oplus) system properties when a profile claims another brand. Turned on by the profile apply, not by the app switch.",
+    "enabled":true,
+    "optional":true,
+    "usage":true,
+    "settings":["val:"]
+  }
+]

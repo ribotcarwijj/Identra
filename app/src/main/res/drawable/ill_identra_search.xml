@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nothing found: paper circle with an ink lens. Flat. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp" android:height="120dp"
+    android:viewportWidth="160" android:viewportHeight="120">
+    <path android:fillColor="@color/identra_container" android:pathData="M80,60m-56,0a56,56 0,1 1,112 0a56,56 0,1 1,-112 0"/>
+    <path android:fillColor="@color/identra_surface" android:strokeColor="@color/identra_primary" android:strokeWidth="6"
+        android:pathData="M74,54m-20,0a20,20 0,1 1,40 0a20,20 0,1 1,-40 0"/>
+    <path android:fillColor="@color/identra_primary" android:pathData="M88.5,72.7l4.2,-4.2l18,18a3,3 0,0 1,-4.2 4.2z"/>
+    <path android:fillColor="@color/identra_container_high" android:pathData="M64,52h20a3,3 0,0 1,0 6h-20a3,3 0,0 1,0 -6z"/>
+</vector>

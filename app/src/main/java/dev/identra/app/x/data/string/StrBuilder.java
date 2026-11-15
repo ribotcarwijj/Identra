@@ -1,0 +1,655 @@
+package dev.identra.app.x.data.string;
+
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.List;
+
+import dev.identra.app.x.Str;
+import dev.identra.app.x.data.utils.ArrayUtils;
+import dev.identra.app.x.runtime.RuntimeUtils;
+
+import java.util.Map;
+import java.util.regex.Pattern;
+
+public class StrBuilder {
+    private static final Pattern DOUBLE_NEWLINE_PATTERN = Pattern.compile("\n\\s*\n");
+    private static final String DIVIDER_DEFAULT = "------------------------";
+
+    //Not really chars but I like the name
+    public static final String STR_NEW_LINE = "\n";
+    public static final String STR_SPACE = " ";
+    public static final String STR_TAB = "\t";
+    public static final String STR_COMMA = ",";
+    public static final String STR_COLLEN = ":";
+
+    public static StrBuilder create() { return new StrBuilder(); }
+    public static StrBuilder create(int capacity) { return new StrBuilder(capacity); }
+    public static StrBuilder create(String str) { return new StrBuilder(str); }
+    public static StrBuilder create(String str, boolean newLine) { return new StrBuilder(str, newLine); }
+
+    private StringBuilder mSb;
+    private boolean ensureNoMoreThanOneNewLine = false;
+    private String mDivider;
+    private boolean mDoAppend = true;
+    private String mDelimiter;
+
+    public StrBuilder() { mSb = new StringBuilder(); }
+    public StrBuilder(int capacity) { mSb = new StringBuilder(capacity); }
+    public StrBuilder(String str) { mSb = new StringBuilder(str); }
+    public StrBuilder(String str, boolean newLine) {
+        mSb = new StringBuilder(str);
+        if(newLine) mSb.append(STR_NEW_LINE);
+    }
+
+    public StrBuilder reset() {
+        this.mSb = new StringBuilder();
+        return this;
+    }
+
+    public boolean isEmpty() {
+        return mSb == null || mSb.length() < 1;
+    }
+
+    public StringBuilder getInternalBuilder() { return mSb; }
+
+    private void ensureNoDoubleNewLine() {
+        if(ensureNoMoreThanOneNewLine) {
+            if(mSb != null) {
+                int len = mSb.length();
+                if(len > 2) {
+                    char one = mSb.charAt(len - 1);
+                    char two = mSb.charAt(len - 2);
+                    //White space check ???
+                    if(one == '\n' && two == '\n') {
+                        String cleaned = Str.trim(mSb.toString(), "\n", true, true).replaceAll("\n\n", "");
+                        mSb = new StringBuilder(cleaned);
+                        mSb.append("\n");   //Just one new Line
+                    }
+                }
+            }
+        }
+    }
+
+    private void ensureDel() {
+        if(mDelimiter != null) {
+            if(this.mSb.length() > 0) {
+                mSb.append(mDelimiter);
+            }
+        }
+    }
+
+    public StrBuilder ensureDelimiter(String delimiter) {
+        this.mDelimiter = delimiter;
+        return this;
+    }
+
+    public boolean endsWithCommand() {
+        int sz = mSb.length();
+        if(sz < 1) return false;
+        return mSb.charAt(sz - 1) == ',';
+    }
+
+    public boolean isBlockedFromAppending() { return !mDoAppend; }
+    public StrBuilder setDoAppendFlag(boolean flag) {  mDoAppend = flag; return this; }
+    public StrBuilder resetDoAppendFlag() { mDoAppend = true; return this; }
+
+    public String getDivider() { return TextUtils.isEmpty(mDivider) ? DIVIDER_DEFAULT : mDivider; }
+    public char getDividerChar() { return TextUtils.isEmpty(mDivider) ? '-' : mDivider.charAt(0); }
+
+    public StrBuilder setDividerChar(char c) {
+        this.mDivider = Str.repeatChar(c, Str.MOBILE_SAFE_LENGTH);
+        return this;
+    }
+
+    public StrBuilder setDivider(String divider) {
+        this.mDivider = divider;
+        return this;
+    }
+
+    public StrBuilder appendDividerTitleLine(String title) {
+        appendLine(Str.dividerWithTitle(getDividerChar(), title));
+        return this;
+    }
+
+    public StrBuilder appendDividerLine() {
+        appendLine(mDivider);
+        return this;
+    }
+
+    public StrBuilder appendDivider() {
+        append(mDivider);
+        return this;
+    }
+
+    public StrBuilder ensureOneNewLinePer(boolean ensureOnlyOneNewLinePerLine) {
+        ensureNoMoreThanOneNewLine = ensureOnlyOneNewLinePerLine;
+        return this;
+    }
+
+    public StrBuilder newLine() {
+        ensureDel();
+        if(mDoAppend) mSb.append(STR_NEW_LINE);
+        return this;
+    }
+
+    public StrBuilder space() {
+        ensureDel();
+        if(mDoAppend) mSb.append(STR_SPACE);
+        return this;
+    }
+
+    public StrBuilder tab() {
+        ensureDel();
+        if(mDoAppend) mSb.append(STR_TAB);
+        return this;
+    }
+
+    public StrBuilder collen() {
+        ensureDel();
+        if(mDoAppend) mSb.append(STR_COLLEN);
+        return this;
+    }
+
+    public StrBuilder comma() {
+        ensureDel();
+        if(mDoAppend) mSb.append(STR_COMMA);
+        return this;
+    }
+
+    public StrBuilder appendLine(StrBuilder sb) {
+        ensureDel();
+        if(mDoAppend) {
+            mSb.append(sb.toString());
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder append(StrBuilder sb) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(sb.toString());
+        }
+        return this;
+    }
+
+    public StrBuilder appendLine(StringBuilder sb) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            mSb.append(sb.toString());
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder append(StringBuilder sb) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(sb.toString());
+        }
+        return this;
+    }
+
+    public StrBuilder appendLine(String s) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            mSb.append(s);
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder appendNewLineOrSpace(boolean useNewLine) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(useNewLine ? STR_NEW_LINE : STR_SPACE);
+        }
+
+        return this;
+    }
+
+    public StrBuilder append(String s) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(s);
+        }
+        return this;
+    }
+
+    public StrBuilder appendLine(Character c) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            mSb.append(c);
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder append(Character c) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(c);
+        }
+        return this;
+    }
+
+    public StrBuilder appendLine(Boolean b) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            mSb.append(b);
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder append(Boolean b) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(String.valueOf(b));
+        }
+        return this;
+    }
+
+    public StrBuilder appendLine(Integer i) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            mSb.append(i);
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder append(Integer i) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(i);
+        }
+        return this;
+    }
+
+    public StrBuilder appendLine(Object o) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            mSb.append(o);
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder append(Object o) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(o);
+        }
+        return this;
+    }
+
+    public StrBuilder appendAsLines(String[] arr) { append(arr, STR_NEW_LINE); mSb.append(STR_NEW_LINE); return this;  }
+    public StrBuilder appendLine(String[] arr) { return appendLine(arr, STR_SPACE); }
+    public StrBuilder appendLine(String[] arr, String delimiter) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            mSb.append(Str.joinArray(arr, delimiter));
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder append(String[] arr) { return append(arr, STR_SPACE); }
+    public StrBuilder append(String[] arr, String delimiter) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(Str.joinArray(arr, delimiter));
+        }
+        return this;
+    }
+
+    public StrBuilder appendAsLines(List<String> lst) { append(lst, STR_NEW_LINE); mSb.append(STR_NEW_LINE); return this; }
+    public StrBuilder appendLine(List<String> lst) { return appendLine(lst, STR_SPACE); }
+    public StrBuilder appendLine(List<String> lst, String delimiter) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            mSb.append(Str.joinList(lst, delimiter));
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder append(List<String> lst) { return append(lst, STR_SPACE); }
+    public StrBuilder append(List<String> lst, String delimiter) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(Str.joinList(lst, delimiter));
+        }
+        return this;
+    }
+
+    public StrBuilder appendErrorLine(Throwable t, boolean stackTrace) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            mSb.append("Exception: ")
+                    .append(t.getMessage());
+            if(stackTrace)
+                mSb.append(STR_NEW_LINE)
+                        .append("Stack Trace:")
+                        .append(STR_NEW_LINE)
+                        .append(RuntimeUtils.getStackTraceSafeString(t));
+
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder appendError(Throwable t, boolean stackTrace) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append("Exception: ")
+                    .append(t.getMessage());
+            if(stackTrace)
+                mSb.append(STR_NEW_LINE)
+                        .append("Stack Trace:")
+                        .append(STR_NEW_LINE)
+                        .append(RuntimeUtils.getStackTraceSafeString(t));
+        }
+        return this;
+    }
+
+
+    public StrBuilder appendFieldLine(String fieldName, Map<?,?> map) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            StringBuilder sb = new StringBuilder();
+
+            String spacer = Str.repeatString(STR_SPACE, 3);
+
+            int i = 0;
+            for(Map.Entry<?,?> entry : map.entrySet()) {
+                Object k = entry.getKey();
+                Object v = entry.getValue();
+                if(sb.length() > 0) sb.append(STR_NEW_LINE);
+                sb.append(spacer)
+                        .append("[").append(i).append("]::[")
+                        .append(Str.toStringOrNull(k)).append("][")
+                        .append(Str.toStringOrNull(v)).append("]");
+                i++;
+            }
+
+            mSb.append(fieldName)
+                    .append(STR_COLLEN)
+                    .append(STR_NEW_LINE)
+                    .append(sb)
+                    .append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder appendFieldLine(String fieldName, Object value) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            mSb.append(fieldName)
+                    .append(STR_COLLEN)
+                    .append(STR_SPACE)
+                    .append(value)
+                    .append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder appendTypes(Class<?>[] types) {
+        if(mDoAppend) {
+            ensureDel();
+            StrBuilder sub = StrBuilder.create().ensureDelimiter(Str.COMMA);
+            if(ArrayUtils.isValid(types)) {
+                for(Class<?> c : types)
+                    sub.append(Str.toObjectClassName(c));
+            } else {
+                sub.append("null");
+            }
+
+            mSb.append(sub.toString());
+        }
+        return this;
+    }
+
+    public StrBuilder appendField(String fieldName, Object value) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(fieldName)
+                    .append(STR_COLLEN)
+                    .append(STR_SPACE)
+                    .append(value);
+        }
+        return this;
+    }
+
+
+    public StrBuilder appendFieldLine(String fieldName, String value) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            if(value != null && value.endsWith("\n")) value = value.substring(0, value.length() - 1);
+            mSb.append(fieldName)
+                    .append(STR_COLLEN)
+                    .append(STR_SPACE)
+                    .append(value)
+                    .append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder appendField(String fieldName, String value) {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(fieldName)
+                    .append(STR_COLLEN)
+                    .append(STR_SPACE)
+                    .append(value);
+        }
+        return this;
+    }
+
+    public StrBuilder appendStrBytesLine(byte[] bs) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            if(bs == null) return this;
+            mSb.append(new String(bs));
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder appendStrBytes(byte[] bs) {
+        if(bs == null) return this;
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(new String(bs));
+        }
+        return this;
+    }
+
+    public StrBuilder appendStrBytesLine(byte[] bs, Charset charSet) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            if(bs == null) return this;
+            mSb.append(new String(bs, charSet));
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder appendStrBytes(byte[] bs, Charset charSet) {
+        if(bs == null) return this;
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(new String(bs, charSet));
+        }
+        return this;
+    }
+
+    public StrBuilder appendStrBytesASCIILine(byte[] bs) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            if(bs == null) return this;
+            mSb.append(new String(bs, StandardCharsets.US_ASCII));
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder appendStrBytesASCII(byte[] bs) {
+        if(bs == null) return this;
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(new String(bs, StandardCharsets.US_ASCII));
+        }
+        return this;
+    }
+
+    public StrBuilder appendStrBytesUTF16Line(byte[] bs) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            if(bs == null) return this;
+            mSb.append(new String(bs, StandardCharsets.UTF_16));
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder appendStrBytesUTF16(byte[] bs) {
+        if(bs == null) return this;
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(new String(bs, StandardCharsets.UTF_16));
+        }
+        return this;
+    }
+
+    public StrBuilder appendStrBytesUTF8Line(byte[] bs) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            if(bs == null) return this;
+            mSb.append(new String(bs, StandardCharsets.UTF_8));
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder appendStrBytesUTF8(byte[] bs) {
+        if(bs == null) return this;
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(new String(bs, StandardCharsets.UTF_8));
+        }
+        return this;
+    }
+
+    public StrBuilder appendLine(byte[] bs) {
+        if(mDoAppend) {
+            ensureDel();
+            ensureNoDoubleNewLine();
+            if(bs == null) return this;
+            mSb.append(Str.bytesToHex(bs));
+            mSb.append(STR_NEW_LINE);
+        }
+        return this;
+    }
+
+    public StrBuilder append(byte[] bs) {
+        if(bs == null) return this;
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(Str.bytesToHex(bs));
+        }
+        return this;
+    }
+
+    public StrBuilder appendSpace() {
+        if(mDoAppend) {
+            ensureDel();
+            mSb.append(STR_SPACE);
+        }
+        return this;
+    }
+
+    public <T> StrBuilder appendCollectionLine(Collection<T> collection) {
+        if(collection == null || collection.isEmpty()) return this;
+        if(mDoAppend) {
+            ensureDel();
+            int index = 0;
+            for(T item : collection) {
+                try {
+                    appendLine("ListItem[" + index + "]:");
+                    appendLine(Str.toStringOrNull(item));
+                    appendLine("ListItem[" + index + "] End...");
+                }catch (Exception ignored) { }
+                index++;
+            }
+        }
+
+        return this;
+    }
+
+
+    //public StrBuilder appendMapLine(Map<?, ?> map, boolean appendKeys, boolean appendValues, boolean appendEachEntryOnNewLine) {
+    //}
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if(obj instanceof String) {
+            String s = (String)obj;
+            return s.equalsIgnoreCase(this.toString());
+        }
+
+        if(obj instanceof StringBuilder) {
+            StringBuilder s = (StringBuilder)obj;
+            return s.toString().equalsIgnoreCase(this.toString());
+        }
+
+        if(obj instanceof StrBuilder) {
+            StrBuilder s = (StrBuilder) obj;
+            return s.toString().equalsIgnoreCase(this.toString());
+        }
+
+        return false;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        if(mSb != null) {
+            String s = mSb.toString();
+            if(s.endsWith("\n"))
+                return s.substring(0, s.length() - 1);
+            return s;
+        } else {
+            return null;
+        }
+    }
+
+    public String toString(boolean ensureNoDoubleNewLines) {
+        String s = this.toString();
+        return ensureNoDoubleNewLines ? Str.trim(Str.ensureNoDoubleNewLines(s), STR_NEW_LINE, true, true) : s;
+    }
+}

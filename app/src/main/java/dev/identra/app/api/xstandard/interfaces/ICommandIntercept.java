@@ -1,0 +1,17 @@
+package dev.identra.app.api.xstandard.interfaces;
+
+import java.util.List;
+
+import dev.identra.app.interceptors.UserContextMaps;
+import dev.identra.app.interceptors.shell.ShellInterception;
+
+public interface ICommandIntercept {
+    boolean interceptCommand(ShellInterception result);
+    String getCommand();
+    String getSetting();
+    boolean containsCommand(String input);
+    boolean containsCommand(List<String> commands);
+    boolean keepGoing(UserContextMaps maps, String key);
+
+    boolean isCommand(ShellInterception results);
+}

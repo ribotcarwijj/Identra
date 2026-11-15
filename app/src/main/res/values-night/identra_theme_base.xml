@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Legacy custom attrs so classic dialogs/layouts also render inside the new UI (dark). -->
+    <style name="Base.Theme.Identra" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorDisabledHook">@color/darkDisabledHook</item>
+        <item name="colorButtonBackground">@color/lightColorPrimaryButton</item>
+        <item name="colorButtonText">@color/lightColorPrimaryButtonText</item>
+        <item name="expander">@drawable/expander_white</item>
+        <item name="hookError">@drawable/ic_error_outline_white_24dp</item>
+        <item name="hookInstalled">@drawable/ic_done_white_24dp</item>
+        <item name="appPersistent">@drawable/ic_settings_backup_restore_white_24dp</item>
+        <item name="appSettings">@drawable/ic_settings_white_24dp</item>
+        <item name="hookMenu">@drawable/hook_white24</item>
+        <item name="randomButton">@drawable/ic_random_white24</item>
+        <item name="resetButton">@drawable/ic_reset_white24</item>
+        <item name="saveButton">@drawable/ic_save_white24</item>
+        <item name="deleteButton">@drawable/ic_delete_white24</item>
+        <item name="settingMenu">@drawable/ic_setting_ex_white24</item>
+        <item name="configMenu">@drawable/ic_json_white24</item>
+        <item name="propMenu">@drawable/ic_prop_one_white24</item>
+        <item name="logsButton">@drawable/ic_file_one_white24</item>
+        <item name="forceStopButton">@drawable/ic_skull_white24</item>
+        <item name="warningIcon">@drawable/ic_warning_white24</item>
+        <item name="warningIconTwo">@drawable/ic_serv_cold_white24</item>
+        <item name="editIcon">@drawable/ic_edit_white24</item>
+        <item name="bombIcon">@drawable/ic_bomb_white24</item>
+        <item name="resetSettingsIcon">@drawable/ic_reset_settings_white24</item>
+        <item name="checklistIcon">@drawable/ic_checklist_white24</item>
+        <item name="editNoteIcon">@drawable/ic_edit_note_white24</item>
+        <item name="newWindowIcon">@drawable/ic_new_window_white24</item>
+        <item name="diceIcon">@drawable/ic_dice1_white24</item>
+        <item name="addIcon">@drawable/ic_add_white24</item>
+        <item name="fingerPrintIcon">@drawable/ic_finger_white24</item>
+        <item name="squareQuestionIcon">@drawable/ic_square_question_white24</item>
+        <item name="importFile">@drawable/ic_file_open_white24</item>
+        <item name="wildcardButton">@drawable/ic_wildcard_one_white24</item>
+        <item name="profileButton">@drawable/ic_profile_white24</item>
+        <item name="blowIcon">@drawable/ic_blow_white24</item>
+        <item name="colorUnsavedSetting">@color/colorUnsavedSetting</item>
+        <item name="colorSettingSaved">@color/darkColorSettingSaved</item>
+        <item name="colorTextOne">@color/darkColorTextOne</item>
+        <item name="colorTextDivider">@color/darkColorTextDivider</item>
+        <item name="colorDividerBack">@color/darkColorDividerBack</item>
+        <item name="colorSystem">@color/darkColorSystem</item>
+        <item name="colorDrawerScrim">@color/darkColorDrawerScrim</item>
+        <item name="colorDrawerBackground">@color/darkColorDrawerBackground</item>
+    </style>
+</resources>

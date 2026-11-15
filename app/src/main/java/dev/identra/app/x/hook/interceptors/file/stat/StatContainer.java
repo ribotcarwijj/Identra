@@ -1,0 +1,127 @@
+package dev.identra.app.x.hook.interceptors.file.stat;
+
+import android.system.StructStat;
+import android.util.Log;
+
+import dev.identra.app.DebugUtil;
+import dev.identra.app.XParam;
+import dev.identra.app.interceptors.shell.ShellInterception;
+import dev.identra.app.x.Str;
+import dev.identra.app.x.data.string.StrBuilder;
+import dev.identra.app.x.core.LibUtil;
+
+public class StatContainer {
+    private static final String TAG = LibUtil.generateTag(StatContainer.class);
+
+    public String file;
+    public final StatMockSettings fakeSettings;
+
+    public static final String NIO_TAG_LAST_ACCESS = "lastAccessTime";
+    public static final String NIO_TAG_LAST_MODIFIED = "lastModifiedTime";
+    public static final String NIO_TAG_CREATED = "creationTime";
+
+    public StatContainer(String file, XParam param) {
+        this.file = file;
+        fakeSettings = new StatMockSettings(this.file);
+        if(param != null) {
+            fakeSettings.setRomStartSeconds(param);
+            fakeSettings.setTimeZoneOffset(param);
+        }
+    }
+
+    public boolean interceptCommand(String output, ShellInterception result) {
+        try {
+            if(DebugUtil.isDebug()) {
+                Log.d(TAG, "Parsing STAT Command Output for File=" + file + " Output=" + output);
+                Log.d(TAG, "Parsing STAT Command Output for File=" + file + " Settings=" + fakeSettings.toString());
+            }
+
+            String newOutput = StatFileParser.parseFake(output, fakeSettings);
+            if(DebugUtil.isDebug())
+                Log.d(TAG, StrBuilder.create()
+                        .ensureOneNewLinePer(true)
+                        .appendFieldLine("File", file)
+                        .appendLine("--------")
+                        .appendFieldLine("Old Size", output.length())
+                        .appendFieldLine("Old Hex", Str.toHex(output))
+                        .appendLine("--------")
+                        .appendFieldLine("Old", output)
+                        .appendLine("--------")
+                        .appendFieldLine("New Size", newOutput.length())
+                        .appendFieldLine("New Hex", Str.toHex(newOutput))
+                        .appendLine("--------")
+                        .appendFieldLine("New", newOutput)
+                        .toString(true));
+            if(newOutput.equalsIgnoreCase(output)) {
+                if(DebugUtil.isDebug())
+                    Log.d(TAG, "Skipping Cleaning Process Output as its already been Clean");
+                return false;//The Processes are the Same, No need to Intercept whats Already Cleaned
+            }
+
+            result.setIsMalicious(true);
+            result.setNewValue(newOutput);
+
+            result.param.setLogOld(output);
+            result.param.setLogNew(newOutput);
+            result.param.setLogExtra("stat >> " + file);
+            return true;
+        }catch (Exception e) {
+            Log.e(TAG, "Failed to Intercept STAT command output, File=" + file + " Output=" + output + " Error=" + e + " Stack=" + Log.getStackTraceString(e));
+            return false;
+        }
+    }
+
+    public boolean interceptFileLastModified(XParam param) {
+        try {
+            //If its a APK ? then use the List of APPS ????
+            Long result = param.tryGetResult(0L);
+            if(result == null) return false;
+            if(result != 0L) {
+                if(DebugUtil.isDebug()) Log.d(TAG, "Handling File Last Modified, on File=" + file + " Last Modified=" + result);
+                if(DebugUtil.isDebug()) Log.d(TAG, fakeSettings.toString());
+
+                String original = StatUtils.lastModifiedToString(result);
+                String newValue = fakeSettings.getField("modify", original);
+                if(DebugUtil.isDebug())
+                    Log.d(TAG, "File.lastModified(" + this.file + ") Original=" + original + " Original MILLIS=" + result + " New=" + newValue + " New MILLIS=" + StatUtils.stringToLastModified(newValue));
+
+                param.setLogOld(original);
+                param.setLogNew(newValue);
+                param.setLogExtra("lastModified >> " + file);
+
+                param.setResult(StatUtils.stringToLastModified(newValue));
+                if(DebugUtil.isDebug()) Log.d(TAG, fakeSettings.toString());
+                return true;
+            } else {
+                Log.e(TAG, "File Last Modified is not 0 [File.lastModified] File=" + file);
+                return false;
+            }
+        }catch (Throwable e) {
+            Log.e(TAG, "Error Intercepting File Last Modified, Error=" + e);
+            return false;
+        }
+    }
+
+    public boolean interceptStruct(XParam param) {
+        try {
+            Object result = param.tryGetResult(null);
+            if(result instanceof StructStat) {
+                fakeSettings.cleanStructure(result, param);
+                param.setResult(result);
+                if(DebugUtil.isDebug())
+                    Log.d(TAG, fakeSettings.toString());
+                return true;
+            } else {
+                Log.e(TAG, "Struct STAT is not Type [StructStat] ! Skipping, type=" + (result == null ? "null" : result.getClass().getName()) + " File=" + file);
+                return false;
+            }
+        }catch (Throwable e) {
+            Log.e(TAG, "Error Intercepting Struct for STAT, Error=" + e + " Stack=" + Log.getStackTraceString(e));
+            return false;
+        }
+    }
+
+    public boolean interceptCommand() {
+        return false;
+    }
+}
