@@ -52,8 +52,8 @@ Identra is an Xposed module for rooted Android, built on the modern **libxposed 
 - Revert a copy to the real device identity at any time.
 
 ### Auto-update
-- Identra checks this repository's GitHub Releases (silently, at most every 6 hours) and offers new versions.
-- **Check for updates** and an **Auto‑check** switch in the side menu. Updates install through root.
+- Identra checks this repository's GitHub Releases (every time you open the app) and shows new versions with their changelog.
+- **Check for updates** and an **Auto‑check** switch in the side menu. One tap downloads and installs the update through root and reopens Identra.
 
 ### Advanced tools
 Collections, hook definitions (Lua and native Java interceptors), all values, CPU maps, database, backup & restore, logs.
