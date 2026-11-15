@@ -315,4 +315,11 @@ public class HomeActivity extends AppCompatActivity {
             Log.e(TAG, "License dialog failed: " + t);
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 0.7.35: the launcher is HomeActivity (ActivityMain is legacy), so the update check lives here.
+        dev.identra.app.update.IdentraUpdater.autoCheck(this);
+    }
 }

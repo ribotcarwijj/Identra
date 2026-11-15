@@ -112,6 +112,11 @@ public class IdentraSettingsFragment extends Fragment {
         LinearLayout about = IdentraRows.card(list);
         IdentraRows.row(about, R.drawable.ic_identra_help, getString(R.string.identra_about_help), getString(R.string.identra_help_row_desc),
                 v -> startActivity(new Intent(ctx, IdentraHelpActivity.class)));
+        IdentraRows.row(about, R.drawable.ic_identra_restart, getString(R.string.menu_check_update), BuildConfig.VERSION_NAME,
+                v -> dev.identra.app.update.IdentraUpdater.check(requireActivity(), true));
+        IdentraRows.switchRow(about, R.drawable.ic_identra_bell, getString(R.string.menu_auto_update), null,
+                dev.identra.app.update.IdentraUpdater.isAutoEnabled(ctx),
+                (b, on) -> dev.identra.app.update.IdentraUpdater.setAutoEnabled(ctx, on));
         IdentraRows.row(about, R.drawable.ic_identra_info, getString(R.string.app_name),
                 getString(R.string.identra_about_version_code, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE), null);
     }
