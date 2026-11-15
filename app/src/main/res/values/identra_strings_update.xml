@@ -13,4 +13,12 @@
     <string name="update_installing">Installing…</string>
     <string name="update_changelog">What\'s new:</string>
     <string name="update_later">Later</string>
+    <string name="identra_picker_search">Search apps</string>
+    <string name="identra_picker_show_system">Show system apps</string>
+    <string name="identra_picker_keyboard">Keyboard</string>
+    <string name="identra_picker_system">System</string>
+    <plurals name="identra_picker_selected">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
 </resources>

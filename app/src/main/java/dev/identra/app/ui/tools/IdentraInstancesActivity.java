@@ -73,7 +73,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
     private static final String KEEP = "android|com\\.google\\.android\\.trichromelibrary.*|com\\.google\\.android\\.webview|com\\.android\\.webview"
             + "|com\\.google\\.android\\.gms|com\\.google\\.android\\.gsf|com\\.android\\.providers\\..*|com\\.google\\.android\\.providers\\..*"
             + "|com\\.android\\.permissioncontroller|com\\.google\\.android\\.permissioncontroller|com\\.android\\.networkstack.*|com\\.google\\.android\\.networkstack.*"
-            + "|com\\.android\\.shell|com\\.android\\.externalstorage|com\\.android\\.keychain|com\\.android\\.certinstaller|.*inputmethod.*"
+            + "|com\\.android\\.shell|com\\.android\\.externalstorage|com\\.android\\.keychain|com\\.android\\.certinstaller"
             + "|com\\.google\\.android\\.packageinstaller|com\\.android\\.packageinstaller|com\\.android\\.location\\.fused|com\\.android\\.se"
             + "|com\\.android\\.wifi.*|com\\.google\\.android\\.wifi.*|com\\.google\\.android\\.adservices.*|com\\.android\\.adservices.*"
             + "|com\\.google\\.android\\.ext\\.services|com\\.android\\.inputdevices|com\\.android\\.phone|dev\\.identra\\.app";
@@ -213,7 +213,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
         t.setText(name);
         TextView sub = new TextView(this);
         sub.setTextAppearance(R.style.TextAppearance_Identra_Caption);
-        sub.setText(getString(R.string.identra_instances_meta, getResources().getQuantityString(R.plurals.identra_instances_apps_n, apps.size(), apps.size()),
+        sub.setText(getString(R.string.identra_instances_meta, getResources().getQuantityString(R.plurals.identra_instances_apps_n, identityApps(apps).size(), identityApps(apps).size()),
                 gms ? getString(R.string.identra_instances_gms_on) : getString(R.string.identra_instances_gms_off))
                 + (exists ? "" : " · " + getString(R.string.identra_instances_missing)));
         titles.addView(t);
@@ -235,12 +235,13 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
         GridLayout grid = new GridLayout(this);
         grid.setColumnCount(4);
         grid.setPadding(IdentraRows.dp(this, 8), IdentraRows.dp(this, 8), IdentraRows.dp(this, 8), IdentraRows.dp(this, 12));
-        for (String app : apps) grid.addView(appCell(user, app, apps, cfg, store), cellLp());
+        List<String> shownApps = identityApps(apps);
+        for (String app : shownApps) grid.addView(appCell(user, app, apps, cfg, store), cellLp());
         View add = cell(getDrawable(R.drawable.ic_identra_add), getString(R.string.identra_instances_add_app), true);
         add.setOnClickListener(v -> pickApps(getString(R.string.identra_instances_apps), apps, sel -> editApps(user, apps, sel, cfg)));
         grid.addView(add, cellLp());
         // 0.7.26: fill the last row so every cell is a quarter wide, whatever the app count.
-        for (int i = (apps.size() + 1) % 4; i != 0 && i < 4; i++) grid.addView(new android.widget.Space(this), cellLp());
+        for (int i = (shownApps.size() + 1) % 4; i != 0 && i < 4; i++) grid.addView(new android.widget.Space(this), cellLp());
         card.addView(grid);
     }
 
@@ -315,7 +316,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
 
     private void folderMenu(int user, String name, List<String> apps, boolean gms, Map<Integer, List<String>> cfg) {
         IdentraSheet sheet = new IdentraSheet(this).title(name)
-                .sub(getString(R.string.identra_instances_meta, getResources().getQuantityString(R.plurals.identra_instances_apps_n, apps.size(), apps.size()),
+                .sub(getString(R.string.identra_instances_meta, getResources().getQuantityString(R.plurals.identra_instances_apps_n, identityApps(apps).size(), identityApps(apps).size()),
                         gms ? getString(R.string.identra_instances_gms_on) : getString(R.string.identra_instances_gms_off)));
         LinearLayout c = IdentraRows.card(sheet.content());
         IdentraRows.row(c, R.drawable.ic_identra_add, getString(R.string.identra_instances_apps), null,
@@ -641,36 +642,26 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
 
     interface PickedApps { void onPicked(List<String> pkgs); }
 
-    /** Multi-select of every launchable app on the owner profile. */
+    /** 0.7.34: searchable picker with system apps; keyboards pre-ticked for a new instance. */
     private void pickApps(String title, List<String> preselected, PickedApps cb) {
-        PackageManager pm = getPackageManager();
-        Intent li = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
-        Map<String, String> byPkg = new LinkedHashMap<>();
-        for (ResolveInfo ri : pm.queryIntentActivities(li, 0)) {
-            String p = ri.activityInfo.packageName;
-            if (getPackageName().equals(p) || byPkg.containsKey(p)) continue;
-            byPkg.put(p, String.valueOf(ri.loadLabel(pm)));
-        }
-        for (String p : preselected) if (!byPkg.containsKey(p)) byPkg.put(p, label(p));
-        List<String> pkgs = new ArrayList<>(byPkg.keySet());
-        Collections.sort(pkgs, (a, b) -> {
-            boolean sa = preselected.contains(a), sb = preselected.contains(b);
-            if (sa != sb) return sa ? -1 : 1;
-            return byPkg.get(a).compareToIgnoreCase(byPkg.get(b));
-        });
-        CharSequence[] names = new CharSequence[pkgs.size()];
-        boolean[] checked = new boolean[pkgs.size()];
-        for (int i = 0; i < pkgs.size(); i++) { names[i] = byPkg.get(pkgs.get(i)); checked[i] = preselected.contains(pkgs.get(i)); }
-        new AlertDialog.Builder(this)
-                .setTitle(title)
-                .setMultiChoiceItems(names, checked, (d, i, on) -> checked[i] = on)
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(android.R.string.ok, (d, w) -> {
-                    List<String> sel = new ArrayList<>();
-                    for (int i = 0; i < pkgs.size(); i++) if (checked[i]) sel.add(pkgs.get(i));
-                    if (sel.isEmpty()) Toast.makeText(this, R.string.identra_instances_pick_one, Toast.LENGTH_SHORT).show();
-                    else cb.onPicked(sel);
-                }).show();
+        InstanceAppPicker.show(this, title, preselected, preselected.isEmpty(), cb::onPicked);
+    }
+
+    /** Apps that get an identity (keyboards don't). */
+    private List<String> identityApps(List<String> pkgs) {
+        List<String> out = new ArrayList<>();
+        for (String p : pkgs) if (!InstanceAppPicker.isKeyboard(this, p)) out.add(p);
+        return out;
+    }
+
+    /** Shell that enables the chosen keyboards inside the clone user. */
+    private String imeEnable(String user, List<String> pkgs) {
+        StringBuilder sb = new StringBuilder();
+        List<String> ids = InstanceAppPicker.imeIds(this, pkgs);
+        for (String id : ids) sb.append("ime enable --user ").append(user).append(' ').append(q(id)).append(" >/dev/null 2>&1\n");
+        String def = InstanceAppPicker.defaultKeyboard(this);
+        for (String id : ids) if (id.startsWith(def + "/")) { sb.append("ime set --user ").append(user).append(' ').append(q(id)).append(" >/dev/null 2>&1\n"); break; }
+        return sb.toString();
     }
 
     private void open(int user, String app) {
@@ -698,8 +689,10 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
         sb.append("settings put global ").append(KEY).append(' ').append(q(format(m))).append('\n');
         List<String> added = new ArrayList<>();
         for (String a : after) if (!before.contains(a)) added.add(a);
+        sb.append(imeEnable(String.valueOf(user), added));
         shell(sb.toString(), true);
-        if (!added.isEmpty()) newIdentity(user, added);
+        List<String> idApps = identityApps(added);
+        if (!idApps.isEmpty()) newIdentity(user, idApps);
     }
 
     private void confirmRemove(int user, Map<Integer, List<String>> cfg) {
@@ -741,7 +734,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
 
     private void askGms(List<String> pkgs, Map<Integer, List<String>> cfg) {
         new AlertDialog.Builder(this)
-                .setTitle(label(pkgs.get(0)) + (pkgs.size() > 1 ? " +" + (pkgs.size() - 1) : ""))
+                .setTitle(label(identityApps(pkgs).get(0)) + (identityApps(pkgs).size() > 1 ? " +" + (identityApps(pkgs).size() - 1) : ""))
                 .setMessage(R.string.identra_instances_gms_q)
                 .setNegativeButton(R.string.identra_instances_gms_no, (d, w) -> create(pkgs, false, cfg))
                 .setPositiveButton(R.string.identra_instances_gms_yes, (d, w) -> create(pkgs, true, cfg))
@@ -755,6 +748,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
         IdentraData.EXECUTOR.submit(() -> {
             long t0 = System.currentTimeMillis();
             String allow = String.join("|", pkgs) + (gms ? "|" + GMS : "");
+            String ime = imeEnable("$U", pkgs);
             String mine = String.join("|", pkgs).replace(".", "\\.");
             StringBuilder inst = new StringBuilder();
             for (String p : pkgs) inst.append("cmd package install-existing --user $U ").append(q(p)).append(" >/dev/null 2>&1\n");
@@ -772,6 +766,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
                   + "cmd package list packages --user $U | cut -d: -f2 | grep -vE '^(" + KEEP + "|" + mine + ")$' "
                   + "| xargs -n 1 -P 6 cmd package uninstall -k --user $U >/dev/null 2>&1\n"
                   + "am start-user $U >/dev/null 2>&1\n"
+                  + ime
                   + "echo \"OK $U $(cmd package list packages --user $U | wc -l)\"\n";
             AppDataVault.Result r = AppDataVault.run(script, 240);
             Log.i(TAG, "create " + pkgs + " in " + (System.currentTimeMillis() - t0) + "ms: " + r.output);
@@ -782,8 +777,10 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
                 MAIN_H.post(() -> {
                     Toast.makeText(app, R.string.identra_instances_created, Toast.LENGTH_SHORT).show();
                     IdentraInstancesActivity a = alive();
-                    if (a != null) a.newIdentity(u, pkgs);
-                    else background(app, u, pkgs, null);
+                    List<String> idApps = new ArrayList<>();
+                    for (String p : pkgs) if (!InstanceAppPicker.isKeyboard(app, p)) idApps.add(p);
+                    if (a != null) a.newIdentity(u, idApps);
+                    else background(app, u, idApps, null);
                 });
                 return;
             }
