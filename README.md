@@ -26,6 +26,14 @@ Identra is an Xposed module for rooted Android, built on the modern **libxposed 
 | Needs | Root (Magisk / KernelSU / APatch) + Vector or LSPosed with libxposed API 102 |
 | License | GPL‑3.0 |
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/assets/screen-home.png" width="250" alt="Home">
+  <img src="docs/assets/screen-profiles.png" width="250" alt="Profiles">
+  <img src="docs/assets/screen-settings.png" width="250" alt="Settings">
+</p>
+
 ## Features
 
 ### Per-app protection
