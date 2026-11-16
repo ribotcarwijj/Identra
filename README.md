@@ -1,4 +1,19 @@
-# Identra
+<p align="center">
+  <img src="docs/assets/icon.png" width="128" alt="Identra icon">
+</p>
+
+<h1 align="center">Identra</h1>
+
+<p align="center">
+  <a href="https://github.com/ribotcarwijj/Identra/releases/latest"><img src="https://img.shields.io/badge/Download-latest%20APK-2ea44f?style=for-the-badge&logo=android&logoColor=white" alt="Download latest APK"></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/ribotcarwijj/Identra?label=version" alt="version">
+  <img src="https://img.shields.io/badge/Android-8.1%20to%2017-3ddc84?logo=android&logoColor=white" alt="Android">
+  <img src="https://img.shields.io/badge/libxposed-API%20102-blue" alt="libxposed API 102">
+  <img src="https://img.shields.io/github/license/ribotcarwijj/Identra" alt="license">
+</p>
 
 **Identra decides what apps can learn about your phone.** Model, Android build, IDs, IMEI, SIM, phone number, Wi‑Fi and Bluetooth addresses, language, time zone, location, sensors and more — controlled app by app, with complete fake device profiles you can save, switch and restore.
 
