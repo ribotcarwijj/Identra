@@ -1,8 +1,6 @@
-## Identra 0.7.37
+## Identra 0.7.38
 
-- **Animated status on Home**: a pulse shows at a glance whether LSPosed / Vector is connected. If root permission is missing, Home says so and lists what won't work.
-- **Instances stay in Recents**: apps opened in an instance no longer disappear from the recent apps screen when you switch away.
-- **Keyboard shows in the instance**: a keyboard you add (e.g. Gboard) appears in the instance folder; tap it to remove it.
-- **Google sign-in in instances**: Google check-in is triggered automatically after Play Services is enabled.
-- **Fixes**: instances keep their phone service when apps are edited; the last real app can't be removed by mistake; background code scans no longer run many times in parallel (less CPU and battery).
+- **All groups switch**: the app's group list now starts with an "All groups" row. Turning it on enables every group, turning it off really disables them all.
+- **Pick single hooks**: long-press any group to see the hooks inside and tick or untick them one by one (with an All / None button).
+- **Fix**: switching a group or an app off now actually removes its hooks (before, off sometimes did nothing).
 
