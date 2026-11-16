@@ -62,6 +62,11 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
     private static final String GMS = String.join("|", GMS_PKGS);
     private static final String GMS_PERMS = "android.permission.BLUETOOTH_CONNECT android.permission.BLUETOOTH_SCAN android.permission.BLUETOOTH_ADVERTISE";
     static boolean isGmsPkg(String p) { for (String g : GMS_PKGS) if (g.equals(p)) return true; return false; }
+    /** 0.7.36: Google sign-in fails until GMS has checked in; nudge it ~25 s after GMS is enabled (detached). */
+    static String checkin(String user) {
+        return "nohup sh -c 'sleep 25; am broadcast --user " + user + " -a android.server.checkin.CHECKIN -p com.google.android.gms' >/dev/null 2>&1 &\n";
+    }
+
     /** Shell that installs the Play Services set into a clone user and grants GMS its Bluetooth permissions. */
     static String gmsInstall(String user) {
         StringBuilder sb = new StringBuilder();
@@ -213,7 +218,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
         t.setText(name);
         TextView sub = new TextView(this);
         sub.setTextAppearance(R.style.TextAppearance_Identra_Caption);
-        sub.setText(getString(R.string.identra_instances_meta, getResources().getQuantityString(R.plurals.identra_instances_apps_n, identityApps(apps).size(), identityApps(apps).size()),
+        sub.setText(getString(R.string.identra_instances_meta, getResources().getQuantityString(R.plurals.identra_instances_apps_n, apps.size(), apps.size()),
                 gms ? getString(R.string.identra_instances_gms_on) : getString(R.string.identra_instances_gms_off))
                 + (exists ? "" : " · " + getString(R.string.identra_instances_missing)));
         titles.addView(t);
@@ -235,7 +240,9 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
         GridLayout grid = new GridLayout(this);
         grid.setColumnCount(4);
         grid.setPadding(IdentraRows.dp(this, 8), IdentraRows.dp(this, 8), IdentraRows.dp(this, 8), IdentraRows.dp(this, 12));
-        List<String> shownApps = identityApps(apps);
+        // 0.7.36: keyboards are shown again (owner: "Gboard added but not visible"), sorted after the apps
+        List<String> shownApps = new ArrayList<>(identityApps(apps));
+        for (String app : apps) if (!shownApps.contains(app)) shownApps.add(app);
         for (String app : shownApps) grid.addView(appCell(user, app, apps, cfg, store), cellLp());
         View add = cell(getDrawable(R.drawable.ic_identra_add), getString(R.string.identra_instances_add_app), true);
         add.setOnClickListener(v -> pickApps(getString(R.string.identra_instances_apps), apps, sel -> editApps(user, apps, sel, cfg)));
@@ -254,6 +261,13 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
     private View appCell(int user, String app, List<String> apps, Map<Integer, List<String>> cfg, ProfileStore store) {
         Drawable d;
         try { d = getPackageManager().getApplicationIcon(app); } catch (Throwable t) { d = getDrawable(R.drawable.ic_identra_apps); }
+        if (InstanceAppPicker.isKeyboard(this, app)) {
+            // a keyboard has no screen to open and no identity: tap = small sheet (remove)
+            View k = cell(d, label(app), false);
+            k.setOnClickListener(v -> keyboardSheet(user, app, apps, cfg));
+            k.setOnLongClickListener(v -> { keyboardSheet(user, app, apps, cfg); return true; });
+            return k;
+        }
         View c = cell(d, label(app), false);
         Profile prof = store.profileFor(app, cloneUid(user, app));
         if (prof != null) {
@@ -316,7 +330,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
 
     private void folderMenu(int user, String name, List<String> apps, boolean gms, Map<Integer, List<String>> cfg) {
         IdentraSheet sheet = new IdentraSheet(this).title(name)
-                .sub(getString(R.string.identra_instances_meta, getResources().getQuantityString(R.plurals.identra_instances_apps_n, identityApps(apps).size(), identityApps(apps).size()),
+                .sub(getString(R.string.identra_instances_meta, getResources().getQuantityString(R.plurals.identra_instances_apps_n, apps.size(), apps.size()),
                         gms ? getString(R.string.identra_instances_gms_on) : getString(R.string.identra_instances_gms_off)));
         LinearLayout c = IdentraRows.card(sheet.content());
         IdentraRows.row(c, R.drawable.ic_identra_add, getString(R.string.identra_instances_apps), null,
@@ -356,7 +370,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
         Map<Integer, List<String>> m = new LinkedHashMap<>(cfg);
         m.put(user, full);
         String sh;
-        if (on) sh = gmsInstall(String.valueOf(user)) + "cmd package install-existing --user " + user + " com.android.phone >/dev/null 2>&1\n";
+        if (on) sh = gmsInstall(String.valueOf(user)) + "cmd package install-existing --user " + user + " com.android.phone >/dev/null 2>&1\n" + checkin(String.valueOf(user));
         else { StringBuilder b = new StringBuilder(); for (String g : GMS_PKGS) b.append("am force-stop --user ").append(user).append(' ').append(g).append('\n'); sh = b.toString(); }
         shell(sh + "settings put global " + KEY + " " + q(format(m)) + "\n", true);
     }
@@ -439,13 +453,26 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
             shell("am force-stop --user " + user + " " + q(app), false);
             snack(getString(R.string.identra_instances_stopped));
         });
-        if (apps.size() > 1)
+        if (identityApps(apps).size() > 1)
             IdentraRows.row(more, R.drawable.ic_identra_delete, getString(R.string.identra_instances_remove_app), null, v -> {
                 sheet.dismiss();
                 List<String> rest = new ArrayList<>(apps);
                 rest.remove(app);
                 editApps(user, apps, rest, cfg);
             });
+        sheet.show();
+    }
+
+    private void keyboardSheet(int user, String app, List<String> apps, Map<Integer, List<String>> cfg) {
+        IdentraSheet sheet = new IdentraSheet(this).title(label(app) + " · " + InstanceNames.get(this, user))
+                .sub(getString(R.string.identra_instances_keyboard_sub));
+        LinearLayout c = IdentraRows.card(sheet.content());
+        IdentraRows.row(c, R.drawable.ic_identra_delete, getString(R.string.identra_instances_remove_app), null, v -> {
+            sheet.dismiss();
+            List<String> rest = new ArrayList<>(apps);
+            rest.remove(app);
+            editApps(user, apps, rest, cfg);
+        });
         sheet.show();
     }
 
@@ -680,6 +707,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
         List<String> full = new ArrayList<>(after);
         List<String> old = cfg.get(user);
         if (old != null && old.contains("com.google.android.gms")) Collections.addAll(full, GMS_PKGS);
+        if (old != null && old.contains("com.android.phone") && !full.contains("com.android.phone")) full.add("com.android.phone");
         Map<Integer, List<String>> m = new LinkedHashMap<>(cfg);
         m.put(user, full);
         StringBuilder sb = new StringBuilder();
@@ -767,6 +795,7 @@ public class IdentraInstancesActivity extends IdentraScreenActivity {
                   + "| xargs -n 1 -P 6 cmd package uninstall -k --user $U >/dev/null 2>&1\n"
                   + "am start-user $U >/dev/null 2>&1\n"
                   + ime
+                  + (gms ? checkin("$U") : "")
                   + "echo \"OK $U $(cmd package list packages --user $U | wc -l)\"\n";
             AppDataVault.Result r = AppDataVault.run(script, 240);
             Log.i(TAG, "create " + pkgs + " in " + (System.currentTimeMillis() - t0) + "ms: " + r.output);

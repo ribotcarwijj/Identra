@@ -115,11 +115,10 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <View
+                    <dev.identra.app.ui.StatusPulseView
                         android:id="@+id/dashDot"
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:background="@drawable/bg_identra_dot_warn" />
+                        android:layout_width="64dp"
+                        android:layout_height="64dp" />
 
                     <TextView
                         android:id="@+id/dashStatusTitle"
@@ -137,6 +136,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
+                    android:textAppearance="@style/TextAppearance.Identra.RowSub" />
+
+                <TextView
+                    android:id="@+id/dashFramework"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:drawablePadding="8dp"
+                    android:textAppearance="@style/TextAppearance.Identra.RowSub" />
+
+                <TextView
+                    android:id="@+id/dashRoot"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:textAppearance="@style/TextAppearance.Identra.RowSub" />
 
                 <View

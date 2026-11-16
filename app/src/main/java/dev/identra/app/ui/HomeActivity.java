@@ -63,6 +63,8 @@ public class HomeActivity extends AppCompatActivity {
         public int message;
         public boolean offerLsposed;
         public String bridge;
+        /** 0.7.36: null = not checked yet. */
+        public Boolean root;
     }
 
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -250,6 +252,9 @@ public class HomeActivity extends AppCompatActivity {
                 String b = GetBridgeVersionCommand.get(this);
                 if (!Str.isEmpty(b) && !b.equalsIgnoreCase(GetBridgeVersionCommand.DEFAULT)) bridgeVersion = b;
             } catch (Throwable ignored) { }
+            boolean rootOk;
+            try { rootOk = dev.identra.app.ui.profiles.AppDataVault.hasRoot(false); } catch (Throwable t) { rootOk = false; }
+            final boolean fRoot = rootOk;
             final int fMessage = message;
             final boolean fOffer = offerLsposed;
             final String fBridge = bridgeVersion;
@@ -259,6 +264,7 @@ public class HomeActivity extends AppCompatActivity {
                 status.offerLsposed = fOffer;
                 status.available = !fOffer;
                 status.bridge = fBridge;
+                status.root = fRoot;
                 updateBanner();
                 Fragment f = getSupportFragmentManager().findFragmentByTag(TAG_HOME);
                 if (f instanceof IdentraDashboardFragment) ((IdentraDashboardFragment) f).onStatus();

@@ -211,8 +211,18 @@ public final class CloneKeeper {
 
     // ---------- hide from the owner's view ----------
 
+    /**
+     * 0.7.37: >0 while this thread is inside IUserManager.Stub.onTransact, i.e. another process asked
+     * UserManagerService directly. Internal system_server calls made while serving some other binder call
+     * (RecentTasks for the launcher's getRecentTasks, ActivityStarter, ...) must see the clone users,
+     * otherwise clone tasks vanish from Recents and get trimmed.
+     */
+    private static final ThreadLocal<int[]> IN_UM_BINDER = ThreadLocal.withInitial(() -> new int[1]);
+    private static volatile boolean binderGate;
+
     private static boolean shouldHide(Object[] args) {
         if (cloneIds.isEmpty()) return false;
+        if (binderGate && IN_UM_BINDER.get()[0] == 0) return false;   // not a direct IUserManager call
         if (Binder.getCallingPid() == Process.myPid()) return false;   // system_server itself
         int uid = Binder.getCallingUid();
         int appId = uid % 100000;
@@ -227,6 +237,17 @@ public final class CloneKeeper {
     }
 
     private static void hookUserLists(ClassLoader loader) {
+        try {
+            Class<?> stub = Class.forName("android.os.IUserManager$Stub", false, loader);
+            XC_MethodHook gate = new XC_MethodHook() {
+                @Override protected void beforeHookedMethod(MethodHookParam param) { IN_UM_BINDER.get()[0]++; }
+                @Override protected void afterHookedMethod(MethodHookParam param) { IN_UM_BINDER.get()[0]--; }
+            };
+            binderGate = XposedBridge.hookAllMethods(stub, "onTransact", gate).size() > 0;
+            Log.i(TAG, "user binder gate " + binderGate);
+        } catch (Throwable t) {
+            Log.w(TAG, "user binder gate failed: " + t);
+        }
         try {
             Class<?> ums = Class.forName("com.android.server.pm.UserManagerService", false, loader);
             XC_MethodHook filter = new XC_MethodHook() {

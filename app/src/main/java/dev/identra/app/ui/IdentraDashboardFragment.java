@@ -99,26 +99,41 @@ public class IdentraDashboardFragment extends Fragment {
     public void onStatus() {
         if (root == null || !isAdded()) return;
         HomeActivity.Status st = home().status();
-        View dot = root.findViewById(R.id.dashDot);
+        StatusPulseView dot = root.findViewById(R.id.dashDot);
+        TextView fw = root.findViewById(R.id.dashFramework);
+        TextView rootLine = root.findViewById(R.id.dashRoot);
         TextView title = root.findViewById(R.id.dashStatusTitle);
         TextView body = root.findViewById(R.id.dashStatusBody);
         TextView bridge = root.findViewById(R.id.dashBridge);
         View banner = root.findViewById(R.id.dashBanner);
         if (!st.checked) {
-            dot.setBackgroundResource(R.drawable.bg_identra_dot_warn);
+            dot.setState(StatusPulseView.CHECKING);
             title.setText(R.string.identra_dash_checking);
             body.setText(null);
+            fw.setText(null);
+            rootLine.setText(null);
             bridge.setText(null);
             banner.setVisibility(View.GONE);
             return;
         }
-        if (st.message == 0) {
-            dot.setBackgroundResource(R.drawable.bg_identra_dot_ok);
+        boolean noRoot = st.root != null && !st.root;
+        fw.setText(st.available ? getString(R.string.identra_dash_fw_ok) : getString(R.string.identra_dash_fw_off));
+        fw.setTextColor(st.available ? 0xFF2E9E5B : 0xFFD84343);
+        rootLine.setText(noRoot ? getString(R.string.identra_dash_root_missing) : getString(R.string.identra_dash_root_ok));
+        rootLine.setTextColor(noRoot ? 0xFFD84343 : 0xFF2E9E5B);
+        if (st.message == 0 && !noRoot) {
+            dot.setState(StatusPulseView.OK);
             title.setText(R.string.identra_dash_active);
             body.setText(R.string.identra_dash_active_body);
             banner.setVisibility(View.GONE);
+        } else if (st.message == 0) {
+            // module fine, root missing
+            dot.setState(StatusPulseView.WARN);
+            title.setText(R.string.identra_dash_attention);
+            body.setText(R.string.identra_dash_root_missing_body);
+            banner.setVisibility(View.GONE);
         } else {
-            dot.setBackgroundResource(st.available ? R.drawable.bg_identra_dot_warn : R.drawable.bg_identra_dot_off);
+            dot.setState(st.available ? StatusPulseView.WARN : StatusPulseView.OFF);
             title.setText(st.available ? R.string.identra_dash_attention : R.string.identra_dash_inactive);
             body.setText(st.message);
             ((TextView) root.findViewById(R.id.dashBannerText)).setText(st.message);

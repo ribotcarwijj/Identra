@@ -61,11 +61,25 @@ public final class FoundStore {
     }
 
     /** Scans now (blocking) unless a valid cache exists or force is set. Returns the likely ids. */
+    private static final java.util.concurrent.ConcurrentHashMap<String, Object> SCAN_LOCKS = new java.util.concurrent.ConcurrentHashMap<>();
+
     public static Set<String> scan(Context context, String pkg, boolean force) {
         if (!force) {
             Set<String> c = cachedScan(context, pkg);
             if (c != null) return c;
         }
+        // 0.7.36: one scan per package at a time; parallel callers (seen ~15x for vending) wait and reuse the result
+        Object lock = SCAN_LOCKS.computeIfAbsent(pkg, k -> new Object());
+        synchronized (lock) {
+            if (!force) {
+                Set<String> c = cachedScan(context, pkg);
+                if (c != null) return c;
+            }
+            return scanLocked(context, pkg);
+        }
+    }
+
+    private static Set<String> scanLocked(Context context, String pkg) {
         try {
             ApplicationInfo ai = context.getPackageManager().getApplicationInfo(pkg, 0);
             DexScanner.Result r = DexScanner.scan(ai.sourceDir, ai.splitSourceDirs);
