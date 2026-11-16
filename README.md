@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/ribotcarwijj/Identra/releases/latest"><img src="https://img.shields.io/badge/Download-latest%20APK-2ea44f?style=for-the-badge&logo=android&logoColor=white" alt="Download latest APK"></a>
+  <a href="https://github.com/ribotcarwijj/Identra/releases"><img src="https://img.shields.io/github/downloads/ribotcarwijj/Identra/total?style=for-the-badge&label=downloads&color=0a7cff" alt="Total downloads"></a>
 </p>
 
 <p align="center">
