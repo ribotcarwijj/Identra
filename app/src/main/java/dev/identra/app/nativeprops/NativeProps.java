@@ -87,6 +87,12 @@ public final class NativeProps {
         return false;
     }
 
+    private static boolean hasEnvHook(java.util.Set<String> assigned) {
+        if (assigned == null) return false;
+        for (String id : assigned) if (id != null && id.startsWith("Identra.") && id.endsWith("/Environment")) return true;
+        return false;
+    }
+
     private static String nonEmpty(Map<String, String> settings, String name) {
         String v = settings.get(name);
         return v == null || v.trim().isEmpty() || v.contains("%") ? null : v.trim();
@@ -152,6 +158,17 @@ public final class NativeProps {
                     if (mem != null && !mem.isEmpty()) { keys.add(FILE + "/proc/meminfo"); vals.add(mem.endsWith("\n") ? mem : mem + "\n"); specials++; }
                 } catch (Throwable ignored) { }
             }
+        }
+        // 0.7.39: universal native stealth - on for any app that has the Hide.Environment group
+        // (Identra.*/Environment hooks). Filters /proc/self/maps|smaps|mountinfo, dl_iterate_phdr,
+        // su/Magisk/LSPosed paths (open/access/stat/fopen) and directory listings, for app code only.
+        if (hasEnvHook(assigned)) {
+            String tok = nonEmpty(settings, "hide.native.tokens");
+            String paths = nonEmpty(settings, "hide.native.paths");
+            keys.add("@stealth:on"); vals.add(tok == null ? "" : tok);
+            if (paths != null) { keys.add("@stealth:paths"); vals.add(paths); }
+            specials++;
+            Log.i(TAG, packageName + ": native stealth on");
         }
         Log.i(TAG, packageName + ": settings=" + settings.size() + " propRules exact=" + (keys.size() - specials) + " prefix=" + pfx.size()
                 + " specials=" + specials + " sample=" + (keys.isEmpty() ? "-" : keys.get(0)));

@@ -34,6 +34,9 @@
 #include <errno.h>
 #include <ctype.h>
 #include <regex>
+#include <link.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 #define TAG "Identra.Native"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
@@ -63,11 +66,15 @@ struct Table {
     std::string un_release, un_version, un_nodename;
     // 0.7.7: GL strings (glGetString answers; strdup'ed, never freed so old pointers stay valid)
     const char *gl_vendor = nullptr, *gl_renderer = nullptr, *gl_version = nullptr;
+    // 0.7.39: universal native stealth (on when the Hide.Environment group is assigned)
+    bool stealth = false;
+    std::vector<std::string> st_tokens;   // lowercase substrings: maps/mounts lines, loaded libs, dir entries, paths
+    std::vector<std::string> st_paths;    // exact paths / path prefixes that read as missing
 };
 static std::atomic<Table *> g_table{nullptr};
 
 // counters for the status string
-static std::atomic<uint32_t> c_get{0}, c_cb{0}, c_read{0}, c_find_hidden{0}, c_foreach_hidden{0}, c_popen{0}, c_file{0}, c_uname{0}, c_gl{0};
+static std::atomic<uint32_t> c_get{0}, c_cb{0}, c_read{0}, c_find_hidden{0}, c_foreach_hidden{0}, c_popen{0}, c_file{0}, c_uname{0}, c_gl{0}, c_st_maps{0}, c_st_path{0}, c_st_dl{0}, c_st_dir{0};
 
 // Returns nullptr when the key has no rule; otherwise the value ("" = hide).
 static const std::string *rule_for(const char *name) {
@@ -214,7 +221,7 @@ static const std::string *file_for(const char *path) {
 
 // read-only fd with the content (memfd; the caller reads it like the real file)
 static int content_fd(const std::string &content, int flags) {
-    int fd = (int) syscall(__NR_memfd_create, "identra", (flags & O_CLOEXEC) ? 1U /*MFD_CLOEXEC*/ : 0U);
+    int fd = (int) syscall(__NR_memfd_create, "jit-cache", (flags & O_CLOEXEC) ? 1U /*MFD_CLOEXEC*/ : 0U);
     if (fd < 0) return -1;
     size_t off = 0;
     while (off < content.size()) {
@@ -226,7 +233,10 @@ static int content_fd(const std::string &content, int flags) {
     return fd;
 }
 
-static int try_serve(const char *path, int flags) {
+static int stealth_serve(const char *path, int flags, void *ra);
+static int try_serve(const char *path, int flags, void *ra = nullptr) {
+    int sfd = stealth_serve(path, flags, ra);
+    if (sfd != -1) return sfd;   // -2 = hidden (errno ENOENT), >=0 = filtered content
     if ((flags & O_ACCMODE) != O_RDONLY) return -1;
     const std::string *c = file_for(path);
     if (c == nullptr) return -1;
@@ -238,33 +248,51 @@ static int try_serve(const char *path, int flags) {
 static int h_open(const char *path, int flags, ...) {
     mode_t mode = 0;
     if ((flags & O_CREAT) || (flags & __O_TMPFILE) == __O_TMPFILE) { va_list ap; va_start(ap, flags); mode = (mode_t) va_arg(ap, int); va_end(ap); }
-    int fd = try_serve(path, flags);
+    int fd = try_serve(path, flags, __builtin_return_address(0));
     if (fd >= 0) return fd;
+    if (fd == -2) { errno = ENOENT; return -1; }
     return o_open(path, flags, mode);
 }
 static int h_openat(int dirfd, const char *path, int flags, ...) {
     mode_t mode = 0;
     if ((flags & O_CREAT) || (flags & __O_TMPFILE) == __O_TMPFILE) { va_list ap; va_start(ap, flags); mode = (mode_t) va_arg(ap, int); va_end(ap); }
-    if (path != nullptr && path[0] == '/') { int fd = try_serve(path, flags); if (fd >= 0) return fd; }
+    if (path != nullptr && path[0] == '/') { int fd = try_serve(path, flags, __builtin_return_address(0)); if (fd >= 0) return fd; if (fd == -2) { errno = ENOENT; return -1; } }
     return o_openat(dirfd, path, flags, mode);
 }
 static int h_open2(const char *path, int flags) {
-    int fd = try_serve(path, flags);
+    int fd = try_serve(path, flags, __builtin_return_address(0));
+    if (fd == -2) { errno = ENOENT; return -1; }
     return fd >= 0 ? fd : o_open2(path, flags);
 }
 static int h_openat2(int dirfd, const char *path, int flags) {
-    if (path != nullptr && path[0] == '/') { int fd = try_serve(path, flags); if (fd >= 0) return fd; }
+    if (path != nullptr && path[0] == '/') { int fd = try_serve(path, flags, __builtin_return_address(0)); if (fd >= 0) return fd; if (fd == -2) { errno = ENOENT; return -1; } }
     return o_openat2(dirfd, path, flags);
 }
+static bool hidden_path(const char *path);
+static Table *stealth_table();
+static bool trusted_caller(const Table *t, void *ra);
+static thread_local int t_bypass_fwd = 0;
 static FILE *h_fopen(const char *path, const char *mode) {
+    void *ra = __builtin_return_address(0);
+    {
+        Table *st = stealth_table();
+        if (st != nullptr && trusted_caller(st, ra)) {
+            t_bypass_fwd++;
+            FILE *f = o_fopen(path, mode);
+            t_bypass_fwd--;
+            return f;
+        }
+    }
     if (mode != nullptr && mode[0] == 'r' && strchr(mode, '+') == nullptr) {
-        int fd = try_serve(path, strchr(mode, 'e') ? O_RDONLY | O_CLOEXEC : O_RDONLY);
+        int fd = try_serve(path, strchr(mode, 'e') ? O_RDONLY | O_CLOEXEC : O_RDONLY, ra);
+        if (fd == -2) { errno = ENOENT; return nullptr; }
         if (fd >= 0) {
             FILE *f = fdopen(fd, "r");
             if (f != nullptr) return f;
             close(fd);
         }
     }
+    if (hidden_path(path)) { c_st_path++; errno = ENOENT; return nullptr; }
     return o_fopen(path, mode);
 }
 
@@ -592,6 +620,171 @@ static int h_pclose(FILE *f) {
     return o_pclose(f);
 }
 
+
+// ---- 0.7.39: universal native stealth --------------------------------------------------------
+// Apps with native anti-tamper (e.g. libsiuzm / DexProtector / Appdome-like) look for the hook
+// framework from C: /proc/self/maps + smaps + mountinfo lines, dl_iterate_phdr module names,
+// su / Magisk / LSPosed files (access, stat, open), and directory listings. With the
+// Hide.Environment group assigned we filter all of those for every app (not per-app rules).
+// Limits: code that issues raw `svc` syscalls bypasses libc and is not covered here.
+static Table *stealth_table() {
+    Table *t = g_table.load(std::memory_order_acquire);
+    return (t != nullptr && t->stealth) ? t : nullptr;
+}
+static std::string lower(const char *s) {
+    std::string r(s ? s : "");
+    for (auto &c : r) c = (char) tolower((unsigned char) c);
+    return r;
+}
+static bool has_token(const Table *t, const std::string &low) {
+    for (const auto &tok : t->st_tokens) if (!tok.empty() && low.find(tok) != std::string::npos) return true;
+    return false;
+}
+// Framework / runtime code keeps the real view (Vector, LSPosed, our lib, ART, the unwinder):
+// only app and third-party code gets the filtered one.
+static bool trusted_caller(const Table *t, void *ra) {
+    if (t_bypass_fwd > 0) return true;
+    if (ra == nullptr) return false;
+    Dl_info di{};
+    if (dladdr(ra, &di) == 0 || di.dli_fname == nullptr) return false;
+    std::string low = lower(di.dli_fname);
+    static const char *rt[] = {"/libart.so", "/libartbase.so", "/libunwind", "/libc++", "/libbase.so", "/linker", "/libnativebridge", "/libnativeloader", nullptr};
+    for (int i = 0; rt[i]; i++) if (low.find(rt[i]) != std::string::npos) return true;
+    return has_token(t, low);
+}
+static bool hidden_path(const char *path) {
+    Table *t = stealth_table();
+    if (t == nullptr || path == nullptr || path[0] != '/') return false;
+    std::string p(path);
+    for (const auto &h : t->st_paths) {
+        if (p == h) return true;
+        if (h.back() == '/' && p.rfind(h, 0) == 0) return true;
+        if (h.back() != '/' && p.size() > h.size() && p.rfind(h, 0) == 0 && p[h.size()] == '/') return true;
+    }
+    std::string low = lower(path);
+    // framework / root artifacts only; never our own data paths (the module itself reads them)
+    static const char *pathTok[] = {"magisk", "lsposed", "lspd", "xposed", "edxp", "riru", "zygisk", "supersu", "superuser", "kernelsu", "ksud", "apatch", nullptr};
+    for (int i = 0; pathTok[i]; i++) if (low.find(pathTok[i]) != std::string::npos) return true;
+    return false;
+}
+static bool is_self_proc(const char *path, const char *leaf) {
+    // /proc/self/<leaf>, /proc/<ourpid>/<leaf>, /proc/self/task/<tid>/<leaf>, /proc/<pid>/task/<tid>/<leaf>, /proc/thread-self/<leaf>
+    if (path == nullptr || strncmp(path, "/proc/", 6) != 0) return false;
+    size_t L = strlen(path), l = strlen(leaf);
+    if (L < l + 7 || strcmp(path + L - l, leaf) != 0 || path[L - l - 1] != '/') return false;
+    std::string mid(path + 6, L - l - 1 - 6);   // e.g. "self", "1234", "self/task/99"
+    std::string head = mid.substr(0, mid.find('/'));
+    if (head != "self" && head != "thread-self" && head != std::to_string(getpid())) return false;
+    if (mid.size() == head.size()) return true;
+    return mid.compare(head.size(), 6, "/task/") == 0 && mid.find('/', head.size() + 6) == std::string::npos;
+}
+static std::string filter_lines(const Table *t, const std::string &in, bool smaps) {
+    std::string out;
+    out.reserve(in.size());
+    size_t pos = 0;
+    bool skipping = false;
+    while (pos < in.size()) {
+        size_t e = in.find('\n', pos);
+        size_t end = e == std::string::npos ? in.size() : e + 1;
+        std::string line = in.substr(pos, end - pos);
+        pos = end;
+        // smaps: a mapping header starts with "xxxxxxxx-yyyyyyyy "; the following "Key: value" lines belong to it
+        bool header = !smaps || (line.size() > 1 && isxdigit((unsigned char) line[0]) && line.find('-') != std::string::npos
+                                 && line.find('-') < 17 && line.find(':') > line.find(' '));
+        if (header) skipping = has_token(t, lower(line.c_str()));
+        if (skipping) { c_st_maps++; continue; }
+        out += line;
+    }
+    return out;
+}
+static int stealth_serve(const char *path, int flags, void *ra) {
+    Table *t = stealth_table();
+    if (t == nullptr || path == nullptr) return -1;
+    if (path[0] != '/' ) return -1;
+    if (strncmp(path, "/proc/", 6) != 0 && !hidden_path(path)) return -1;
+    if (trusted_caller(t, ra)) return -1;
+    if (hidden_path(path)) { c_st_path++; errno = ENOENT; return -2; }
+    if ((flags & O_ACCMODE) != O_RDONLY || strncmp(path, "/proc/", 6) != 0) return -1;
+    bool smaps = is_self_proc(path, "smaps");
+    if (!(smaps || is_self_proc(path, "maps") || is_self_proc(path, "mountinfo") || is_self_proc(path, "mounts")
+          || strcmp(path, "/proc/mounts") == 0)) return -1;
+    std::string real = read_real(path);
+    if (real.empty()) return -1;
+    return content_fd(filter_lines(t, real, smaps), flags);
+}
+
+typedef int (*access_t)(const char *, int);
+typedef int (*faccessat_t)(int, const char *, int, int);
+typedef int (*stat_t)(const char *, struct stat *);
+typedef int (*fstatat_t)(int, const char *, struct stat *, int);
+typedef ssize_t (*readlink_t)(const char *, char *, size_t);
+typedef int (*dl_iter_t)(int (*)(struct dl_phdr_info *, size_t, void *), void *);
+typedef struct dirent *(*readdir_t)(DIR *);
+static access_t o_access = nullptr; static faccessat_t o_faccessat = nullptr;
+static stat_t o_stat = nullptr, o_lstat = nullptr; static fstatat_t o_fstatat = nullptr;
+static dl_iter_t o_dl_iter = nullptr; static readdir_t o_readdir = nullptr;
+static void *s_access = nullptr, *s_faccessat = nullptr, *s_stat = nullptr, *s_lstat = nullptr, *s_fstatat = nullptr,
+            *s_dl_iter = nullptr, *s_readdir = nullptr;
+
+static int h_access(const char *p, int m) { if (hidden_path(p) && !trusted_caller(stealth_table(), __builtin_return_address(0))) { c_st_path++; errno = ENOENT; return -1; } return o_access(p, m); }
+static int h_faccessat(int d, const char *p, int m, int f) { if (hidden_path(p) && !trusted_caller(stealth_table(), __builtin_return_address(0))) { c_st_path++; errno = ENOENT; return -1; } return o_faccessat(d, p, m, f); }
+static int h_stat(const char *p, struct stat *b) { if (hidden_path(p) && !trusted_caller(stealth_table(), __builtin_return_address(0))) { c_st_path++; errno = ENOENT; return -1; } return o_stat(p, b); }
+static int h_lstat(const char *p, struct stat *b) { if (hidden_path(p) && !trusted_caller(stealth_table(), __builtin_return_address(0))) { c_st_path++; errno = ENOENT; return -1; } return o_lstat(p, b); }
+static int h_fstatat(int d, const char *p, struct stat *b, int f) { if (hidden_path(p) && !trusted_caller(stealth_table(), __builtin_return_address(0))) { c_st_path++; errno = ENOENT; return -1; } return o_fstatat(d, p, b, f); }
+
+struct DlCookie { int (*cb)(struct dl_phdr_info *, size_t, void *); void *data; const Table *t; };
+static int dl_wrap(struct dl_phdr_info *info, size_t size, void *c) {
+    DlCookie *k = (DlCookie *) c;
+    if (info != nullptr && info->dlpi_name != nullptr && has_token(k->t, lower(info->dlpi_name))) { c_st_dl++; return 0; }
+    return k->cb(info, size, k->data);
+}
+static int h_dl_iter(int (*cb)(struct dl_phdr_info *, size_t, void *), void *data) {
+    Table *t = stealth_table();
+    if (t == nullptr || cb == nullptr || trusted_caller(t, __builtin_return_address(0))) return o_dl_iter(cb, data);
+    DlCookie k{cb, data, t};
+    return o_dl_iter(dl_wrap, &k);
+}
+static struct dirent *h_readdir(DIR *d) {
+    Table *t = stealth_table();
+    if (t != nullptr && trusted_caller(t, __builtin_return_address(0))) t = nullptr;
+    struct dirent *e;
+    while ((e = o_readdir(d)) != nullptr) {
+        if (t == nullptr) return e;
+        std::string low = lower(e->d_name);
+        static const char *dirTok[] = {"magisk", "lsposed", "lspd", "xposed", "edxp", "riru", "zygisk", "supersu", "superuser", "kernelsu", "apatch", nullptr};
+        bool hide = (strcmp(e->d_name, "su") == 0);
+        for (int i = 0; !hide && dirTok[i]; i++) if (low.find(dirTok[i]) != std::string::npos) hide = true;
+        if (!hide) return e;
+        c_st_dir++;
+    }
+    return nullptr;
+}
+
+static void default_stealth(Table *t, const std::string &extraTokens, const std::string &extraPaths) {
+    t->st_tokens = {"lsposed", "lspd", "xposed", "libxposed", "edxp", "riru", "zygisk", "magisk", "/data/adb", "libvector",
+                    "dev.identra", "identra", "frida", "substrate", "taichi", "dreamland", "jit-cache-identra", "kernelsu", "apatch"};
+    t->st_paths = {"/system/bin/su", "/system/xbin/su", "/sbin/su", "/su", "/system/sbin/su", "/vendor/bin/su", "/system/su",
+                   "/data/local/su", "/data/local/bin/su", "/data/local/xbin/su", "/cache/su", "/data/su", "/dev/su",
+                   "/system/bin/.ext", "/system/xbin/daemonsu", "/system/app/Superuser.apk", "/system/etc/init.d/99SuperSUDaemon",
+                   "/data/adb", "/sbin/.magisk", "/cache/.disable_magisk", "/dev/.magisk.unblock", "/system/bin/magisk",
+                   "/system/xbin/busybox", "/system/bin/busybox", "/data/local/tmp/frida-server", "/debug_ramdisk"};
+    auto split = [](const std::string &s, std::vector<std::string> &dst, bool low) {
+        size_t a = 0;
+        while (a <= s.size()) {
+            size_t b = s.find_first_of(",\n", a);
+            if (b == std::string::npos) b = s.size();
+            std::string x = s.substr(a, b - a);
+            while (!x.empty() && isspace((unsigned char) x.back())) x.pop_back();
+            while (!x.empty() && isspace((unsigned char) x.front())) x.erase(0, 1);
+            if (low) for (auto &c : x) c = (char) tolower((unsigned char) c);
+            if (!x.empty()) dst.push_back(x);
+            a = b + 1;
+        }
+    };
+    split(extraTokens, t->st_tokens, true);
+    split(extraPaths, t->st_paths, false);
+}
+
 // ---- install / uninstall -----------------------------------------------------------------------
 static void hook_one(void *libc, const char *sym, void *repl, void **orig, void **slot) {
     void *target = dlsym(libc, sym);
@@ -628,7 +821,7 @@ static bool install_hooks() {
         const char *libs[] = {"libGLESv1_CM.so", "libGLESv2.so", "libGLESv3.so"};
         glGetString_t *origs[] = {&o_gl1, &o_gl2, &o_gl3};
         void *repls[] = {(void *) h_gl1, (void *) h_gl2, (void *) h_gl3};
-        void **slots[] = {&s_gl1, &s_gl2, &s_gl3};
+        void **slots[] = {&s_access, &s_faccessat, &s_stat, &s_lstat, &s_fstatat, &s_readdir, &s_dl_iter, &s_gl1, &s_gl2, &s_gl3};
         void *seen[3] = {nullptr, nullptr, nullptr};
         for (int i = 0; i < 3; i++) {
             void *h = dlopen(libs[i], RTLD_NOW | RTLD_NOLOAD);
@@ -641,6 +834,20 @@ static bool install_hooks() {
             hook_one(h, "glGetString", repls[i], (void **) origs[i], slots[i]);
         }
     }
+    // 0.7.39 stealth (pass-through until a table with stealth=on arrives)
+    hook_one(libc, "access", (void *) h_access, (void **) &o_access, &s_access);
+    hook_one(libc, "faccessat", (void *) h_faccessat, (void **) &o_faccessat, &s_faccessat);
+    hook_one(libc, "stat", (void *) h_stat, (void **) &o_stat, &s_stat);
+    hook_one(libc, "lstat", (void *) h_lstat, (void **) &o_lstat, &s_lstat);
+    hook_one(libc, "fstatat", (void *) h_fstatat, (void **) &o_fstatat, &s_fstatat);
+    hook_one(libc, "readdir", (void *) h_readdir, (void **) &o_readdir, &s_readdir);
+    {
+        void *dl = dlopen("libdl.so", RTLD_NOW | RTLD_NOLOAD);
+        void *sym = dl ? dlsym(dl, "dl_iterate_phdr") : nullptr;
+        if (sym == nullptr) sym = dlsym(libc, "dl_iterate_phdr");
+        if (sym != nullptr && g_api->hookFunc(sym, (void *) h_dl_iter, (void **) &o_dl_iter) == 0 && o_dl_iter != nullptr) s_dl_iter = sym;
+        else { g_hook_errors += "dl_iterate_phdr:fail "; o_dl_iter = nullptr; }
+    }
     hook_one(libc, "pclose", (void *) h_pclose, (void **) &o_pclose, &s_pclose);
     if (o_pclose != nullptr)
         hook_one(libc, "popen", (void *) h_popen, (void **) &o_popen, &s_popen);
@@ -651,7 +858,7 @@ static bool install_hooks() {
 
 static void uninstall_hooks() {
     if (!g_hooked.load() || g_api == nullptr || g_api->unhookFunc == nullptr) return;
-    void **slots[] = {&s_gl1, &s_gl2, &s_gl3, &s_popen, &s_pclose, &s_fopen, &s_openat2, &s_open2, &s_openat, &s_open, &s_uname,
+    void **slots[] = {&s_access, &s_faccessat, &s_stat, &s_lstat, &s_fstatat, &s_readdir, &s_dl_iter, &s_gl1, &s_gl2, &s_gl3, &s_popen, &s_pclose, &s_fopen, &s_openat2, &s_open2, &s_openat, &s_open, &s_uname,
                       &s_foreach, &s_read, &s_find, &s_get, &s_read_cb};
     for (void **s : slots) if (*s) { g_api->unhookFunc(*s); *s = nullptr; }
     g_hooked = false;
@@ -683,6 +890,7 @@ Java_dev_identra_app_nativeprops_NativeProps_nativeApply(JNIEnv *env, jclass, jo
                                                       jobjectArray pfx, jobjectArray pfxVals, jboolean debug) {
     g_debug = debug;
     Table *t = new Table();
+    std::string st_tok, st_paths;
     jsize n = keys ? env->GetArrayLength(keys) : 0;
     for (jsize i = 0; i < n; i++) {
         jstring k = (jstring) env->GetObjectArrayElement(keys, i);
@@ -695,6 +903,8 @@ Java_dev_identra_app_nativeprops_NativeProps_nativeApply(JNIEnv *env, jclass, jo
         else if (ks == "@gl:vendor") t->gl_vendor = strdup(vs.c_str());
         else if (ks == "@gl:renderer") t->gl_renderer = strdup(vs.c_str());
         else if (ks == "@gl:version") t->gl_version = strdup(vs.c_str());
+        else if (ks == "@stealth:on") { t->stealth = true; st_tok = vs; }
+        else if (ks == "@stealth:paths") st_paths = vs;
         else t->exact[ks] = vs;
         env->DeleteLocalRef(k); env->DeleteLocalRef(v);
     }
@@ -710,11 +920,12 @@ Java_dev_identra_app_nativeprops_NativeProps_nativeApply(JNIEnv *env, jclass, jo
               [](const Rule &a, const Rule &b) { return a.key.size() > b.key.size(); });
     if (t->un_version.empty()) t->un_release.clear();
     derive_kernel_files(t);
+    if (t->stealth) default_stealth(t, st_tok, st_paths);
     if (!install_hooks()) { delete t; return -1; }
     g_table.store(t, std::memory_order_release);   // old table is leaked on purpose (readers may hold it)
-    LOGI("rules applied: exact=%zu prefix=%zu files=%zu uname=%s", t->exact.size(), t->prefixes.size(), t->files.size(),
-         t->un_release.empty() ? "-" : t->un_release.c_str());
-    return (jint) (t->exact.size() + t->prefixes.size() + t->files.size() + (t->un_release.empty() ? 0 : 1));
+    LOGI("rules applied: exact=%zu prefix=%zu files=%zu uname=%s stealth=%d tokens=%zu paths=%zu", t->exact.size(), t->prefixes.size(), t->files.size(),
+         t->un_release.empty() ? "-" : t->un_release.c_str(), t->stealth ? 1 : 0, t->st_tokens.size(), t->st_paths.size());
+    return (jint) (t->exact.size() + t->prefixes.size() + t->files.size() + (t->un_release.empty() ? 0 : 1) + (t->stealth ? 1 : 0));
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -725,13 +936,13 @@ Java_dev_identra_app_nativeprops_NativeProps_nativeRemove(JNIEnv *, jclass) {
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_dev_identra_app_nativeprops_NativeProps_nativeStatus(JNIEnv *env, jclass) {
-    char buf[512];
+    char buf[768];
     Table *t = g_table.load();
     snprintf(buf, sizeof(buf),
-             "api=%s hooked=%d rules=%zu/%zu hits get=%u cb=%u read=%u findHidden=%u foreachHidden=%u popen=%u file=%u uname=%u gl=%u errors=[%s]",
+             "api=%s hooked=%d rules=%zu/%zu stealth=%d hits get=%u cb=%u read=%u findHidden=%u foreachHidden=%u popen=%u file=%u uname=%u gl=%u maps=%u path=%u dl=%u dir=%u errors=[%s]",
              g_api ? std::to_string(g_api->version).c_str() : "none", g_hooked.load() ? 1 : 0,
-             t ? t->exact.size() : 0, t ? t->prefixes.size() : 0,
-             c_get.load(), c_cb.load(), c_read.load(), c_find_hidden.load(), c_foreach_hidden.load(), c_popen.load(), c_file.load(), c_uname.load(), c_gl.load(),
+             t ? t->exact.size() : 0, t ? t->prefixes.size() : 0, (t && t->stealth) ? 1 : 0,
+             c_get.load(), c_cb.load(), c_read.load(), c_find_hidden.load(), c_foreach_hidden.load(), c_popen.load(), c_file.load(), c_uname.load(), c_gl.load(), c_st_maps.load(), c_st_path.load(), c_st_dl.load(), c_st_dir.load(),
              g_hook_errors.c_str());
     return env->NewStringUTF(buf);
 }
