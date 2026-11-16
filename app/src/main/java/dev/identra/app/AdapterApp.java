@@ -347,6 +347,22 @@ public class AdapterApp extends RecyclerView.Adapter<AdapterApp.ViewHolder> impl
             notifyItemChanged(getAdapterPosition());
         }
 
+        @Override
+        public void setHooksAssigned(final Context context, java.util.List<String> hookIds, final boolean assign) {
+            final AppXpPacket app = filtered.get(getAdapterPosition());
+            final ArrayList<String> ids = new ArrayList<>(hookIds);
+            Log.i(TAG, app.packageName + " hooks=" + ids.size() + " assign=" + assign);
+            for (XHook hook : hooks) {
+                if (ids.contains(hook.getObjectId())) {
+                    if (assign) app.addAssignment(AssignmentPacket.create(hook));
+                    else app.removeAssignment(AssignmentPacket.create(hook));
+                }
+            }
+            executor.submit(() ->
+                    AssignHooksCommand.call(context, AssignmentsPacket.create(app.uid, app.packageName, ids, !assign, app.forceStop)));
+            notifyItemChanged(getAdapterPosition());
+        }
+
         private void updateAssignments(final Context context, final AppXpPacket app, String groupName, final boolean assign) {
             final String pkgName = app.packageName;
             Log.i(TAG, pkgName + " " + groupName + "=" + assign);
@@ -358,6 +374,21 @@ public class AdapterApp extends RecyclerView.Adapter<AdapterApp.ViewHolder> impl
                         app.addAssignment(AssignmentPacket.create(hook));
                     else
                         app.removeAssignment(AssignmentPacket.create(hook));
+                }
+            }
+
+            if(!assign) {
+                // Also drop assignments whose hook is not in the visible list (disabled/unavailable hooks),
+                // otherwise the switch stays on after "disable".
+                for (AssignmentPacket a : new ArrayList<>(app.assignments)) {
+                    if(a == null) continue;
+                    String id = a.getHookId();
+                    if(id == null) continue;
+                    String g = a.hookObj != null ? a.hookObj.group : null;
+                    if(groupName == null || groupName.equals(g)) {
+                        if(!hookIds.contains(id)) hookIds.add(id);
+                        app.removeAssignment(a);
+                    }
                 }
             }
 

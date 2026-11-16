@@ -50,16 +50,18 @@ public class AdapterGroup extends RecyclerView.Adapter<AdapterGroup.ViewHolder> 
     private AppXpPacket app;
     private List<LuaHooksGroup> groups = new ArrayList<>();
     private ILoader fragmentLoader;
+    private static final int VT_HEADER = 0;
+    private static final int VT_GROUP = 1;
 
     public static interface IFinished {
         void onFinish();
     }
 
     @Override
-    public String getDividerID(int position) { return groups.get(position).groupId; }
+    public String getDividerID(int position) { return position == 0 ? "__all__" : groups.get(position - 1).groupId; }
 
     @Override
-    public String getLongID(int position) { return groups.get(position).name; }
+    public String getLongID(int position) { return position == 0 ? "__all__" : groups.get(position - 1).name; }
 
     @Override
     public boolean isSearching() { return false; }
@@ -73,7 +75,9 @@ public class AdapterGroup extends RecyclerView.Adapter<AdapterGroup.ViewHolder> 
     public class ViewHolder extends
             RecyclerView.ViewHolder
             implements CompoundButton.OnCheckedChangeListener,
-            View.OnClickListener {
+            View.OnClickListener,
+            View.OnLongClickListener {
+        boolean header = false;
         final View itemView;
         final ImageView ivException;
         final ImageView ivInstalled;
@@ -99,6 +103,8 @@ public class AdapterGroup extends RecyclerView.Adapter<AdapterGroup.ViewHolder> 
             ivException.setOnClickListener(this);
             tvGroup.setOnClickListener(this);
             cbAssigned.setOnCheckedChangeListener(this);
+            tvGroup.setOnLongClickListener(this);
+            itemView.setOnLongClickListener(this);
         }
 
         private void unWire() {
@@ -106,12 +112,20 @@ public class AdapterGroup extends RecyclerView.Adapter<AdapterGroup.ViewHolder> 
             ivException.setOnClickListener(null);
             tvGroup.setOnClickListener(null);
             cbAssigned.setOnCheckedChangeListener(null);
+            tvGroup.setOnLongClickListener(null);
+            itemView.setOnLongClickListener(null);
         }
 
         @SuppressLint("NonConstantResourceId")
         @Override
         public void onClick(View view) {
-            LuaHooksGroup group = groups.get(getAdapterPosition());
+            if(header) {
+                if(view.getId() == R.id.tvGroup) cbAssigned.setChecked(!cbAssigned.isChecked());
+                return;
+            }
+            int pos = getAdapterPosition() - 1;
+            if(pos < 0 || pos >= groups.size()) return;
+            LuaHooksGroup group = groups.get(pos);
             switch (view.getId()) {
                 case R.id.ivInfo:
                     String name = group.getCleanTitle();
@@ -163,7 +177,28 @@ public class AdapterGroup extends RecyclerView.Adapter<AdapterGroup.ViewHolder> 
         @SuppressLint("NonConstantResourceId")
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
-            final LuaHooksGroup group = groups.get(getAdapterPosition());
+            if(header) {
+                // Master switch: all groups on / off
+                if(app == null) return;
+                ArrayList<String> ids = new ArrayList<>();
+                java.util.HashSet<String> names = new java.util.HashSet<>();
+                for (LuaHooksGroup g : groups) {
+                    names.add(g.name);
+                    for (XHook h : g.hooks) if(h.getObjectId() != null) ids.add(h.getObjectId());
+                }
+                if(!checked) {
+                    for (AssignmentPacket a : new ArrayList<>(app.assignments)) {
+                        if(a == null || a.hookObj == null) continue;
+                        String id = a.getHookId();
+                        if(id != null && names.contains(a.hookObj.group) && !ids.contains(id)) ids.add(id);
+                    }
+                }
+                app.setHooksAssigned(compoundButton.getContext(), ids, checked);
+                return;
+            }
+            int pos = getAdapterPosition() - 1;
+            if(pos < 0 || pos >= groups.size()) return;
+            final LuaHooksGroup group = groups.get(pos);
             switch (compoundButton.getId()) {
                 case R.id.cbAssigned:
                     if(group.hasWarning && checked) {
@@ -179,6 +214,62 @@ public class AdapterGroup extends RecyclerView.Adapter<AdapterGroup.ViewHolder> 
                     break;
             }
         }
+        @Override
+        public boolean onLongClick(View view) {
+            if(header || app == null) return false;
+            int pos = getAdapterPosition() - 1;
+            if(pos < 0 || pos >= groups.size()) return false;
+            showHooksDialog(view.getContext(), groups.get(pos));
+            return true;
+        }
+    }
+
+    private void showHooksDialog(Context context, LuaHooksGroup group) {
+        final List<XHook> list = new ArrayList<>(group.hooks);
+        if(list.isEmpty()) return;
+        final java.util.HashSet<String> assignedIds = new java.util.HashSet<>();
+        for (AssignmentPacket a : app.getAssignments(group.name)) {
+            String id = a.getHookId();
+            if(id != null) assignedIds.add(id.toLowerCase());
+        }
+        final String[] labels = new String[list.size()];
+        final boolean[] before = new boolean[list.size()];
+        final boolean[] now = new boolean[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            XHook h = list.get(i);
+            String id = h.getObjectId();
+            String n = h.getName();
+            labels[i] = Str.isEmpty(n) ? String.valueOf(id) : n;
+            before[i] = id != null && assignedIds.contains(id.toLowerCase());
+            now[i] = before[i];
+        }
+        final AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle(group.getCleanTitle() + " (" + list.size() + ")")
+                .setMultiChoiceItems(labels, now, (d, which, isChecked) -> now[which] = isChecked)
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    ArrayList<String> on = new ArrayList<>();
+                    ArrayList<String> off = new ArrayList<>();
+                    for (int i = 0; i < list.size(); i++) {
+                        if(now[i] == before[i]) continue;
+                        if(now[i]) on.add(list.get(i).getObjectId());
+                        else off.add(list.get(i).getObjectId());
+                    }
+                    if(!on.isEmpty()) app.setHooksAssigned(context, on, true);
+                    if(!off.isEmpty()) app.setHooksAssigned(context, off, false);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .setNeutralButton("All / None", null)
+                .create();
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
+            boolean anyOff = false;
+            for (boolean b : now) if(!b) { anyOff = true; break; }
+            android.widget.ListView lv = dialog.getListView();
+            for (int i = 0; i < now.length; i++) {
+                now[i] = anyOff;
+                lv.setItemChecked(i, anyOff);
+            }
+        }));
+        dialog.show();
     }
 
     AdapterGroup() { setHasStableIds(true); }
@@ -255,10 +346,13 @@ public class AdapterGroup extends RecyclerView.Adapter<AdapterGroup.ViewHolder> 
     }
 
     @Override
-    public long getItemId(int position) { return groups.get(position).id; }
+    public long getItemId(int position) { return position == 0 ? Long.MIN_VALUE + 7 : (groups.get(position - 1).name == null ? position : groups.get(position - 1).name.hashCode()); }
 
     @Override
-    public int getItemCount() { return groups.size(); }
+    public int getItemViewType(int position) { return position == 0 ? VT_HEADER : VT_GROUP; }
+
+    @Override
+    public int getItemCount() { return groups.isEmpty() ? 0 : groups.size() + 1; }
 
     @NonNull
     @Override
@@ -267,7 +361,28 @@ public class AdapterGroup extends RecyclerView.Adapter<AdapterGroup.ViewHolder> 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.unWire();
-        LuaHooksGroup group = groups.get(position);
+        Resources res0 = holder.itemView.getContext().getResources();
+        if(position == 0) {
+            holder.header = true;
+            int total = 0, assignedTotal = 0;
+            for (LuaHooksGroup g : groups) { total += g.hooks.size(); assignedTotal += g.assigned; }
+            holder.ivException.setVisibility(View.GONE);
+            holder.ivInstalled.setVisibility(View.GONE);
+            holder.ivInfo.setVisibility(View.INVISIBLE);
+            holder.tvUsed.setVisibility(View.VISIBLE);
+            holder.tvUsed.setText(assignedTotal + "/" + total);
+            holder.tvGroup.setText("All groups");
+            holder.tvGroup.setTypeface(null, android.graphics.Typeface.BOLD);
+            holder.cbAssigned.setChecked(assignedTotal > 0);
+            holder.cbAssigned.setButtonTintList(ColorStateList.valueOf(res0.getColor(
+                    total > 0 && assignedTotal >= total ? R.color.colorAccent : android.R.color.darker_gray, null)));
+            holder.wire();
+            return;
+        }
+        holder.header = false;
+        holder.ivInfo.setVisibility(View.VISIBLE);
+        holder.tvGroup.setTypeface(null, android.graphics.Typeface.NORMAL);
+        LuaHooksGroup group = groups.get(position - 1);
 
         Context context = holder.itemView.getContext();
         Resources resources = holder.itemView.getContext().getResources();

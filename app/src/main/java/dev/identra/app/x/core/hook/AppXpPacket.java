@@ -60,7 +60,7 @@ public class AppXpPacket implements IParcelType, IJsonType, Parcelable, IAssignL
     public boolean hasAssignment(AssignmentPacket assignment) { return assignmentIndex(assignment) > -1; }
 
     public void addAssignment(AssignmentPacket assignment) {
-        if(assignment != null)
+        if(assignment != null && !hasAssignment(assignment))
             assignments.add(assignment);
     }
 
@@ -70,10 +70,26 @@ public class AppXpPacket implements IParcelType, IJsonType, Parcelable, IAssignL
     }
 
     public void removeAssignment(AssignmentPacket assignment) {
-        ListUtil.removeAt(assignments, assignmentIndex(assignment));
+        if(assignment == null) return;
+        String id = assignment.getHookId();
+        if(id == null) return;
+        for (int i = assignments.size() - 1; i >= 0; i--) {
+            AssignmentPacket a = assignments.get(i);
+            if(a != null && id.equalsIgnoreCase(a.getHookId()))
+                assignments.remove(i);
+        }
     }
 
-    public int assignmentIndex(AssignmentPacket assignment) { return ListUtil.indexOf(assignments, assignment, (a, b) -> a.hook.equals(b.hook)); }
+    public int assignmentIndex(AssignmentPacket assignment) {
+        if(assignment == null) return -1;
+        String id = assignment.getHookId();
+        if(id == null) return -1;
+        for (int i = 0; i < assignments.size(); i++) {
+            AssignmentPacket a = assignments.get(i);
+            if(a != null && id.equalsIgnoreCase(a.getHookId())) return i;
+        }
+        return -1;
+    }
 
     public Collection<AssignmentPacket> getAssignments(String group) {
         if (group == null)
@@ -81,7 +97,7 @@ public class AppXpPacket implements IParcelType, IJsonType, Parcelable, IAssignL
 
         Collection<AssignmentPacket> filtered = new ArrayList<>();
         for (AssignmentPacket assignment : assignments)
-            if (group.equalsIgnoreCase(assignment.hookObj.group))
+            if (assignment != null && assignment.hookObj != null && group.equalsIgnoreCase(assignment.hookObj.group))
                 filtered.add(assignment);
 
         return filtered;
@@ -223,6 +239,12 @@ public class AppXpPacket implements IParcelType, IJsonType, Parcelable, IAssignL
     public void setAssigned(Context context, String group, boolean assign) {
         if(onAssign != null)
             onAssign.setAssigned(context, group, assign);
+    }
+
+    @Override
+    public void setHooksAssigned(Context context, List<String> hookIds, boolean assign) {
+        if(onAssign != null)
+            onAssign.setHooksAssigned(context, hookIds, assign);
     }
 
     @Override
