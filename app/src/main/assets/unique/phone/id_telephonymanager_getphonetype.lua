@@ -5,6 +5,9 @@ function after(hook, param)
     local nmeName = "cell.phone.type." .. tostring(settingIndex)
     if param:isForceSetting(nmeName, res) then
         local fake = param:getSettingInt(nmeName, 1)
+        if fake == nil then
+            return false
+        end
         param:setResult(fake)
         return true, param:safe(res), param:safe(fake)
     end

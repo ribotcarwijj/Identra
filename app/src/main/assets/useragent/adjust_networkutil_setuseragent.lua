@@ -1,6 +1,6 @@
 function before(hook, param)
-    local old = getArgument(0)
-    local agent = getSetting("user.agent")
+    local old = param:getArgument(0)
+    local agent = param:getSetting("user.agent")
     if agent == nil then
         return false
     end

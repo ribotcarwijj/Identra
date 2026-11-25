@@ -4,7 +4,8 @@ function after(hook, param)
 		return false
 	end
 
-    local fake = param:getSetting("android.build.dev.codename", "REL")
+    -- profile key android.etc.build.rom.version.codename (ro.build.version.codename), legacy android.build.dev.codename
+    local fake = param:getSettingReMap("android.etc.build.rom.version.codename", "android.build.dev.codename", "REL")
     if fake == nil then
         return false
     end

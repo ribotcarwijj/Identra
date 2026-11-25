@@ -4,7 +4,8 @@ function after(hook, param)
 		return false
 	end
 
-    local fake = param:getSetting("android.build.type", "user")
+    -- profile key android.etc.build.rom.variant (ro.build.type), legacy android.build.type
+    local fake = param:getSettingReMap("android.etc.build.rom.variant", "android.build.type", "user")
     if fake == nil then
         return false
     end

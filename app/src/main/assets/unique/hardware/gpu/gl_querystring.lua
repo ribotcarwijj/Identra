@@ -12,7 +12,7 @@ function after(hook, param)
     log("GPU QUERY STRING: " .. p)
 
     if p == 12371 then
-        local vendor = param:getSetting("gpu.gl.vendor")
+        local vendor = param:getSettingReMap("soc.gpu.open.gles.vendor", "gpu.gl.vendor")
         if vendor == nil then
             return false
         end

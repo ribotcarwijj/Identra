@@ -5,8 +5,8 @@ function after(hook, param)
 		return true
 	end
 
-	local lacString = param:getSetting("gsm.cell.location.lac")
-	local cidString = param:getSetting("gsm.cell.location.cid")
+	local lacString = param:getSettingReMap("cell.location.lac", "gsm.cell.location.lac")
+	local cidString = param:getSettingReMap("cell.location.cid", "gsm.cell.location.cid")
 	if lacString ~= nil and cidString ~= nil then
         local fakelac = tonumber(lacString)
         local fakecid = tonumber(cidString)
@@ -36,10 +36,11 @@ function after(hook, param)
 	end
 
 
+	-- was: hasMethod(cellinfo_class, ...) with cellinfo_class still undefined (nil), so this never worked
 	local cellinfo_cname = "android.telephony.CellLocation"
-	if param:hasMethod(cellinfo_class, "getEmpty") then
+	if param:hasMethod(cellinfo_cname, "getEmpty") then
 		local cellinfo_class = luajava.bindClass(cellinfo_cname)
-		log("Setting Empty CellLocation") 
+		log("Setting Empty CellLocation")
 		param:setResult(cellinfo_class:getEmpty())
 		return true
 	end

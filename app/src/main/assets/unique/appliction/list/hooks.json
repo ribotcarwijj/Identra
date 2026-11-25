@@ -116,7 +116,7 @@
     ],
     "returnType": "android.content.Intent",
     "minSdk": 1,
-    "luaScript": "@intent_createfromparcel"
+    "luaScript": "@apps_intent_createfromparcel"
   },
   {
     "collection": "Identra",

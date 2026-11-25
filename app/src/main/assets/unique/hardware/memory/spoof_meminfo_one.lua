@@ -20,7 +20,8 @@ function before(hook, param)
         local fake = param:getValue("MEMINFOFILE", scope)
         if fake == nil then
             local total = param:getSettingInt("hardware.memory.total", 900)
-            local available = param:getSettingInt("memory.available", 500)
+            local available = param:getSettingInt("hardware.memory.available", 500)
+            if available == nil then available = param:getSettingInt("memory.available", 500) end
             if total == nil or available == nil then
                 return false
             end

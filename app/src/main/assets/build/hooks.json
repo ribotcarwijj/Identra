@@ -122,7 +122,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_build_codename",
-    "settings":["android.build.dev.codename"]
+    "settings":["android.etc.build.rom.version.codename", "android.build.dev.codename"]
   },
   {
     "builtin": true,
@@ -941,7 +941,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_build_type",
-    "settings":["android.build.type"]
+    "settings":["android.etc.build.rom.variant", "android.build.type"]
   },
   {
     "builtin": true,

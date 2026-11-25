@@ -19,7 +19,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@cell_lac",
-    "settings":[ "gsm.cell.location.lac", "LAC,CID" ]
+    "settings":[ "cell.location.lac", "LAC,CID" ]
   },
   {
     "builtin": false,
@@ -40,7 +40,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@cell_lac",
-    "settings":[ "gsm.cell.location.lac", "LAC,CID" ]
+    "settings":[ "cell.location.lac", "LAC,CID" ]
   },
   {
     "builtin": false,
@@ -61,7 +61,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@cell_lac",
-    "settings":[ "gsm.cell.location.lac", "LAC,CID" ]
+    "settings":[ "cell.location.lac", "LAC,CID" ]
   },
   {
     "builtin": false,
@@ -82,7 +82,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@cell_cid",
-    "settings":[ "gsm.cell.location.cid", "LAC,CID" ]
+    "settings":[ "cell.location.cid", "LAC,CID" ]
   },
   {
     "builtin": false,
@@ -103,7 +103,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@cell_lac",
-    "settings":[ "gsm.cell.location.lac", "LAC,CID" ]
+    "settings":[ "cell.location.lac", "LAC,CID" ]
   },
   {
     "builtin": false,
@@ -124,7 +124,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@cell_cid",
-    "settings":[ "gsm.cell.location.cid", "LAC,CID" ]
+    "settings":[ "cell.location.cid", "LAC,CID" ]
   },
   {
     "builtin": false,
@@ -145,7 +145,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@cell_cid",
-    "settings":[ "gsm.cell.location.cid", "LAC,CID" ]
+    "settings":[ "cell.location.cid", "LAC,CID" ]
   },
   {
     "builtin": false,
@@ -166,7 +166,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@cell_cid",
-    "settings":[ "gsm.cell.location.cid", "LAC,CID" ]
+    "settings":[ "cell.location.cid", "LAC,CID" ]
   },
   {
     "builtin": false,
@@ -187,7 +187,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@cell_lac",
-    "settings":[ "gsm.cell.location.lac", "LAC,CID" ]
+    "settings":[ "cell.location.lac", "LAC,CID" ]
   },
   {
     "builtin": false,
@@ -208,7 +208,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@cell_cid",
-    "settings":[ "gsm.cell.location.cid", "LAC,CID" ]
+    "settings":[ "cell.location.cid", "LAC,CID" ]
   },
 
 
@@ -231,32 +231,14 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getcelllocation",
-    "settings":[ "gsm.cell.location.lac", "gsm.cell.location.cid", "LAC,CID" ]
+    "settings":[ "cell.location.lac", "cell.location.cid", "LAC,CID" ]
   },
 
 
-  {
-    "builtin": false,
-    "collection": "Identra",
-    "group": "Spoof.Location.Cell",
-    "name": "TelephonyManager.getNetworkOperator",
-    "author": "Identra",
-    "className": "android.telephony.TelephonyManager",
-    "methodName": "getNetworkOperator",
-    "parameterTypes": [ ],
-    "returnType": "java.lang.String",
-    "minSdk": 1,
-    "maxSdk": 999,
-    "version": 1,
-    "description": "Returns the numeric name (MCC+MNC) of current registered operator. ",
-    "enabled":true,
-    "optional":true,
-    "usage":true,
-    "notify":false,
-    "luaScript": "@id_telephony_getnetworkoperator",
-    "settings":["gsm.operator.mcc", "gsm.operator.mnc", "gsm.operator.id" ]
-  },
-  {
+  // 0.7.40 audit: a second "TelephonyManager.getNetworkOperator" (group Spoof.Location.Cell) used the same
+  // hook id as the one below, so it was always overwritten at load time; removed. Spoof.Telephony
+  // (unique/phone) also covers getNetworkOperator with the profile operator.
+    {
     "builtin": false,
     "collection": "Identra",
     "group": "ID.Telephony",
@@ -275,7 +257,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getnetworkoperator",
-    "settings":["gsm.operator.mcc", "gsm.operator.mnc", "gsm.operator.id" ]
+    "settings":["cell.operator.numeric.id", "cell.operator.mcc", "cell.operator.mnc" ]
   },
 
 

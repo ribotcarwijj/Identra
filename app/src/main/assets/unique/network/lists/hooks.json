@@ -62,5 +62,28 @@
     "notify":false,
     "luaScript": "@list_wifimanager_getconfigurednetworks",
     "settings":[ "network.allowed.list" ]
+  },
+  {
+    "builtin": false,
+    "collection": "Identra",
+    "group": "Network.Wifi.Information.Spoof",
+    "name": "NetworkInfo.getExtraInfo/SSID",
+    "author": "Identra",
+    "className": "android.net.NetworkInfo",
+    "methodName": "getExtraInfo",
+    "parameterTypes": [],
+    "returnType": "java.lang.String",
+    "minSdk": 1,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "Wi-Fi NetworkInfo extra info is the quoted SSID; report the spoofed SSID instead of the real one.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "notify": false,
+    "luaScript": "@network_info_getextrainfo",
+    "settings": [
+      "unique.network.ssid"
+    ]
   }
 ]
