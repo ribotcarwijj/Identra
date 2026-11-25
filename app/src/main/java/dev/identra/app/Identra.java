@@ -292,7 +292,6 @@ public class Identra implements IXposedHookZygoteInit, IXposedHookLoadPackage {
 
     /** After ActivityManagerService.systemReady (and again after a hot reload of system_server). */
     static void onSystemReady(Context context, ClassLoader serverLoader) throws Throwable {
-        try { dev.identra.app.clone.CloneKeeper.install(context, serverLoader); } catch (Throwable t) { Log.e(TAG, "clone keeper: " + t); }
 
 
 
@@ -385,7 +384,6 @@ public class Identra implements IXposedHookZygoteInit, IXposedHookLoadPackage {
         } catch (Throwable ignored) { }
         if (sysContext != null) { try { GlobalCommandBridge.shutdown(); } catch (Throwable ignored) { } }
         try { dev.identra.app.found.FoundObserver.shutdown(); } catch (Throwable ignored) { }
-        try { dev.identra.app.clone.CloneKeeper.shutdown(); } catch (Throwable ignored) { }
         try { dev.identra.app.nativeprops.NativeProps.remove(); } catch (Throwable ignored) { }
     }
 

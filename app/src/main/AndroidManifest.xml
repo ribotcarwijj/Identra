@@ -70,8 +70,6 @@
         <!-- 0.3.0: advanced tools rebuilt in the new style -->
         <activity android:name=".ui.tools.IdentraHooksActivity" android:exported="false" android:theme="@style/Theme.Identra" android:parentActivityName=".ui.HomeActivity" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.tools.IdentraValuesActivity" android:exported="false" android:theme="@style/Theme.Identra" android:parentActivityName=".ui.HomeActivity" android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".ui.tools.InstanceLaunchActivity" android:exported="false" android:excludeFromRecents="true" android:noHistory="true" android:taskAffinity="dev.identra.app.launch" android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <activity android:name=".ui.tools.IdentraInstancesActivity" android:exported="false" android:theme="@style/Theme.Identra" android:parentActivityName=".ui.HomeActivity" />
         <activity android:name=".ui.tools.IdentraBackupActivity" android:exported="false" android:theme="@style/Theme.Identra" android:parentActivityName=".ui.HomeActivity" />
         <activity android:name=".ui.profiles.ProfileEditorActivity" android:exported="false" android:theme="@style/Theme.Identra" android:parentActivityName=".ui.HomeActivity" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.tools.IdentraHookEditorActivity" android:exported="false" android:theme="@style/Theme.Identra" android:parentActivityName=".ui.HomeActivity" android:windowSoftInputMode="adjustResize" />

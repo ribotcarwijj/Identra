@@ -43,8 +43,6 @@ public class IdentraDashboardFragment extends Fragment {
                 v -> startActivity(new Intent(requireContext(), IdentraBackupActivity.class)));
 
         root.findViewById(R.id.dashBtnProtected).setOnClickListener(v -> home().selectTab(R.id.identra_nav_apps));
-        root.findViewById(R.id.dashBtnInstances).setOnClickListener(v ->
-                startActivity(new Intent(requireContext(), dev.identra.app.ui.tools.IdentraInstancesActivity.class)));
         root.findViewById(R.id.dashTileApps).setOnClickListener(v -> home().selectTab(R.id.identra_nav_apps));
         root.findViewById(R.id.dashTileLocation).setOnClickListener(v -> home().selectTab(R.id.identra_nav_location));
         root.findViewById(R.id.dashTileProfile).setOnClickListener(v -> home().selectTab(R.id.identra_nav_profiles));

@@ -21,10 +21,9 @@
         <item quantity="one">%d selected</item>
         <item quantity="other">%d selected</item>
     </plurals>
-    <string name="identra_instances_keyboard_sub">Keyboard for typing inside this instance</string>
     <string name="identra_dash_fw_ok">● LSPosed / Vector connected</string>
     <string name="identra_dash_fw_off">● LSPosed / Vector not connected</string>
     <string name="identra_dash_root_ok">● Root access granted</string>
     <string name="identra_dash_root_missing">● Root permission missing</string>
-    <string name="identra_dash_root_missing_body">Root permission is missing, so some features won\'t work: instances, app data per profile, clear data and one-tap updates. Grant root to Identra in Magisk / KernelSU / APatch.</string>
+    <string name="identra_dash_root_missing_body">Root permission is missing, so some features won\'t work: app data per profile, clear data and one-tap updates. Grant root to Identra in Magisk / KernelSU / APatch.</string>
 </resources>

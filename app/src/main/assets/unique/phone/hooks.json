@@ -335,5 +335,274 @@
     "usage":true,
     "luaScript": "@id_telephonymanager_getvoicemailalphatag",
     "settings":[ "cell.voice.mail.alpha.tag" ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/TelephonyManager.getSimOperator",
+    "author": "Identra",
+    "className": "android.telephony.TelephonyManager",
+    "methodName": "getSimOperator",
+    "parameterTypes": [
+      "*"
+    ],
+    "returnType": "java.lang.String",
+    "version": 1,
+    "description": "MCC+MNC of the SIM provider.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "luaScript": "@id_telephonymanager_getsimoperator",
+    "settings": [
+      "cell.operator.numeric.id",
+      "cell.operator.mcc",
+      "cell.operator.mnc"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/TelephonyManager.getNetworkOperator",
+    "author": "Identra",
+    "className": "android.telephony.TelephonyManager",
+    "methodName": "getNetworkOperator|getNetworkOperatorForPhone",
+    "parameterTypes": [
+      "*"
+    ],
+    "returnType": "java.lang.String",
+    "version": 1,
+    "description": "MCC+MNC of the registered network.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "luaScript": "@id_telephonymanager_getsimoperator",
+    "settings": [
+      "cell.operator.numeric.id",
+      "cell.operator.mcc",
+      "cell.operator.mnc"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/TelephonyManager.getSimOperatorName",
+    "author": "Identra",
+    "className": "android.telephony.TelephonyManager",
+    "methodName": "getSimOperatorName|getSimOperatorNameForPhone",
+    "parameterTypes": [
+      "*"
+    ],
+    "returnType": "java.lang.String",
+    "version": 1,
+    "description": "Service Provider Name (SPN) of the SIM.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "luaScript": "@id_telephonymanager_getoperatorname",
+    "settings": [
+      "cell.operator.name",
+      "cell.display.name"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/TelephonyManager.getNetworkOperatorName",
+    "author": "Identra",
+    "className": "android.telephony.TelephonyManager",
+    "methodName": "getNetworkOperatorName",
+    "parameterTypes": [
+      "*"
+    ],
+    "returnType": "java.lang.String",
+    "version": 1,
+    "description": "Alphabetic name of the registered network.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "luaScript": "@id_telephonymanager_getoperatorname",
+    "settings": [
+      "cell.operator.name",
+      "cell.display.name"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/TelephonyManager.getSimCarrierIdName",
+    "author": "Identra",
+    "className": "android.telephony.TelephonyManager",
+    "methodName": "getSimCarrierIdName|getSimSpecificCarrierIdName",
+    "parameterTypes": [
+      "*"
+    ],
+    "returnType": "java.lang.CharSequence",
+    "version": 1,
+    "description": "User facing carrier id name of the SIM.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "luaScript": "@id_telephonymanager_getoperatorname",
+    "settings": [
+      "cell.operator.name",
+      "cell.display.name"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/TelephonyManager.getSimCarrierId",
+    "author": "Identra",
+    "className": "android.telephony.TelephonyManager",
+    "methodName": "getSimCarrierId|getSimSpecificCarrierId",
+    "parameterTypes": [
+      "*"
+    ],
+    "returnType": "int",
+    "version": 1,
+    "description": "Android carrier id; reported as unknown (-1) while a fake operator is set.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "luaScript": "@id_telephonymanager_getsimcarrierid",
+    "settings": [
+      "cell.operator.numeric.id",
+      "cell.operator.mcc",
+      "cell.operator.mnc"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/TelephonyManager.getSimCountryIso",
+    "author": "Identra",
+    "className": "android.telephony.TelephonyManager",
+    "methodName": "getSimCountryIso",
+    "parameterTypes": [
+      "*"
+    ],
+    "returnType": "java.lang.String",
+    "version": 1,
+    "description": "ISO 3166-1 country of the SIM provider.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "luaScript": "@id_telephonymanager_getsimcountryiso",
+    "settings": [
+      "cell.sim.country.iso"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/ServiceState.getOperatorNumeric",
+    "author": "Identra",
+    "className": "android.telephony.ServiceState",
+    "methodName": "getOperatorNumeric",
+    "parameterTypes": [],
+    "returnType": "java.lang.String",
+    "version": 1,
+    "description": "MCC+MNC of the registered network (ServiceState).",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "luaScript": "@id_telephonymanager_getsimoperator",
+    "settings": [
+      "cell.operator.numeric.id",
+      "cell.operator.mcc",
+      "cell.operator.mnc"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/ServiceState.getOperatorAlpha",
+    "author": "Identra",
+    "className": "android.telephony.ServiceState",
+    "methodName": "getOperatorAlphaLong|getOperatorAlphaShort",
+    "parameterTypes": [],
+    "returnType": "java.lang.String",
+    "version": 1,
+    "description": "Name of the registered network (ServiceState).",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "luaScript": "@id_telephonymanager_getoperatorname",
+    "settings": [
+      "cell.operator.name",
+      "cell.display.name"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/Properties/Operator_Numeric",
+    "author": "Identra",
+    "className": "Intercept.Properties",
+    "methodName": "get",
+    "parameterTypes": [
+      "gsm.sim.operator.numeric",
+      "gsm.operator.numeric"
+    ],
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "SIM and network MCC+MNC system properties.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "notify": false,
+    "luaScript": "",
+    "settings": [
+      "cell.operator.numeric.id.1"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/Properties/Operator_Alpha",
+    "author": "Identra",
+    "className": "Intercept.Properties",
+    "methodName": "get",
+    "parameterTypes": [
+      "gsm.sim.operator.alpha",
+      "gsm.operator.alpha"
+    ],
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "SIM and network operator name system properties.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "notify": false,
+    "luaScript": "",
+    "settings": [
+      "cell.operator.name.1"
+    ]
+  },
+  {
+    "collection": "Identra",
+    "group": "Spoof.Telephony",
+    "name": "ID/Properties/Operator_Iso",
+    "author": "Identra",
+    "className": "Intercept.Properties",
+    "methodName": "get",
+    "parameterTypes": [
+      "gsm.sim.operator.iso-country",
+      "gsm.operator.iso-country"
+    ],
+    "minSdk": 4,
+    "maxSdk": 999,
+    "version": 1,
+    "description": "SIM and network country system properties.",
+    "enabled": true,
+    "optional": true,
+    "usage": true,
+    "notify": false,
+    "luaScript": "",
+    "settings": [
+      "cell.sim.country.iso.1"
+    ]
   }
 ]
