@@ -77,35 +77,7 @@ public final class IdentraData {
 
         List<AppXpPacket> apps = GetAppsCommand.get(context, true);
         if (apps != null) {
-            Map<Integer, String> inst = instanceNumbers(context);
-            Map<String, AppXpPacket> owner = new HashMap<>();
-            for (AppXpPacket a : apps) if (a != null && a.packageName != null) {
-                markInstance(a, inst);
-                s.apps.add(a);
-                if (a.uid / 100000 == 0) owner.put(a.packageName, a);
-            }
-            // 0.7.25: each app copy inside an instance is its own row, with its own protection.
-            for (Map.Entry<Integer, List<String>> e : instanceApps(context).entrySet()) {
-                for (String pkg : e.getValue()) {
-                    AppXpPacket base = owner.get(pkg);
-                    if (base == null) continue;
-                    AppXpPacket c = new AppXpPacket();
-                    c.packageName = pkg;
-                    c.uid = e.getKey() * 100000 + base.uid % 100000;
-                    c.icon = base.icon;
-                    c.label = base.label;
-                    c.enabled = base.enabled;
-                    c.system = base.system;
-                    c.persistent = base.persistent;
-                    c.forceStop = base.forceStop;
-                    try {
-                        Collection<XHook> hs = dev.identra.app.x.core.commands.query.GetAssignedHooksExCommand.get(context, true, c.uid, pkg);
-                        if (hs != null) for (XHook h : hs) if (h != null) c.addAssignment(AssignmentPacket.create(h));
-                    } catch (Throwable t) { Log.w(TAG, "clone assignments " + pkg + "/" + c.uid + ": " + t); }
-                    markInstance(c, inst);
-                    s.apps.add(c);
-                }
-            }
+            for (AppXpPacket a : apps) if (a != null && a.packageName != null) s.apps.add(a);
         }
         final Collator collator = Collator.getInstance(Locale.getDefault());
         collator.setStrength(Collator.SECONDARY);
@@ -381,45 +353,6 @@ public final class IdentraData {
         if (s == null) return out;
         for (AppXpPacket a : s.apps) if (isProtected(a)) out.add(a);
         return out;
-    }
-
-    /** 0.7.23: clone user id -> "Instance N" number, in the order the Instances screen shows them. */
-    /** Instance user -> the user-picked apps in it (Play Services excluded). */
-    public static Map<Integer, List<String>> instanceApps(Context context) {
-        Map<Integer, List<String>> out = new LinkedHashMap<>();
-        try {
-            String raw = android.provider.Settings.Global.getString(context.getContentResolver(), "identra_clone_allow");
-            Map<Integer, List<String>> cfg = dev.identra.app.ui.tools.IdentraInstancesActivity.parse(raw == null ? "" : raw);
-            for (Map.Entry<Integer, List<String>> e : cfg.entrySet()) {
-                List<String> a = dev.identra.app.ui.tools.IdentraInstancesActivity.userApps(e.getValue());
-                if (!a.isEmpty()) out.put(e.getKey(), a);
-            }
-        } catch (Throwable t) { Log.w(TAG, "instances: " + t); }
-        return out;
-    }
-
-    public static Map<Integer, String> instanceNumbers(Context context) {
-        Map<Integer, String> out = new java.util.HashMap<>();
-        try {
-            String raw = android.provider.Settings.Global.getString(context.getContentResolver(), "identra_clone_allow");
-            Map<Integer, List<String>> cfg = dev.identra.app.ui.tools.IdentraInstancesActivity.parse(raw == null ? "" : raw);
-            for (Map.Entry<Integer, List<String>> e : cfg.entrySet())
-                if (!dev.identra.app.ui.tools.IdentraInstancesActivity.userApps(e.getValue()).isEmpty())
-                    out.put(e.getKey(), dev.identra.app.ui.tools.InstanceNames.get(context, e.getKey()));
-        } catch (Throwable t) {
-            Log.w(TAG, "instances: " + t);
-        }
-        return out;
-    }
-
-    /** Apps running in another user get " · Instance N" so they can't be mistaken for the main-phone copy. */
-    private static void markInstance(AppXpPacket a, Map<Integer, String> inst) {
-        int user = a.uid / 100000;
-        if (user == 0) return;
-        String base = a.label == null || a.label.isEmpty() ? a.packageName : a.label;
-        if (base.contains(" · ")) return;
-        String n = inst.get(user);
-        a.label = base + " · " + (n != null ? n : "User " + user);
     }
 
     public static boolean isInstance(AppXpPacket app) { return app != null && app.uid / 100000 != 0; }

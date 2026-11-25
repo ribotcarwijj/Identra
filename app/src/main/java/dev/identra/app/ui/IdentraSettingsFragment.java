@@ -98,9 +98,6 @@ public class IdentraSettingsFragment extends Fragment {
         IdentraRows.row(tools, R.drawable.ic_identra_edit, getString(R.string.identra_tool_hook_editor), getString(R.string.identra_tool_hook_editor_desc),
                 v -> startActivity(new Intent(ctx, IdentraHookEditorActivity.class)));
 
-        IdentraRows.row(tools, R.drawable.ic_identra_layers, getString(R.string.identra_tool_instances), getString(R.string.identra_tool_instances_desc),
-                v -> startActivity(new Intent(ctx, dev.identra.app.ui.tools.IdentraInstancesActivity.class)));
-
         LinearLayout backup = IdentraRows.card(list);
         IdentraRows.row(backup, R.drawable.ic_identra_backup, getString(R.string.identra_tool_backup), getString(R.string.identra_tool_backup_desc),
                 v -> startActivity(new Intent(ctx, IdentraBackupActivity.class)));

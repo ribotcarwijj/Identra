@@ -68,13 +68,6 @@ Identra is an Xposed module for rooted Android, built on the modern **libxposed 
 - **Seen**: an observe‑only mode that records what the app really reads at runtime.
 - One tap gives the app a new identity for exactly what it uses.
 
-### Instances — run the same app several times
-- Hidden copies of an app, each in its own instance with its **own identity and data**.
-- Instances are visible only inside Identra (not in the launcher or as a system‑wide work profile).
-- Several apps per instance, renamable instances, folder view, "Add to home screen" shortcuts.
-- Optional **Play Services** per instance (Google Play services, Play Store, and what they need) for apps that require Google sign‑in or Play licensing.
-- Revert a copy to the real device identity at any time.
-
 ### Auto-update
 - Identra checks this repository's GitHub Releases (every time you open the app) and shows new versions with their changelog.
 - **Check for updates** and an **Auto‑check** switch in the side menu. One tap downloads and installs the update through root and reopens Identra.
@@ -98,7 +91,7 @@ Full walkthrough: [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 ## Tips
 - After a change, fully close and reopen the app you are testing.
 - If an app breaks, turn its categories off one at a time, or remove its profile.
-- Hardware attestation / Play Integrity device verdicts can't be changed by any Xposed module and stay the same across profiles and instances.
+- Hardware attestation / Play Integrity device verdicts can't be changed by any Xposed module and stay the same across profiles.
 
 ## Build
 
