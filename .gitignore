@@ -11,3 +11,5 @@
 /tools/config.sh
 /app/release
 keystore.properties
+*.jks
+KEYSTORE.JKS
