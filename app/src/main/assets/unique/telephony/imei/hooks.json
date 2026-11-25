@@ -18,7 +18,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getdeviceid",
-    "settings":[ "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
+    "settings":[ "cell.unique.imei", "cell.unique.meid", "cell.phone.type", "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
   },
   {
     "builtin": false,
@@ -39,7 +39,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getdeviceid",
-    "settings":[ "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
+    "settings":[ "cell.unique.imei", "cell.unique.meid", "cell.phone.type", "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
   },
   {
     "builtin": false,
@@ -60,7 +60,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getdeviceid",
-    "settings":[ "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
+    "settings":[ "cell.unique.imei", "cell.unique.meid", "cell.phone.type", "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
   },
   {
     "builtin": false,
@@ -81,7 +81,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getdeviceid",
-    "settings":[ "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
+    "settings":[ "cell.unique.imei", "cell.unique.meid", "cell.phone.type", "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
   },
 
   {
@@ -103,7 +103,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getdeviceid",
-    "settings":[ "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
+    "settings":[ "cell.unique.imei", "cell.unique.meid", "cell.phone.type", "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
   },
   {
     "builtin": false,
@@ -124,7 +124,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getdeviceid",
-    "settings":[ "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
+    "settings":[ "cell.unique.imei", "cell.unique.meid", "cell.phone.type", "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
   },
 
   {
@@ -146,7 +146,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getdeviceid",
-    "settings":[ "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
+    "settings":[ "cell.unique.imei", "cell.unique.meid", "cell.phone.type", "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
   },
   {
     "builtin": false,
@@ -167,7 +167,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getdeviceid",
-    "settings":[ "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
+    "settings":[ "cell.unique.imei", "cell.unique.meid", "cell.phone.type", "unique.gsm.imei", "unique.gsm.meid", "value.imei", "value.meid" ]
   },
 
   {
@@ -189,7 +189,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getimei",
-    "settings":[ "unique.gsm.imei", "value.imei" ]
+    "settings":[ "cell.unique.imei", "unique.gsm.imei", "value.imei" ]
   },
   {
     "builtin": false,
@@ -204,13 +204,13 @@
     "minSdk": 1,
     "maxSdk": 999,
     "version": 1,
-    "description": "Returns the software version number for the device, for example, the IMEI/SV for GSM phones.",
-    "enabled":true,
+    "description": "Returns the software version number for the device, for example, the IMEI/SV for GSM phones. Disabled: the IMEI script returned a full 15 digit IMEI here, but this API returns the 2 digit IMEI software version (SV).",
+    "enabled":false,
     "optional":true,
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getimei",
-    "settings":[ "unique.gsm.imei", "value.imei" ]
+    "settings":[ "cell.unique.imei", "unique.gsm.imei", "value.imei" ]
   },
   {
     "builtin": false,
@@ -231,7 +231,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getimei",
-    "settings":[ "unique.gsm.imei", "value.imei" ]
+    "settings":[ "cell.unique.imei", "unique.gsm.imei", "value.imei" ]
   },
 
   {
@@ -253,7 +253,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getimei",
-    "settings":[ "unique.gsm.imei", "value.imei" ]
+    "settings":[ "cell.unique.imei", "unique.gsm.imei", "value.imei" ]
   },
 
   {
@@ -275,7 +275,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getimei",
-    "settings":[ "unique.gsm.imei", "value.imei" ]
+    "settings":[ "cell.unique.imei", "unique.gsm.imei", "value.imei" ]
   },
 
   {
@@ -297,7 +297,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getimei",
-    "settings":[ "unique.gsm.imei", "value.imei" ]
+    "settings":[ "cell.unique.imei", "unique.gsm.imei", "value.imei" ]
   },
   {
     "builtin": false,
@@ -318,7 +318,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getimei",
-    "settings":[ "unique.gsm.imei", "value.imei" ]
+    "settings":[ "cell.unique.imei", "unique.gsm.imei", "value.imei" ]
   },
 
   {
@@ -340,7 +340,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getimei",
-    "settings":[ "unique.gsm.imei", "value.imei" ]
+    "settings":[ "cell.unique.imei", "unique.gsm.imei", "value.imei" ]
   },
 
   {
@@ -362,7 +362,7 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getmeid",
-    "settings":[ "unique.gsm.meid", "value.meid" ]
+    "settings":[ "cell.unique.meid", "unique.gsm.meid", "value.meid" ]
   },
   {
     "builtin": false,
@@ -383,6 +383,6 @@
     "usage":true,
     "notify":false,
     "luaScript": "@id_telephony_getmeid",
-    "settings":[ "unique.gsm.meid", "value.meid" ]
+    "settings":[ "cell.unique.meid", "unique.gsm.meid", "value.meid" ]
   }
 ]

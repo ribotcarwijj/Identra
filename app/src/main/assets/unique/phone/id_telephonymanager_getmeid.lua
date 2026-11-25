@@ -5,6 +5,9 @@ function after(hook, param)
     local nmeName = "cell.unique.meid." .. tostring(settingIndex)
     if param:isForceSetting(nmeName, res) then
         local fake = param:getSetting(nmeName)
+        if param:stringIsEmpty(fake) then
+            return false
+        end
         param:setResult(fake)
         return true, param:safe(res), param:safe(fake)
     end

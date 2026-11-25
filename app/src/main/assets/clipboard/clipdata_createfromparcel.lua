@@ -6,10 +6,10 @@ function after(hook, param)
     local label = param:getSetting("clipboard.label")
     local contents = param:getSetting("clipboard.contents")
     if label == nil then
-        label = "l33t"
+        label = "Identra"
     end
     if contents == nil then
-        contents = "error"
+        contents = "Private"
     end
     local fake = result:newPlainText(label, contents)
     param:setResult(fake)
